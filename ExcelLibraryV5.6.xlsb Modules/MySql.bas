@@ -219,7 +219,7 @@ End Function
 
 ' This sub creates a connection, properly quotes headers and data set, and then injects it in the DB
 ' The sub splits very large matrices into manageable chunks.  The data is contained in a list object
-Public Function InjectListObjectIntoMySql(aListObject As ListObject, _
+Public Function InjectListObjectIntoMySql(AListObject As ListObject, _
                                           FieldNames As Variant, _
                                           TableName As String, _
                                           ServerAddress As String, _
@@ -235,7 +235,7 @@ Public Function InjectListObjectIntoMySql(aListObject As ListObject, _
     
     Let InjectListObjectIntoMySql = True
     
-    If aListObject.ListRows.Count = 0 Or EmptyArrayQ(FieldNames) Then
+    If AListObject.ListRows.Count = 0 Or EmptyArrayQ(FieldNames) Then
         Let InjectListObjectIntoMySql = False
     
         Exit Function
@@ -245,12 +245,12 @@ Public Function InjectListObjectIntoMySql(aListObject As ListObject, _
     Let QuotedFieldNames = AddSingleBackQuotesToAllArrayElements(FieldNames)
     
     ' Compute the number of chunks (e.g. number of insert statements we need)
-    Let NumberOfChunks = Application.Floor_Precise(aListObject.ListRows.Count / ChunkSize)
+    Let NumberOfChunks = Application.Floor_Precise(AListObject.ListRows.Count / ChunkSize)
     
     ' Insert each chunk
     For i = 1 To NumberOfChunks
         ' Single-quote ValuesMatrix
-        Let QuotedValuesMatrix = aListObject.ListRows(1 + (i - 1) * ChunkSize).Range.Resize(ChunkSize, aListObject.ListColumns.Count).Value2
+        Let QuotedValuesMatrix = AListObject.ListRows(1 + (i - 1) * ChunkSize).Range.Resize(ChunkSize, AListObject.ListColumns.Count).Value2
         Let QuotedValuesMatrix = AddSingleQuotesToAllArrayElements(QuotedValuesMatrix)
 
         Call ConnectAndExecuteInsertQuery(QuotedValuesMatrix, _
@@ -262,13 +262,13 @@ Public Function InjectListObjectIntoMySql(aListObject As ListObject, _
                                           ThePassword)
                                           
         If StatusBarMsgsFlag Then
-            Let Application.StatusBar = "Injected chunk " & i & " out of " & IIf(aListObject.ListRows.Count Mod ChunkSize = 0, 0, 1)
+            Let Application.StatusBar = "Injected chunk " & i & " out of " & IIf(AListObject.ListRows.Count Mod ChunkSize = 0, 0, 1)
         End If
     Next i
     
     ' Insert the remainder after chunking the data set
-    If aListObject.ListRows.Count Mod ChunkSize > 0 Then
-        Let QuotedValuesMatrix = aListObject.ListRows(1 + CLng(NumberOfChunks) * ChunkSize).Range.Resize(aListObject.ListRows.Count - (1 + CLng(NumberOfChunks) * ChunkSize) + 1, aListObject.ListColumns.Count).Value2
+    If AListObject.ListRows.Count Mod ChunkSize > 0 Then
+        Let QuotedValuesMatrix = AListObject.ListRows(1 + CLng(NumberOfChunks) * ChunkSize).Range.Resize(AListObject.ListRows.Count - (1 + CLng(NumberOfChunks) * ChunkSize) + 1, AListObject.ListColumns.Count).Value2
 
         Let QuotedValuesMatrix = AddSingleQuotesToAllArrayElements(QuotedValuesMatrix)
         

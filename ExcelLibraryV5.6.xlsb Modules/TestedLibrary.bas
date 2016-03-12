@@ -2,6 +2,225 @@ Attribute VB_Name = "TestedLibrary"
 Option Explicit
 Option Base 1
 
+Public Sub TestGetElement() ' Which also tests function ArrayFormulas.NormalizeIndex
+    Dim a(0 To 4) As Integer
+    Dim b(1 To 5) As Integer
+    Dim d(0 To 4, 0 To 5) As Integer
+    Dim e(1 To 5, 1 To 6) As Integer
+    Dim r As Long
+    Dim c As Long
+    
+    For r = 0 To 4
+        Let a(r) = r
+    Next
+    
+    Debug.Print "LBound(a,1), UBound(a,1) = " & LBound(a, 1), UBound(a, 1)
+    Debug.Print "a is:"
+    PrintArray a
+ 
+    For r = 0 To 10
+        Debug.Print "GetElement(a, " & r & ") is " & GetElement(a, r)
+    Next r
+    
+    For r = -1 To -10 Step -1
+        Debug.Print "GetElement(a, " & r & ") is " & GetElement(a, r)
+    Next r
+    
+    Debug.Print
+    
+    For r = 0 To 4
+        For c = 0 To 5
+            Let d(r, c) = r * 10 + c
+        Next c
+    Next r
+    
+    Debug.Print "LBound(d,1), UBound(d,1),LBound(d,2), UBound(d,2)  = " & _
+                LBound(d, 1), UBound(d, 1), LBound(d, 2), UBound(d, 2)
+    Debug.Print "d is:"
+    PrintArray d
+    Debug.Print
+    
+    For r = 0 To 10
+        Debug.Print "GetElement(d, " & r & ") is "
+        PrintArray GetElement(d, r)
+        Debug.Print
+    Next r
+    
+    For r = -1 To -10 Step -1
+        Debug.Print "GetElement(d, " & r & ") is "
+        PrintArray GetElement(d, r)
+        Debug.Print
+    Next r
+    
+    Debug.Print
+    
+    For r = 1 To 5
+        For c = 1 To 6
+            Let e(r, c) = r * 10 + c
+        Next c
+    Next r
+    
+    Debug.Print "LBound(e,1), UBound(e,1),LBound(e,2), UBound(e,2)  = " & _
+                LBound(e, 1), UBound(e, 1), LBound(e, 2), UBound(e, 2)
+    Debug.Print "e is:"
+    PrintArray e
+    Debug.Print
+    
+    For r = 0 To 10
+        Debug.Print "GetElement(e, " & r & ") is "
+        PrintArray GetElement(e, r)
+        Debug.Print
+    Next r
+    
+    For r = -1 To -10 Step -1
+        Debug.Print "GetElement(e, " & r & ") is "
+        PrintArray GetElement(e, r)
+        Debug.Print
+    Next r
+End Sub
+
+Public Sub TestArrayIndicesAndMyFunctions()
+    Dim r As Long
+    Dim c As Long
+    Dim a(0 To 2, 0 To 2) As Integer
+    Dim b(0 To 2) As Integer
+
+    For r = 0 To 2
+        For c = 0 To 2
+            Let a(r, c) = 3 * r + c + 1
+        Next c
+    Next r
+    
+    Debug.Print "a is:"
+    PrintArray a
+    Debug.Print "It has LBound(a,1), UBound(a,1) = ", LBound(a, 1), UBound(a, 1)
+    
+    Debug.Print "Take(a, 1)"
+    PrintArray Take(a, 1)
+    Debug.Print
+    
+    Debug.Print "Take(a, 2)"
+    PrintArray Take(a, 2)
+    Debug.Print
+    
+    Debug.Print "Take(a, Array(1))"
+    PrintArray Take(a, Array(1))
+    Debug.Print
+    
+    Debug.Print "Take(a, Array(2))"
+    PrintArray Take(a, Array(2))
+    Debug.Print
+
+    Debug.Print "GetRow(a, 1)"
+    PrintArray GetRow(a, 1)
+    Debug.Print
+    
+    Debug.Print "GetRow(a, 2)"
+    PrintArray GetRow(a, 2)
+    Debug.Print
+    
+    For r = 0 To 2
+        Let b(r) = 1 + r
+    Next
+    
+    Debug.Print "b is:"
+    PrintArray b
+    
+    Debug.Print
+    Debug.Print "Take(b, 1)"
+    PrintArray Take(b, 1)
+    
+    Debug.Print
+    Debug.Print "Take(b, 2)"
+    PrintArray Take(b, 2)
+    
+    Debug.Print
+    Debug.Print "Take(b, Array(1))"
+    PrintArray Take(b, Array(1))
+    
+    Debug.Print
+    Debug.Print "Take(b, Array(2))"
+    PrintArray Take(b, Array(2))
+    
+    Debug.Print
+    Debug.Print "Take(b, Array(3))"
+    PrintArray Take(b, Array(3))
+    
+    Debug.Print
+    Debug.Print "GetRow(b, 1)"
+    PrintArray GetRow(b, 1)
+    
+    Debug.Print
+    Debug.Print "GetRow(b, 2)"
+    PrintArray GetRow(b, 2)
+End Sub
+
+Public Sub TestGetSubArray()
+    Dim r As Integer
+    Dim a(1 To 5) As Integer
+    Dim b(0 To 4) As Integer
+    
+    For r = 1 To 5
+        Let a(r) = r
+    Next
+    
+    Debug.Print
+    Debug.Print "a is:"
+    PrintArray a
+    
+    Debug.Print
+    Debug.Print "GetSubArray(a, 1,1)"
+    PrintArray GetSubArray(a, 1, 1)
+
+    Debug.Print
+    Debug.Print "GetSubArray(a, 1, 2)"
+    PrintArray GetSubArray(a, 1, 2)
+    
+    Debug.Print
+    Debug.Print "GetSubArray(a, 1, 5)"
+    PrintArray GetSubArray(a, 1, 5)
+    
+    Debug.Print
+    Debug.Print "GetSubArray(a, 0, 2)"
+    PrintArray GetSubArray(a, 0, 2)
+    
+    Debug.Print
+    Debug.Print "GetSubArray(a, 0, 10)"
+    PrintArray GetSubArray(a, 0, 10)
+    
+    For r = 0 To 4
+        Let b(r) = r
+    Next
+    
+    Debug.Print
+    Debug.Print "b is:"
+    PrintArray b
+
+    Debug.Print
+    Debug.Print "GetSubArray(b, 0,0)"
+    PrintArray GetSubArray(b, 0, 0)
+
+    Debug.Print
+    Debug.Print "GetSubArray(b, 1,1)"
+    PrintArray GetSubArray(b, 1, 1)
+
+    Debug.Print
+    Debug.Print "GetSubArray(b, 1, 2)"
+    PrintArray GetSubArray(b, 1, 2)
+    
+    Debug.Print
+    Debug.Print "GetSubArray(b, 0, 4)"
+    PrintArray GetSubArray(b, 0, 4)
+    
+    Debug.Print
+    Debug.Print "GetSubArray(b, 0, 2)"
+    PrintArray GetSubArray(b, 0, 2)
+    
+    Debug.Print
+    Debug.Print "GetSubArray(b, 0, 10)"
+    PrintArray GetSubArray(b, 0, 10)
+End Sub
+
 Public Sub TestConvertDateToSerial()
     Dim var As Variant
     
@@ -11,15 +230,15 @@ Public Sub TestConvertDateToSerial()
 End Sub
 
 Public Sub TestCenterShapeInRange()
-    Dim AShape As Shape
+    Dim aShape As Shape
     Dim var As Variant
     
     For Each var In TempComputation.Shapes: var.Delete: Next
     
-    Set AShape = TempComputation.Shapes.AddFormControl(xlButtonControl, TempComputation.Range("B2").Left, TempComputation.Range("B2").Top, 100, 50)
-    Let AShape.Name = "MyShape"
+    Set aShape = TempComputation.Shapes.AddFormControl(xlButtonControl, TempComputation.Range("B2").Left, TempComputation.Range("B2").Top, 100, 50)
+    Let aShape.Name = "MyShape"
     
-    Call CenterShapeInRange(AShape, TempComputation.Range("A1:D6"))
+    Call CenterShapeInRange(aShape, TempComputation.Range("A1:D6"))
 End Sub
 
 Public Sub TestConstantArray()
@@ -221,163 +440,132 @@ End Sub
 
 ' This tests ArrayFormulas.Take
 Public Sub TestTake()
-    Dim a As Variant
+    Dim a() As Integer
+    Dim r As Long
+    Dim c As Long
     
-    Let a = Array(ConstantArray(1, 20000), ConstantArray(1, 20000), ConstantArray(3, 20000), ConstantArray(4, 20000))
-    Debug.Print "a = Array(ConstantArray(1, 20000), ConstantArray(2, 20000), ConstantArray(3, 20000), ConstantArray(4, 20000))"
-    Let a = Pack2DArray(a)
-    Let a = Take(a, Array(2, 3))
-    Debug.Print "Let a = Pack2DArray(a)"
-    Debug.Print "Let a = Take(a, Array(2, 3))"
-    Debug.Print "a has # dims = " & NumberOfDimensions(a)
-    Debug.Print "dim1 is " & GetNumberOfRows(a) & " and dim2 is " & GetNumberOfColumns(a)
-    Debug.Print
+'    Let a = Array(ConstantArray(1, 20000), ConstantArray(1, 20000), ConstantArray(3, 20000), ConstantArray(4, 20000))
+'    Debug.Print "a = Array(ConstantArray(1, 20000), ConstantArray(2, 20000), ConstantArray(3, 20000), ConstantArray(4, 20000))"
+'    Let a = Pack2DArray(a)
+'    Let a = Take(a, Array(2, 3))
+'    Debug.Print "Let a = Pack2DArray(a)"
+'    Debug.Print "Let a = Take(a, Array(2, 3))"
+'    Debug.Print "a has # dims = " & NumberOfDimensions(a)
+'    Debug.Print "dim1 is " & GetNumberOfRows(a) & " and dim2 is " & GetNumberOfColumns(a)
+'    Debug.Print
     
-    Let a = Array(1, 2, 3, 4, 5, 6, 7)
-    Debug.Print "Set a = Array(1, 2, 3, 4, 5, 6, 7)"
-    Debug.Print "Testing Take(a,1)"
-    PrintArray Take(a, 1)
-    Debug.Print
+    ReDim a(1 To 7)
+    For r = 1 To 7
+        Let a(r) = r
+    Next
     
-    Debug.Print "Testing Take(a,0)"
-    PrintArray Take(a, 0)
-    Debug.Print
+    Debug.Print "Set a equal to "
+    PrintArray a
+    Debug.Print "LBound(a,1), UBound(a,1) = " & LBound(a, 1), UBound(a, 1)
     
-    Debug.Print "Testing Take(a,4)"
-    PrintArray Take(a, 4)
-    Debug.Print
+    For r = -10 To 10
+        Debug.Print "Testing Take(a, " & r; ")"
+        PrintArray Take(a, r)
+    Next
     
-    Debug.Print "Testing Take(a,10)"
-    PrintArray Take(a, 10)
-    Debug.Print
+    For r = -10 To 10
+        Debug.Print "Testing Take(a, Array(" & r; "))"
+        PrintArray Take(a, Array(r))
+    Next
     
-    Debug.Print "Testing Take(a,-1)"
-    PrintArray Take(a, -1)
-    Debug.Print
+    ReDim a(0 To 6)
+    For r = 0 To 6
+        Let a(r) = r
+    Next
+    
+    Debug.Print "Set a equal to "
+    PrintArray a
+    Debug.Print "LBound(a,1), UBound(a,1) = " & LBound(a, 1), UBound(a, 1)
+    
+    For r = -10 To 10
+        Debug.Print "Testing Take(a, " & r; ")"
+        PrintArray Take(a, r)
+    Next
+    
+    For r = -10 To 10
+        Debug.Print "Testing Take(a, Array(" & r; "))"
+        PrintArray Take(a, Array(r))
+    Next
 
     Debug.Print "Testing Take(a,array(-1))"
     PrintArray Take(a, Array(-1))
     Debug.Print
 
-    Debug.Print "Testing Take(a,-3)"
-    PrintArray Take(a, -3)
+    ReDim a(1 To 9, 1 To 3)
+    For r = 1 To 9
+        For c = 1 To 3
+            Let a(r, c) = r
+        Next
+    Next
+    Debug.Print "Set a to:"
+    PrintArray a
+    Debug.Print
+    Debug.Print "Bounds LBound(a,1), UBound(a,1), LBound(a,2), UBound(a,2): ", LBound(a, 1), UBound(a, 1), LBound(a, 2), UBound(a, 2)
     Debug.Print
     
-    Debug.Print "Testing Take(a,array(-3))"
-    PrintArray Take(a, Array(-3))
-    Debug.Print
-    
-    Debug.Print "Testing Take(a,-10)"
-    PrintArray Take(a, -10)
-    Debug.Print
-    
-    Debug.Print "Testing Take(a,array(-10))"
-    PrintArray Take(a, Array(-10))
-    Debug.Print
-    
-    Debug.Print "Testing Take(a, Array(1))"
-    PrintArray Take(a, Array(1))
-    Debug.Print
+    For r = -10 To 10
+        Debug.Print "Testing Take(a," & r & ")"
+        PrintArray Take(a, r)
+        Debug.Print
+    Next
 
-    Debug.Print "Testing Take(a, Array(2))"
-    PrintArray Take(a, Array(2))
-    Debug.Print
-
-    Debug.Print "Testing Take(a, Array(7))"
-    PrintArray Take(a, Array(7))
-    Debug.Print
-    
-    Debug.Print "Testing Take(a, Array(0))"
-    PrintArray Take(a, Array(0))
-    Debug.Print
-    
-    Debug.Print "Testing Take(a, Array(8))"
-    PrintArray Take(a, Array(8))
-    Debug.Print
-
-    Debug.Print "Testing Take(a, Array(2,4))"
-    PrintArray Take(a, Array(2, 4))
-    Debug.Print
-    
-    Debug.Print "Testing Take(Array(1,2,3,4), Array(2,4))"
-    PrintArray Take(Array(1, 2, 3, 4), Array(2, 4))
-    
-    Debug.Print "Testing Take(a, Array(-2,-4))"
-    PrintArray Take(a, Array(-2, -4))
-    Debug.Print
-
-    Let a = [{1,1,1; 2,2,2; 3,3,3; 4,4,4; 5,5,5; 6,6,6; 7,7,7; 8,8,8; 9,9,9}]
-    Debug.Print "Set a = [{1,1,1; 2,2,2; 3,3,3; 4,4,4; 5,5,5; 6,6,6; 7,7,7; 8,8,8; 9,9,9}]"
-    Debug.Print "Testing Take(a,1)"
-    PrintArray Take(a, 1)
-    Debug.Print
-    
-    Debug.Print "Testing Take(a,0)"
-    PrintArray Take(a, 0)
-    Debug.Print
-    
-    Debug.Print "Testing Take(a,4)"
-    PrintArray Take(a, 4)
-    Debug.Print
-    
-    Debug.Print "Testing Take(a,10)"
-    PrintArray Take(a, 10)
-    Debug.Print
-    
-    Debug.Print "Testing Take(a,-1)"
-    PrintArray Take(a, -1)
-    Debug.Print
-    
-    Debug.Print "Testing Take(a,Array(-1))"
-    PrintArray Take(a, Array(-1))
-    Debug.Print
-    
-    Debug.Print "Testing Take(a,-3)"
-    PrintArray Take(a, -3)
-    Debug.Print
-    
-    Debug.Print "Testing Take(a,Array(-3))"
-    PrintArray Take(a, Array(-3))
-    Debug.Print
-    
-    Debug.Print "Testing Take(a,-10)"
-    PrintArray Take(a, -10)
-    Debug.Print
-    
-    Debug.Print "Testing Take(a,Array(-10))"
-    PrintArray Take(a, Array(-10))
-    Debug.Print
-    
-    Debug.Print "Testing Take(a,-20)"
-    PrintArray Take(a, -20)
-    Debug.Print
+    For r = -10 To 10
+        Debug.Print "Testing Take(a, Array(" & r & "))"
+        PrintArray Take(a, Array(r))
+        Debug.Print
+    Next
     
     Debug.Print "Testing Take(Array(),1)"
     PrintArray Take(Array(), 1)
     Debug.Print
     
-    Debug.Print "Testing Take(a,Array(1))"
-    PrintArray Take(a, Array(1))
+    
+    Debug.Print "Testing Take(a,Array(2,4,5))"
+    PrintArray Take(a, Array(2, 4, 5))
     Debug.Print
     
-    Debug.Print "Testing Take(a,Array(-1))"
-    PrintArray Take(a, Array(-1))
+    Debug.Print "Testing Take(a,Array(-2,-4,-5))"
+    PrintArray Take(a, Array(-2, -4, -5))
     Debug.Print
     
-    Debug.Print "Testing Take(a,Array(9))"
-    PrintArray Take(a, Array(9))
+    Debug.Print "Testing Take(a,Array())"
+    PrintArray Take(a, Array())
     Debug.Print
-
-    Debug.Print "Testing Take(a,Array(-9))"
-    PrintArray Take(a, Array(-9))
+    
     Debug.Print
-
-    Debug.Print "Testing Take(a,Array(10))"
-    PrintArray Take(a, Array(10))
+    
+    ReDim a(0 To 8, 0 To 3)
+    For r = 0 To 8
+        For c = 0 To 3
+            Let a(r, c) = r
+        Next
+    Next
+    
+    Debug.Print "Set a to:"
+    PrintArray a
     Debug.Print
+    Debug.Print "Bounds LBound(a,1), UBound(a,1), LBound(a,2), UBound(a,2): ", LBound(a, 1), UBound(a, 1), LBound(a, 2), UBound(a, 2)
+    Debug.Print
+    
+    For r = -10 To 10
+        Debug.Print "Testing Take(a," & r & ")"
+        PrintArray Take(a, r)
+        Debug.Print
+    Next
 
-    Debug.Print "Testing Take(a,Array(0))"
-    PrintArray Take(a, Array(0))
+    For r = -10 To 10
+        Debug.Print "Testing Take(a, Array(" & r & "))"
+        PrintArray Take(a, Array(r))
+        Debug.Print
+    Next
+    
+    Debug.Print "Testing Take(Array(),1)"
+    PrintArray Take(Array(), 1)
     Debug.Print
     
     Debug.Print "Testing Take(a,Array(2,4,5))"
@@ -623,7 +811,9 @@ End Sub
 Public Sub TestGetRow()
     Dim M As Variant
     Dim a(0 To 2, 0 To 2) As Integer
-    Dim i As Integer, j As Integer
+    Dim b(1 To 3, 1 To 3) As Integer
+    Dim i As Integer
+    Dim j As Integer
     
     For i = 0 To 2
         For j = 0 To 2
@@ -645,6 +835,28 @@ Public Sub TestGetRow()
     
     Debug.Print "Third row is:"
     PrintArray GetRow(a, 3)
+    Debug.Print
+    
+    For i = 1 To 3
+        For j = 1 To 3
+            Let b(i, j) = i + j * 3
+        Next j
+    Next i
+    
+    Debug.Print "The Array is:"
+    PrintArray b
+    Debug.Print
+    
+    Debug.Print "First row is:"
+    PrintArray GetRow(b, 1)
+    Debug.Print
+        
+    Debug.Print "Second row is:"
+    PrintArray GetRow(b, 2)
+    Debug.Print
+    
+    Debug.Print "Third row is:"
+    PrintArray GetRow(b, 3)
     Debug.Print
     
     Let M = [{1,2,3;4,5,6;7,8,9}]
@@ -1484,11 +1696,17 @@ Public Sub TestAppend()
     PrintArray Append(a, b)
     Debug.Print
 
-    
     Let a = [{7,8,9; 10,11,12}]
     Let b = [{1,2,3; 4,5,6}]
     Debug.Print "Testing Append(a, b) on a = [{7,8,9; 10,11,12}] and b = [{1,2,3; 4,5,6}]"
     PrintArray Append(a, b)
+    
+    Let a = Array(1, 2, 3)
+    Let b = Null
+    Debug.Print "Let a = Array(1, 2, 3)"
+    Debug.Print "Let b = Null"
+    PrintArray Append(a, b)
+    Debug.Print "The result has length " & GetArrayLength(Append(a, b))
 End Sub
 
 Public Sub TestCreateSequentialArray()
@@ -2976,6 +3194,13 @@ Public Sub TestStringJoin()
     Dim s As Variant
     Dim s2 As Variant
     
+    Let s = "1"
+    Let s2 = "one"
+    Debug.Print "Let s=""1"""
+    Debug.Print "Let s2=""one"""
+    Debug.Print "StringJoin(s,s2) = " & IIf(IsNull(StringJoin(s, s2)), "NULL", StringJoin(s, s2))
+    
+    Debug.Print
     Let s = Array("1", "2", "3")
     Debug.Print "Let s = Array(""1"", ""2"", ""3"")"
     Debug.Print "StringJoin(s) = " & StringJoin(s)
@@ -2999,6 +3224,13 @@ Public Sub TestStringJoin()
     Let s2 = "z"
     Debug.Print "Let s = Array(""a"", ""b"", ""c"")"
     Debug.Print "Let s2 = ""z"""
+    PrintArray StringJoin(s, s2)
+
+    Debug.Print
+    Let s = "z"
+    Let s2 = Array("a", "b", "c")
+    Debug.Print "Let s = ""z"""
+    Debug.Print "Let s2 = Array(""a"", ""b"", ""c"")"
     PrintArray StringJoin(s, s2)
     
     Debug.Print
@@ -4070,7 +4302,7 @@ Public Sub TestSelectUsingSql()
                      
     Debug.Print "The table is:"
     PrintArray SelectUsingSql("SELECT * FROM [TempComputation$];", _
-                              ThisWorkbook.Path & Application.PathSeparator & ThisWorkbook.Name)
+                              ThisWorkbook.Path & Application.PathSeparator & ThisWorkbook.Name, False, True)
     
     Call UpdateUsingSql("UPDATE [TempComputation$] SET [COL1] = NULL WHERE [COL2] < 0.5;", _
                         ThisWorkbook.Path & Application.PathSeparator & ThisWorkbook.Name)
@@ -4134,4 +4366,163 @@ Public Sub TestInnerJoinUsingSql()
     Call wsht2.Delete
     
     Let Application.DisplayAlerts = True
+End Sub
+
+Public Sub TestComputeDistribution()
+    Dim TheNumbers() As Double
+    Dim TheDistribution() As Double
+    
+    Let TheNumbers = ToDoubles(ConvertTo1DArray(RandomMatrix(1, 100)))
+    Let TheDistribution = ToDoubles(ComputeDistribution2(TheNumbers, 10))
+End Sub
+
+' The point of this test is to show that copying an array is really copying and
+' not setting a reference
+Public Sub ArrayCopyTest()
+    Dim a1() As Integer
+    Dim a2() As Integer
+    
+    Let a1 = ToIntegers(Array(1, 2, 3))
+    Let a2 = a1
+    
+    Let a2(LBound(a1)) = 10
+    
+    PrintArray a1
+    PrintArray a2
+End Sub
+
+Public Sub TestTranslateUsingDictionary()
+    Dim aDict As New Dictionary
+    Dim AnArray() As Variant
+    Dim var As Variant
+    
+    Let AnArray = Array(1, 2, 2, 3, 4, 5, 6, 3, 3, 5)
+    For Each var In AnArray
+        If Not aDict.Exists(Key:=var) Then
+            Call aDict.Add(Key:=var, Item:=var * var)
+        End If
+    Next
+    
+    Debug.Print "The original array is:"
+    PrintArray AnArray
+    Debug.Print
+    Debug.Print "The translated array is:"
+    PrintArray TranslateUsingDictionary(AnArray, aDict)
+    
+    Debug.Print
+    
+    Let AnArray = [{1,2,3;2,3,10;3,2,100}]
+    Debug.Print "The original array is:"
+    PrintArray AnArray
+    Debug.Print
+    Debug.Print "The translated array is:"
+    PrintArray TranslateUsingDictionary(AnArray, aDict)
+End Sub
+
+Public Sub TestBlankOutArraySequentialRepetitions()
+    Dim AnArray() As Variant
+    Dim var As Variant
+    
+    Let AnArray = Array(1, 2, 2, 3, 4, 5, 6, 3, 3, 5)
+    Debug.Print "Original array:"
+    PrintArray AnArray
+    Debug.Print
+    Debug.Print "Blanked out array:"
+    PrintArray BlankOutArraySequentialRepetitions(AnArray)
+    
+    Debug.Print
+    
+    Let AnArray = Array(1)
+    Debug.Print "Original array:"
+    PrintArray AnArray
+    Debug.Print
+    Debug.Print "Blanked out array:"
+    PrintArray BlankOutArraySequentialRepetitions(AnArray)
+    
+    Debug.Print
+    
+    Let AnArray = Array(1, 1)
+    Debug.Print "Original array:"
+    PrintArray AnArray
+    Debug.Print
+    Debug.Print "Blanked out array:"
+    PrintArray BlankOutArraySequentialRepetitions(AnArray)
+    
+    Debug.Print
+    
+    Let AnArray = Array(1, 2)
+    Debug.Print "Original array:"
+    PrintArray AnArray
+    Debug.Print
+    Debug.Print "Blanked out array:"
+    PrintArray BlankOutArraySequentialRepetitions(AnArray)
+    
+    Debug.Print
+    
+    Let AnArray = Array(1, 1)
+    Debug.Print "Original array:"
+    PrintArray AnArray
+    Debug.Print
+    Debug.Print "Blanked out array:"
+    PrintArray BlankOutArraySequentialRepetitions(AnArray)
+    
+    Debug.Print
+    
+    Let AnArray = Array()
+    Debug.Print "Original array:"
+    PrintArray AnArray
+    Debug.Print
+    Debug.Print "Blanked out array:"
+    PrintArray BlankOutArraySequentialRepetitions(AnArray)
+End Sub
+
+Public Sub TestWholeNumberQ()
+    Debug.Print "WholeNumberQ(1) is " & WholeNumberQ(1)
+    Debug.Print "WholeNumberQ(1.1) is " & WholeNumberQ(1.1)
+    Debug.Print "WholeNumberQ(-1) is " & WholeNumberQ(-1)
+    Debug.Print "WholeNumberQ(""a"") is " & WholeNumberQ("a")
+    Debug.Print "WholeNumberQ(""1"") is " & WholeNumberQ("1")
+End Sub
+
+Public Sub TestPositiveWholeNumberQ()
+    Debug.Print "PositiveWholeNumberQ(1) is " & PositiveWholeNumberQ(1)
+    Debug.Print "PositiveWholeNumberQ(1.1) is " & PositiveWholeNumberQ(1.1)
+    Debug.Print "PositiveWholeNumberQ(-1) is " & PositiveWholeNumberQ(-1)
+    Debug.Print "PositiveWholeNumberQ(""a"") is " & PositiveWholeNumberQ("a")
+    Debug.Print "PositiveWholeNumberQ(""1"") is " & PositiveWholeNumberQ("1")
+End Sub
+
+Public Sub TestNonNegativeWholeNumberQ()
+    Debug.Print "NonNegativeWholeNumberQ(1) is " & NonNegativeWholeNumberQ(1)
+    Debug.Print "NonNegativeWholeNumberQ(1.1) is " & NonNegativeWholeNumberQ(1.1)
+    Debug.Print "NonNegativeWholeNumberQ(-1) is " & NonNegativeWholeNumberQ(-1)
+    Debug.Print "NonNegativeWholeNumberQ(""a"") is " & NonNegativeWholeNumberQ("a")
+    Debug.Print "NonNegativeWholeNumberQ(""1"") is " & NonNegativeWholeNumberQ("1")
+    Debug.Print "NonNegativeWholeNumberQ(0) is " & NonNegativeWholeNumberQ(0)
+End Sub
+
+Public Sub TestNegativeWholeNumberQ()
+    Debug.Print "NegativeWholeNumberQ(1) is " & NegativeWholeNumberQ(1)
+    Debug.Print "NegativeWholeNumberQ(1.1) is " & NegativeWholeNumberQ(1.1)
+    Debug.Print "NegativeWholeNumberQ(-1) is " & NegativeWholeNumberQ(-1)
+    Debug.Print "NegativeWholeNumberQ(""a"") is " & NegativeWholeNumberQ("a")
+    Debug.Print "NegativeWholeNumberQ(""1"") is " & NegativeWholeNumberQ("1")
+    Debug.Print "NegativeWholeNumberQ(0) is " & NegativeWholeNumberQ(0)
+End Sub
+
+Public Sub TestRiffle()
+    PrintArray Riffle(Array(), "x")
+    PrintArray Riffle(Array(1), "x")
+    PrintArray Riffle(Array(1, 2), "x")
+    PrintArray Riffle(Array(1, 2, 3), "x")
+    PrintArray Riffle(Array(1, 2, 3, 4), "x")
+    PrintArray Riffle(Array(1, 2, 3, 4), "x", 2)
+    PrintArray Riffle(Array(1, 2, 3, 4), "x", 3)
+    PrintArray Riffle(Array(1, 2, 3, 4), "x", 4)
+    PrintArray Riffle(Array(1, 2, 3, 4), Array("x", "y"))
+    PrintArray Riffle(Array(1, 2, 3, 4), Array("x"))
+    PrintArray Riffle(Array(1), Array("x"))
+    PrintArray Riffle(Array(1, 2), Array("x"))
+    PrintArray Riffle(Array(1, 2, 3), Array("x"))
+    PrintArray Riffle(Array(1, 2, 3), Array("x", "y"))
 End Sub

@@ -12,19 +12,19 @@ End Function
 ' This function converts an Excel date into a serial date (e.g. YYYYMMDD)
 ' A Blank is Interpreted in Excel as 0 so we check to this
 ' Date after extracting using Year/Month/Day function
-Public Function ConvertDateToSerial(aDate As Date) As Long
+Public Function ConvertDateToSerial(ADate As Date) As Long
     Dim TheYear As String
     Dim TheMonth As String
     Dim TheDay As String
     
-    If aDate = CDate(0) Then
+    If ADate = CDate(0) Then
         Let ConvertDateToSerial = 0
         Exit Function
     End If
     
-    Let TheYear = CStr(Year(aDate))
-    Let TheMonth = CStr(Month(aDate))
-    Let TheDay = CStr(Day(aDate))
+    Let TheYear = CStr(Year(ADate))
+    Let TheMonth = CStr(Month(ADate))
+    Let TheDay = CStr(Day(ADate))
     
     If Len(TheMonth) < 2 Then
         Let TheMonth = "0" & TheMonth
@@ -38,16 +38,16 @@ Public Function ConvertDateToSerial(aDate As Date) As Long
 End Function
 
 ' Extract parts of a serial date
-Public Function GetYearFromSerialDate(aDate As Long) As Long
-    Let GetYearFromSerialDate = CLng(Left(aDate, 4))
+Public Function GetYearFromSerialDate(ADate As Long) As Long
+    Let GetYearFromSerialDate = CLng(Left(ADate, 4))
 End Function
 
-Public Function GetMonthFromSerialDate(aDate As Long) As Long
-    Let GetMonthFromSerialDate = CLng(Mid(aDate, 5, 2))
+Public Function GetMonthFromSerialDate(ADate As Long) As Long
+    Let GetMonthFromSerialDate = CLng(Mid(ADate, 5, 2))
 End Function
 
-Public Function GetDayFromSerialDate(aDate As Long) As Long
-    Let GetDayFromSerialDate = CLng(Right(aDate, 2))
+Public Function GetDayFromSerialDate(ADate As Long) As Long
+    Let GetDayFromSerialDate = CLng(Right(ADate, 2))
 End Function
 
 
@@ -116,6 +116,6 @@ Public Function GetSecondFromSerialTime(aTime As Long) As Long
     Let GetSecondFromSerialTime = CLng(Right(aTimeStr, 2))
 End Function
 
-Public Function ConvertDateTimeToMySQLFormat(aDate As Date) As String
-    Let ConvertDateTimeToMySQLFormat = Format(aDate, "yyyy-mm-dd hh:mm:ss")
+Public Function ConvertDateTimeToMySQLFormat(ADate As Date) As String
+    Let ConvertDateTimeToMySQLFormat = Format(ADate, "yyyy-mm-dd hh:mm:ss")
 End Function

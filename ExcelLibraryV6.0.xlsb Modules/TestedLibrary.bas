@@ -1769,15 +1769,15 @@ Public Sub TestCreateSequentialArray()
 End Sub
 
 Public Sub TestDumpInSheet()
-    Dim AnArray As Variant
+    Dim anArray As Variant
     
-    Let AnArray = [{1,"02", 3, "04", 5; 10, "020", 30, "040", 50}]
+    Let anArray = [{1,"02", 3, "04", 5; 10, "020", 30, "040", 50}]
     
     Call TempComputation.UsedRange.ClearContents
     Call TempComputation.UsedRange.ClearContents
     
-    Call DumpInSheet(AnArray, TempComputation.Range("A1"), PreserveColumnTextFormats:=True)
-    Call DumpInSheet(AnArray, TempComputation.Range("G1"))
+    Call DumpInSheet(anArray, TempComputation.Range("A1"), PreserveColumnTextFormats:=True)
+    Call DumpInSheet(anArray, TempComputation.Range("G1"))
 End Sub
 
 Public Sub TestSetRangeObjectToNothing()
@@ -3030,11 +3030,11 @@ Public Sub TestGetLogFileContents()
 End Sub
 
 Public Sub TestSelectFromArrayWithFunction()
-    Dim AnArray As Variant
+    Dim anArray As Variant
     
-    Let AnArray = Array(1, 2, 3, 4, -5, 6, -7, 8)
+    Let anArray = Array(1, 2, 3, 4, -5, 6, -7, 8)
     
-    PrintArray SelectFromArrayWithFunction(AnArray, "HelperForTestSelectFromArrayWithFunction")
+    PrintArray SelectFromArrayWithFunction(anArray, "HelperForTestSelectFromArrayWithFunction")
 End Sub
 
 Private Function HelperForTestSelectFromArrayWithFunction(arg As Integer) As Boolean
@@ -3206,7 +3206,7 @@ Public Sub TestCreateDictionary2()
 End Sub
 
 Public Sub TestCreateTableDictionary()
-    Dim AListObject As ListObject
+    Dim aListObject As ListObject
     Dim TheHeaders As Variant
     Dim TheData As Variant
     Dim r As Integer
@@ -3223,11 +3223,11 @@ Public Sub TestCreateTableDictionary()
     Let TheData = Prepend(TheData, TheHeaders)
     Call ToTemp(TheData)
     
-    Set AListObject = TempComputation.ListObjects.Add(SourceType:=xlSrcRange, _
+    Set aListObject = TempComputation.ListObjects.Add(SourceType:=xlSrcRange, _
                                                       Source:=[TempComputation!A1].CurrentRegion, _
                                                       XlListObjectHasHeaders:=xlYes)
     
-    Set aDict = CreateTableDictionary(AListObject, "Col1", Array("Col2", "Col5"))
+    Set aDict = CreateTableDictionary(aListObject, "Col1", Array("Col2", "Col5"))
     
 End Sub
 
@@ -3671,11 +3671,11 @@ End Sub
 
 Public Sub TestTransposeRectangular1DArrayOf1DArrays()
     Dim var As Variant
-    Dim AnArray As Variant
+    Dim anArray As Variant
     
-    Let AnArray = TransposeRectangular1DArrayOf1DArrays(Array(Array(1, 2, 3), Array(10, 20, 30)))
+    Let anArray = TransposeRectangular1DArrayOf1DArrays(Array(Array(1, 2, 3), Array(10, 20, 30)))
     
-    For Each var In AnArray
+    For Each var In anArray
         PrintArray var
     Next
     
@@ -3683,11 +3683,11 @@ End Sub
 
 Public Sub TestSimulatingMapThreadTransposeRectangular1DArrayOf1DArrays()
     Dim var As Variant
-    Dim AnArray As Variant
+    Dim anArray As Variant
     
-    Let AnArray = TransposeRectangular1DArrayOf1DArrays(Array(Array(1, 2, 3), Array(10, 20, 30)))
+    Let anArray = TransposeRectangular1DArrayOf1DArrays(Array(Array(1, 2, 3), Array(10, 20, 30)))
     
-    For Each var In AnArray
+    For Each var In anArray
         Debug.Print Application.Sum(var)
     Next
 
@@ -3725,7 +3725,7 @@ Public Sub TestAddColumnsToListObject()
     Let ColumnNames = Cast(Array("Col4", "Col5"), xlParamTypeChar)
     Let DataColumns = Array(col1, col2)
     
-    Call AddColumnsToListObject(AListObject:=lo, _
+    Call AddColumnsToListObject(aListObject:=lo, _
                                 ColumnNames:=ColumnNames, _
                                 TheData:=DataColumns)
 End Sub
@@ -4434,87 +4434,87 @@ End Sub
 
 Public Sub TestTranslateUsingDictionary()
     Dim aDict As New Dictionary
-    Dim AnArray() As Variant
+    Dim anArray() As Variant
     Dim var As Variant
     
-    Let AnArray = Array(1, 2, 2, 3, 4, 5, 6, 3, 3, 5)
-    For Each var In AnArray
+    Let anArray = Array(1, 2, 2, 3, 4, 5, 6, 3, 3, 5)
+    For Each var In anArray
         If Not aDict.Exists(Key:=var) Then
             Call aDict.Add(Key:=var, Item:=var * var)
         End If
     Next
     
     Debug.Print "The original array is:"
-    PrintArray AnArray
+    PrintArray anArray
     Debug.Print
     Debug.Print "The translated array is:"
-    PrintArray TranslateUsingDictionary(AnArray, aDict)
+    PrintArray TranslateUsingDictionary(anArray, aDict)
     
     Debug.Print
     
-    Let AnArray = [{1,2,3;2,3,10;3,2,100}]
+    Let anArray = [{1,2,3;2,3,10;3,2,100}]
     Debug.Print "The original array is:"
-    PrintArray AnArray
+    PrintArray anArray
     Debug.Print
     Debug.Print "The translated array is:"
-    PrintArray TranslateUsingDictionary(AnArray, aDict)
+    PrintArray TranslateUsingDictionary(anArray, aDict)
 End Sub
 
 Public Sub TestBlankOutArraySequentialRepetitions()
-    Dim AnArray() As Variant
+    Dim anArray() As Variant
     Dim var As Variant
     
-    Let AnArray = Array(1, 2, 2, 3, 4, 5, 6, 3, 3, 5)
+    Let anArray = Array(1, 2, 2, 3, 4, 5, 6, 3, 3, 5)
     Debug.Print "Original array:"
-    PrintArray AnArray
+    PrintArray anArray
     Debug.Print
     Debug.Print "Blanked out array:"
-    PrintArray BlankOutArraySequentialRepetitions(AnArray)
+    PrintArray BlankOutArraySequentialRepetitions(anArray)
     
     Debug.Print
     
-    Let AnArray = Array(1)
+    Let anArray = Array(1)
     Debug.Print "Original array:"
-    PrintArray AnArray
+    PrintArray anArray
     Debug.Print
     Debug.Print "Blanked out array:"
-    PrintArray BlankOutArraySequentialRepetitions(AnArray)
+    PrintArray BlankOutArraySequentialRepetitions(anArray)
     
     Debug.Print
     
-    Let AnArray = Array(1, 1)
+    Let anArray = Array(1, 1)
     Debug.Print "Original array:"
-    PrintArray AnArray
+    PrintArray anArray
     Debug.Print
     Debug.Print "Blanked out array:"
-    PrintArray BlankOutArraySequentialRepetitions(AnArray)
+    PrintArray BlankOutArraySequentialRepetitions(anArray)
     
     Debug.Print
     
-    Let AnArray = Array(1, 2)
+    Let anArray = Array(1, 2)
     Debug.Print "Original array:"
-    PrintArray AnArray
+    PrintArray anArray
     Debug.Print
     Debug.Print "Blanked out array:"
-    PrintArray BlankOutArraySequentialRepetitions(AnArray)
+    PrintArray BlankOutArraySequentialRepetitions(anArray)
     
     Debug.Print
     
-    Let AnArray = Array(1, 1)
+    Let anArray = Array(1, 1)
     Debug.Print "Original array:"
-    PrintArray AnArray
+    PrintArray anArray
     Debug.Print
     Debug.Print "Blanked out array:"
-    PrintArray BlankOutArraySequentialRepetitions(AnArray)
+    PrintArray BlankOutArraySequentialRepetitions(anArray)
     
     Debug.Print
     
-    Let AnArray = Array()
+    Let anArray = Array()
     Debug.Print "Original array:"
-    PrintArray AnArray
+    PrintArray anArray
     Debug.Print
     Debug.Print "Blanked out array:"
-    PrintArray BlankOutArraySequentialRepetitions(AnArray)
+    PrintArray BlankOutArraySequentialRepetitions(anArray)
 End Sub
 
 Public Sub TestWholeNumberQ()

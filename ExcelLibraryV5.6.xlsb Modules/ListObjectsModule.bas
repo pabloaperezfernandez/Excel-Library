@@ -38,7 +38,7 @@ End Function
 ' TheData is Array(Col1, Col2), with
 '                Col1 = Array(1000, 2000, 3000) and
 '                Col2 = Array(10000, 20000, 30000)
-Public Function AddColumnsToListObject(aListObject As ListObject, _
+Public Function AddColumnsToListObject(AListObject As ListObject, _
                                        ColumnNames() As String, _
                                        Optional TheData As Variant) As ListObject
     Dim var As Variant '
@@ -46,7 +46,7 @@ Public Function AddColumnsToListObject(aListObject As ListObject, _
     Dim lc As ListColumn
                                        
     ' Exit with null if there is a problem with the arguments
-    If aListObject Is Nothing Then
+    If AListObject Is Nothing Then
         Set AddColumnsToListObject = Nothing
         Exit Function
     End If
@@ -71,7 +71,7 @@ Public Function AddColumnsToListObject(aListObject As ListObject, _
                 Exit Function
             End If
             
-            If GetArrayLength(var) <> aListObject.ListRows.Count Then
+            If GetArrayLength(var) <> AListObject.ListRows.Count Then
                 Set AddColumnsToListObject = Nothing
                 Exit Function
             End If
@@ -82,21 +82,21 @@ Public Function AddColumnsToListObject(aListObject As ListObject, _
     
     If IsMissing(TheData) Then
         For Each var In ColumnNames
-            Let aListObject.ListColumns.Add.Name = var
+            Let AListObject.ListColumns.Add.Name = var
         Next
         
-        Set AddColumnsToListObject = aListObject
+        Set AddColumnsToListObject = AListObject
         Exit Function
     End If
     
     ' If the code gets here, optional parameter TheData has been provided
     For i = 1 To GetArrayLength(ColumnNames)
-        Set lc = aListObject.ListColumns.Add
+        Set lc = AListObject.ListColumns.Add
         Let lc.Name = ColumnNames(i)
         Call DumpInSheet(TransposeMatrix(TheData(i)), lc.DataBodyRange(1, 1))
     Next
     
-    Set AddColumnsToListObject = aListObject
+    Set AddColumnsToListObject = AListObject
 End Function
 
 ' The purpose of this function is to extend a2Darray1 with data from a2Darray2 using
@@ -423,7 +423,7 @@ End Function
 ' arrays are not allowed as keys in dictionaries.
 '
 ' If the parameters are inconsistent, the function returns Nothing
-Public Function CreateListObjectDictionary(aListObject As ListObject, _
+Public Function CreateListObjectDictionary(AListObject As ListObject, _
                                            IndexColumnName As String, _
                                            ItemColumnNames As Variant, _
                                            Optional RowsAsDictionariesQ As Variant = True) As Dictionary
@@ -438,14 +438,14 @@ Public Function CreateListObjectDictionary(aListObject As ListObject, _
     ' check inputs consistency
     
     ' Exit with Null if the list object has not list rows
-    If aListObject.ListRows.Count = 0 Then
+    If AListObject.ListRows.Count = 0 Then
         Set CreateListObjectDictionary = Nothing
         Exit Function
     End If
     
     ' Exit with Null if IndexColumnName does not correspond to a
     ' column in AListObject
-    If Not MemberQ(ConvertTo1DArray(aListObject.HeaderRowRange.Value2), IndexColumnName) Then
+    If Not MemberQ(ConvertTo1DArray(AListObject.HeaderRowRange.Value2), IndexColumnName) Then
         Set CreateListObjectDictionary = Nothing
         Exit Function
     End If
@@ -471,7 +471,7 @@ Public Function CreateListObjectDictionary(aListObject As ListObject, _
     ' Exit with Null if any one of the names in ItemColumnNames does not correspond
     ' to a column name in AListObject
     For Each var In ItemColumnNames
-        If Not MemberQ(ConvertTo1DArray(aListObject.HeaderRowRange.Value2), CStr(var)) Then
+        If Not MemberQ(ConvertTo1DArray(AListObject.HeaderRowRange.Value2), CStr(var)) Then
         Set CreateListObjectDictionary = Nothing
             Exit Function
         End If
@@ -480,8 +480,8 @@ Public Function CreateListObjectDictionary(aListObject As ListObject, _
     ' If the code gets to this point, all inputs are consistent
     Set aDict = New Dictionary
     
-    For r = 1 To aListObject.ListRows.Count
-        Let TheKey = aListObject.ListColumns(IndexColumnName).DataBodyRange(r, 1).Value2
+    For r = 1 To AListObject.ListRows.Count
+        Let TheKey = AListObject.ListColumns(IndexColumnName).DataBodyRange(r, 1).Value2
         
         If Not aDict.Exists(Key:=TheKey) Then
             If RowsAsDictionariesQ Then
@@ -489,7 +489,7 @@ Public Function CreateListObjectDictionary(aListObject As ListObject, _
                 
                 For Each var In ItemColumnNames
                     Call rowDict.Add(Key:=CStr(var), _
-                                     Item:=aListObject.ListColumns(var).DataBodyRange(r, 1).Value2)
+                                     Item:=AListObject.ListColumns(var).DataBodyRange(r, 1).Value2)
                 Next
                 
                 Call aDict.Add(Key:=TheKey, Item:=rowDict)
@@ -498,7 +498,7 @@ Public Function CreateListObjectDictionary(aListObject As ListObject, _
                 
                 For c = LBound(ItemColumnNames) To UBound(ItemColumnNames)
                     Let var = ItemColumnNames(c)
-                    Let TempVariantArray(c) = aListObject.ListColumns(var).DataBodyRange(r, 1).Value2
+                    Let TempVariantArray(c) = AListObject.ListColumns(var).DataBodyRange(r, 1).Value2
                 Next c
                 
                 Call aDict.Add(Key:=TheKey, Item:=TempVariantArray)
@@ -511,7 +511,7 @@ End Function
 
 ' The purpose of this routine is to export the given listobject as a CSV file.
 ' The optional flag (set to False by default) determines if the header row is exported.
-Public Sub ExportListObjectAsTsvFile(aListObject As ListObject, _
+Public Sub ExportListObjectAsTsvFile(AListObject As ListObject, _
                                      TheFullPathFileName As String, _
                                      Optional IncludeHeaderRowQ As Boolean = False)
     Dim r As Long
@@ -523,20 +523,20 @@ Public Sub ExportListObjectAsTsvFile(aListObject As ListObject, _
 
     If IncludeHeaderRowQ Then
         Let ARow = ""
-        For c = 1 To aListObject.ListColumns.Count - 1
-            Let ARow = ARow & aListObject.HeaderRowRange(1, c).Value2 & vbTab
+        For c = 1 To AListObject.ListColumns.Count - 1
+            Let ARow = ARow & AListObject.HeaderRowRange(1, c).Value2 & vbTab
         Next c
-        Let ARow = ARow & aListObject.HeaderRowRange(1, aListObject.ListColumns.Count).Value2
+        Let ARow = ARow & AListObject.HeaderRowRange(1, AListObject.ListColumns.Count).Value2
         Print #1, ARow
     End If
         
     ' Write the listrows
-    For r = 1 To aListObject.ListRows.Count
+    For r = 1 To AListObject.ListRows.Count
         Let ARow = ""
-        For c = 1 To aListObject.ListColumns.Count - 1
-            Let ARow = ARow & aListObject.DataBodyRange(r, c).Value2 & vbTab
+        For c = 1 To AListObject.ListColumns.Count - 1
+            Let ARow = ARow & AListObject.DataBodyRange(r, c).Value2 & vbTab
         Next c
-        Let ARow = ARow & aListObject.DataBodyRange(r, aListObject.ListColumns.Count).Value2
+        Let ARow = ARow & AListObject.DataBodyRange(r, AListObject.ListColumns.Count).Value2
         Print #1, ARow
     Next r
     

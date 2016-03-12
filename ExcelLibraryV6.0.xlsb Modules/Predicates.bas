@@ -35,13 +35,13 @@ End Function
 '
 ' RETURNED VALUE
 ' True when arg is a dimensioned, 1D, empty array.  Returns False otherwise
-Public Function EmptyArrayQ(AnArray As Variant) As Boolean
+Public Function EmptyArrayQ(anArray As Variant) As Boolean
     ' Exit with False if AnArray is not an array or has not been dimensioned
-    If Not DimensionedQ(AnArray) Then
+    If Not DimensionedQ(anArray) Then
         Let EmptyArrayQ = False
     ' Return True if we have an array with lower Ubound than LBound
     Else
-        Let EmptyArrayQ = UBound(AnArray, 1) - LBound(AnArray, 1) < 0
+        Let EmptyArrayQ = UBound(anArray, 1) - LBound(anArray, 1) < 0
     End If
 End Function
 
@@ -56,6 +56,8 @@ End Function
 ' 6. Worksheet
 ' 7. Workbook
 ' 8. ListObject
+' 9. Null
+' 10. Empty
 '
 ' It returns False otherwise
 '
@@ -64,15 +66,6 @@ End Function
 '
 ' RETURNED VALUE
 ' True when arg has one of the types detailed above. Returns False otherwise
-' Returns True if the argument is one of the following:
-' 1. Number
-' 2. String
-' 3. Date
-' 4. Boolean
-' 5. Error
-' 6. Worksheet
-' 7. Workbook
-' 8. ListObject
 Public Function AtomicQ(arg As Variant) As Boolean
     Let AtomicQ = False
     
@@ -121,22 +114,22 @@ End Function
 ' my systems.  Returns False otherwise.
 Public Function NumberQ(arg As Variant) As Boolean
     Dim AByte As Byte
-    Dim AnInteger As Integer
+    Dim anInteger As Integer
     Dim ALong As Long
     Dim ASingle As Single
-    Dim ADouble As Double
+    Dim aDouble As Double
     Dim ACurrency As Currency
 
     Select Case TypeName(arg)
         Case TypeName(AByte)
             Let NumberQ = True
-        Case TypeName(AnInteger)
+        Case TypeName(anInteger)
             Let NumberQ = True
         Case TypeName(ALong)
             Let NumberQ = True
         Case TypeName(ASingle)
             Let NumberQ = True
-        Case TypeName(ADouble)
+        Case TypeName(aDouble)
             Let NumberQ = True
         Case TypeName(ACurrency)
             Let NumberQ = True
@@ -168,13 +161,13 @@ End Function
 ' True or False depending on whether or not its argument is a whole number.
 Public Function WholeNumberQ(arg As Variant) As Boolean
     Dim AByte As Byte
-    Dim AnInteger As Integer
+    Dim anInteger As Integer
     Dim ALong As Long
 
     Select Case TypeName(arg)
         Case TypeName(AByte)
             Let WholeNumberQ = True
-        Case TypeName(AnInteger)
+        Case TypeName(anInteger)
             Let WholeNumberQ = True
         Case TypeName(ALong)
             Let WholeNumberQ = True
@@ -312,7 +305,7 @@ End Function
 ' RETURNED VALUE
 ' True or False depending on whether arg is dimensioned, non-empty and all its elements satisfy
 ' Predicates.StringQ
-Public Function StringArrayQ(AnArray As Variant) As Boolean
+Public Function StringArrayQ(anArray As Variant) As Boolean
     Let StringArrayQ = ArrayQHelper(arg, "StringQ")
 End Function
 
@@ -340,7 +333,7 @@ End Function
 ' RETURNED VALUE
 ' True or False depending on whether arg is dimensioned, non-empty and all its elements satisfy
 ' Predicates.DictionaryQ
-Public Function DictionaryArrayQ(AnArray As Variant) As Boolean
+Public Function DictionaryArrayQ(anArray As Variant) As Boolean
     Let DictionaryArrayQ = ArrayQHelper(arg, "DictionaryQ")
 End Function
 
@@ -366,7 +359,7 @@ End Function
 ' RETURNED VALUE
 ' True or False depending on whether arg is dimensioned, non-empty and all its elements satisfy
 ' Predicates.WholeNumberOrStringQ
-Public Function WholeNumberOrStringArrayQ(AnArray As Variant) As Boolean
+Public Function WholeNumberOrStringArrayQ(anArray As Variant) As Boolean
     Let WholeNumberOrStringArrayQ = ArrayQHelper(arg, "WholeNumberOrStringQ")
 End Function
 
@@ -381,17 +374,17 @@ End Function
 ' RETURNED VALUE
 ' True or False depending on whether arg is dimensioned, non-empty and all its elements satisfy
 ' Predicates.WholeNumberOrStringQ
-Private Function ArrayQHelper(AnArray As Variant, PredicateName As String) As Boolean
+Private Function ArrayQHelper(anArray As Variant, PredicateName As String) As Boolean
     Dim var As Variant
 
     Let ArrayQHelper = True
 
-    If Not IsArray(AnArray) Then
+    If Not IsArray(anArray) Then
         Let ArrayQHelper = False
         Exit Function
     End If
     
-    For Each var In AnArray
+    For Each var In anArray
         If Not Application.Run(ThisWorkbook.Name & "!" & PredicateName, var) Then
             Let ArrayQHelper = False
             Exit Function
@@ -453,16 +446,12 @@ End Function
 Public Function MatrixQ(arg As Variant) As Boolean
     Dim var As Variant
     
-    If NumberOfDimensions(arg) <> 2 Then
-        Let MatrixQ = False
-        Exit Function
-    End If
+    Let MatrixQ = False
+    
+    If NumberOfDimensions(arg) <> 2 Then Exit Function
 
     For Each var In arg
-        If Not IsNumeric(var) Then
-            Let MatrixQ = False
-            Exit Function
-        End If
+        If Not NumberQ(var) Then Exit Function
     Next
     
     Let MatrixQ = True
@@ -690,12 +679,12 @@ End Function
 
 ' This predicate returns true if the given workbook has a worksheet with name WorksheetName.
 ' Otherwise, it returns false
-Public Function WorksheetExistsQ(AWorkBook As Workbook, WorksheetName As String) As Boolean
+Public Function WorksheetExistsQ(aWorkbook As Workbook, WorksheetName As String) As Boolean
     Let WorksheetExistsQ = False
     
     On Error Resume Next
     
-    Let WorksheetExistsQ = AWorkBook.Worksheets(WorksheetName).Name <> ""
+    Let WorksheetExistsQ = aWorkbook.Worksheets(WorksheetName).Name <> ""
     Exit Function
     
     On Error GoTo 0
@@ -703,12 +692,12 @@ End Function
 
 ' This predicate returns true if the given workbook has a sheet with name WorksheetName.
 ' Otherwise, it returns false
-Public Function SheetExistsQ(AWorkBook As Workbook, SheetName As String) As Boolean
+Public Function SheetExistsQ(aWorkbook As Workbook, SheetName As String) As Boolean
     ' returns TRUE if the sheet exists in the active workbook
     Let SheetExistsQ = False
     
     On Error GoTo NoSuchSheet
-    If Len(AWorkBook.Sheets(SheetName).Name) > 0 Then
+    If Len(aWorkbook.Sheets(SheetName).Name) > 0 Then
         Let SheetExistsQ = True
         Exit Function
     End If

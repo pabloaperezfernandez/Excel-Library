@@ -7,6 +7,7 @@ Function esc(txt As String)
     esc = Trim(Replace(txt, "'", "\'"))
 End Function
 
+
 ' This function returns its string after replacing all "\" with "/".
 Public Function ReplaceForwardSlashWithBackSlash(txt As String) As String
     Let ReplaceForwardSlashWithBackSlash = Trim(Replace(txt, "\", "/"))
@@ -54,7 +55,7 @@ End Function
 '    in the array
 Public Function StringJoin(StringOrStringArray1 As Variant, Optional StringOrStringArray2 As Variant) As Variant
     Dim NewString As String
-    Dim anArray As Variant
+    Dim AnArray As Variant
     Dim CurrentString As Variant
     Dim i As Long
     Dim IndexOffset As Integer
@@ -103,29 +104,29 @@ Public Function StringJoin(StringOrStringArray1 As Variant, Optional StringOrStr
     
     ' Process case of StringOrStringArray1 being a string and StringOrStringArray2 an array
     If StringQ(StringOrStringArray1) Then
-        Let anArray = StringOrStringArray2
+        Let AnArray = StringOrStringArray2
         For i = LBound(StringOrStringArray2) To UBound(StringOrStringArray2)
-            Let anArray(i) = StringOrStringArray1 & anArray(i)
+            Let AnArray(i) = StringOrStringArray1 & AnArray(i)
         Next
-        Let StringJoin = anArray
+        Let StringJoin = AnArray
         
         Exit Function
     End If
     
     ' Process case of StringOrStringArray2 being an array and StringOrStringArray1 a string
     If StringQ(StringOrStringArray2) Then
-        Let anArray = StringOrStringArray1
+        Let AnArray = StringOrStringArray1
         For i = LBound(StringOrStringArray1) To UBound(StringOrStringArray1)
-            Let anArray(i) = anArray(i) & StringOrStringArray2
+            Let AnArray(i) = AnArray(i) & StringOrStringArray2
         Next
-        Let StringJoin = anArray
+        Let StringJoin = AnArray
         
         Exit Function
     End If
     
     
     ' Process case of both parameters being strings
-    Let anArray = StringOrStringArray1
+    Let AnArray = StringOrStringArray1
         
     If LBound(StringOrStringArray1) = 0 And LBound(StringOrStringArray2) = 1 Then
         Let IndexOffset = -1
@@ -135,11 +136,11 @@ Public Function StringJoin(StringOrStringArray1 As Variant, Optional StringOrStr
         Let IndexOffset = 1
     End If
     
-    For i = LBound(anArray) To UBound(anArray)
-        Let anArray(i) = anArray(i) & StringOrStringArray2(IndexOffset + i)
+    For i = LBound(AnArray) To UBound(AnArray)
+        Let AnArray(i) = AnArray(i) & StringOrStringArray2(IndexOffset + i)
     Next i
     
-    Let StringJoin = anArray
+    Let StringJoin = AnArray
 End Function
 
 ' This function creates a functional parameter string from the array of parameters.

@@ -9,62 +9,52 @@ Option Base 1
 ' To insert in AnArray's last position, set ThePos = UBound(AnArray)+1
 ' You should think of acceptable values for ThePos as insert TheElt at ThePos and
 ' shifting to the right anything in AnArray at and to the right of ThePos.
-Public Function Insert(anArray As Variant, TheElt As Variant, ThePos As Long) As Variant
+Public Function Insert(AnArray As Variant, TheElt As Variant, ThePos As Long) As Variant
     Dim FirstPart As Variant
     Dim LastPart As Variant
-    
-    If Not DimensionedQ(anArray) Then
-        Let Insert = Null
-        Exit Function
-    End If
-    
-    If IsNull(TheElt) Then
-        Let Insert = Null
-        Exit Function
-    End If
 
     ' Exit returning AnArray unevaluated if neither AnArray nor ThePos make sense
-    If Not RowVectorQ(anArray) And Not MatrixQ(anArray) Or Not IsNumeric(ThePos) Then
-        Let Insert = Null
+    If Not RowVectorQ(AnArray) And Not MatrixQ(AnArray) Or Not IsNumeric(ThePos) Then
+        Let Insert = AnArray
         Exit Function
     End If
     
     ' Exit if AnArray is a row vector TheElt is not an atomic expression
-    If RowVectorQ(anArray) And IsArray(TheElt) Then
-        Let Insert = Null
+    If RowVectorQ(AnArray) And IsArray(TheElt) Then
+        Let Insert = AnArray
         Exit Function
     End If
     
     ' Exit if AnArray is a matrix and TheElt is not a row vector with the same number of columns
-    If MatrixQ(anArray) And (Not RowVectorQ(TheElt) Or GetNumberOfColumns(anArray) <> GetArrayLength(TheElt)) Then
-        Let Insert = Null
+    If MatrixQ(AnArray) And (Not RowVectorQ(TheElt) Or GetNumberOfColumns(AnArray) <> GetArrayLength(TheElt)) Then
+        Let Insert = AnArray
         Exit Function
     End If
 
     ' Exit if ThePos has unaceptable values
-    If ThePos < LBound(anArray) Or ThePos > UBound(anArray) + 1 Then
-        Let Insert = Null
+    If ThePos < LBound(AnArray) Or ThePos > UBound(AnArray) + 1 Then
+        Let Insert = AnArray
         Exit Function
     End If
     
     ' Based on ThePos, shift parts of AnArray and insert TheElt
-    If ThePos = LBound(anArray, 1) Then
-        If NumberOfDimensions(anArray) = 1 Then
-            Let Insert = Prepend(anArray, TheElt)
+    If ThePos = LBound(AnArray) Then
+        If NumberOfDimensions(AnArray) = 1 Then
+            Let Insert = Prepend(AnArray, TheElt)
         Else
-            Let Insert = Stack2DArrays(TheElt, anArray)
+            Let Insert = Stack2DArrays(TheElt, AnArray)
         End If
-    ElseIf ThePos = UBound(anArray, 1) + 1 Then
-        If NumberOfDimensions(anArray) = 1 Then
-            Let Insert = Append(anArray, TheElt)
+    ElseIf ThePos = UBound(AnArray) + 1 Then
+        If NumberOfDimensions(AnArray) = 1 Then
+            Let Insert = Append(AnArray, TheElt)
         Else
-            Let Insert = Stack2DArrays(anArray, TheElt)
+            Let Insert = Stack2DArrays(AnArray, TheElt)
         End If
-    ElseIf ThePos > LBound(anArray, 1) And ThePos <= UBound(anArray, 1) Then
-        Let FirstPart = Take(anArray, ThePos - 1)
-        Let LastPart = Take(anArray, -(UBound(anArray, 1) - ThePos + 1))
+    ElseIf ThePos > LBound(AnArray) And ThePos <= UBound(AnArray) Then
+        Let FirstPart = Take(AnArray, ThePos - 1)
+        Let LastPart = Take(AnArray, -(UBound(AnArray) - ThePos + 1))
         
-        If NumberOfDimensions(anArray) = 1 Then
+        If NumberOfDimensions(AnArray) = 1 Then
             Let FirstPart = Append(FirstPart, TheElt)
             Let Insert = ConcatenateArrays(FirstPart, LastPart)
         Else
@@ -72,7 +62,7 @@ Public Function Insert(anArray As Variant, TheElt As Variant, ThePos As Long) As
             Let Insert = Stack2DArrays(FirstPart, LastPart)
         End If
     Else
-        Let Insert = anArray
+        Let Insert = AnArray
     End If
 End Function
 
@@ -142,25 +132,25 @@ End Function
 ' 2. Take(Array(1,2,3,4), Array(2)) returns 2
 '
 ' A similar thing happens to 2D arrays, but the elements are then the rows of the matrix.
-Public Function Take(anArray As Variant, N As Variant) As Variant
+Public Function Take(AnArray As Variant, N As Variant) As Variant
     Dim c As Long
     Dim r As Long
     Dim ResultArray() As Variant
     Dim var As Variant
     Dim RenormalizedIndices() As Long
 
-    If Not DimensionedQ(anArray) Then
+    If Not DimensionedQ(AnArray) Then
         Let Take = Null
         Exit Function
     End If
     
-    If EmptyArrayQ(anArray) Then
+    If EmptyArrayQ(AnArray) Then
         Let Take = Null
         Exit Function
     End If
     
     ' Exit with argument unchanged if the array has fewer or more than 2 dimensions
-    If NumberOfDimensions(anArray) > 2 Then
+    If NumberOfDimensions(AnArray) > 2 Then
         Let Take = Null
         Exit Function
     End If
@@ -176,14 +166,14 @@ Public Function Take(anArray As Variant, N As Variant) As Variant
     If WholeNumberQ(N) Then
         If N = 0 Then
             Let Take = Array()
-        ElseIf NumberOfDimensions(anArray) = 1 And N > 0 Then
-            Let Take = GetSubArray(anArray, LBound(anArray), CLng(N) - (1 - LBound(anArray, 1)))
-        ElseIf NumberOfDimensions(anArray) = 1 And N < 0 Then
-            Let Take = GetSubArray(anArray, Application.Max(UBound(anArray) + N + 1, LBound(anArray)), UBound(anArray))
-        ElseIf NumberOfDimensions(anArray) = 2 And N > 0 Then
-            Let Take = GetSubMatrix(anArray, LBound(anArray, 1), Application.Min(LBound(anArray, 1) + N - 1, UBound(anArray, 1)), LBound(anArray, 2), UBound(anArray, 2))
-        ElseIf NumberOfDimensions(anArray) = 2 And N < 0 Then
-            Let Take = GetSubMatrix(anArray, Application.Max(UBound(anArray, 1) + N + 1, LBound(anArray, 1)), UBound(anArray, 1), LBound(anArray, 2), UBound(anArray, 2))
+        ElseIf NumberOfDimensions(AnArray) = 1 And N > 0 Then
+            Let Take = GetSubArray(AnArray, LBound(AnArray), CLng(N) - (1 - LBound(AnArray, 1)))
+        ElseIf NumberOfDimensions(AnArray) = 1 And N < 0 Then
+            Let Take = GetSubArray(AnArray, Application.Max(UBound(AnArray) + N + 1, LBound(AnArray)), UBound(AnArray))
+        ElseIf NumberOfDimensions(AnArray) = 2 And N > 0 Then
+            Let Take = GetSubMatrix(AnArray, LBound(AnArray, 1), Application.Min(LBound(AnArray, 1) + N - 1, UBound(AnArray, 1)), LBound(AnArray, 2), UBound(AnArray, 2))
+        ElseIf NumberOfDimensions(AnArray) = 2 And N < 0 Then
+            Let Take = GetSubMatrix(AnArray, Application.Max(UBound(AnArray, 1) + N + 1, LBound(AnArray, 1)), UBound(AnArray, 1), LBound(AnArray, 2), UBound(AnArray, 2))
         End If
         
         Exit Function
@@ -191,16 +181,16 @@ Public Function Take(anArray As Variant, N As Variant) As Variant
     
     ' Proceed with N as an array of integer indices
     ' Turn all indices in N into their positive equivalents
-    Let RenormalizedIndices = ToLongs(NormalizeArrayIndices(anArray:=anArray, _
+    Let RenormalizedIndices = ToLongs(NormalizeArrayIndices(AnArray:=AnArray, _
                                                             TheIndices:=ToLongs(N), _
                                                             NormalizeTo1Q:=True))
     
     ' Proceed if AnArray is 1D
-    If NumberOfDimensions(anArray) = 1 Then
+    If NumberOfDimensions(AnArray) = 1 Then
         ReDim ResultArray(LBound(N, 1) To UBound(N, 1))
         
         For c = LBound(RenormalizedIndices, 1) To UBound(RenormalizedIndices, 1)
-            Let ResultArray(c) = anArray(RenormalizedIndices(c) - IIf(N(c) <= 0, 0, (1 - LBound(anArray, 1))))
+            Let ResultArray(c) = AnArray(RenormalizedIndices(c) - IIf(N(c) <= 0, 0, (1 - LBound(AnArray, 1))))
         Next
         
         Let Take = ResultArray
@@ -214,9 +204,9 @@ Public Function Take(anArray As Variant, N As Variant) As Variant
     
     For r = 1 To GetArrayLength(N)
         If N(r) < 0 Then
-            Let ResultArray(r) = GetElement(anArray, GetElement(N, r - (1 - LBound(N, 1))))
+            Let ResultArray(r) = GetElement(AnArray, GetElement(N, r - (1 - LBound(N, 1))))
         Else
-            Let ResultArray(r) = GetElement(anArray, GetElement(N, r - (1 - LBound(N, 1))) - (1 - LBound(anArray, 1)))
+            Let ResultArray(r) = GetElement(AnArray, GetElement(N, r - (1 - LBound(N, 1))) - (1 - LBound(AnArray, 1)))
         End If
     Next
     
@@ -224,21 +214,21 @@ Public Function Take(anArray As Variant, N As Variant) As Variant
 End Function
 
 ' This function is the exact opposite of Take.  It removes what take would return
-Public Function Drop(anArray As Variant, N As Variant) As Variant
+Public Function Drop(AnArray As Variant, N As Variant) As Variant
     Dim DualIndex As Variant
     Dim RenormalizedIndices As Variant
     Dim var As Variant
     Dim c As Long
 
     ' Exit with argument unchanged if the array has fewer or more than 2 dimensions
-    If NumberOfDimensions(anArray) = 0 Or NumberOfDimensions(anArray) > 2 Then
-        Let Drop = anArray
+    If NumberOfDimensions(AnArray) = 0 Or NumberOfDimensions(AnArray) > 2 Then
+        Let Drop = AnArray
 
         Exit Function
     End If
 
     ' Exit with argument unchanged if either N is not an integer or an array of integers
-    If Not (IsNumeric(N) Or IsNumericArrayQ(N)) Or EmptyArrayQ(N) Or EmptyArrayQ(anArray) Then
+    If Not (IsNumeric(N) Or IsNumericArrayQ(N)) Or EmptyArrayQ(N) Or EmptyArrayQ(AnArray) Then
         Let Drop = Array()
         
         Exit Function
@@ -256,21 +246,21 @@ Public Function Drop(anArray As Variant, N As Variant) As Variant
     
     ' Case of N an integer
     If NumberOfDimensions(N) = 0 Then
-        If NumberOfDimensions(anArray) = 1 Then
+        If NumberOfDimensions(AnArray) = 1 Then
             If N > 0 Then
-                Let DualIndex = IIf(N > GetArrayLength(anArray), Array(), -(GetArrayLength(anArray) - N))
+                Let DualIndex = IIf(N > GetArrayLength(AnArray), Array(), -(GetArrayLength(AnArray) - N))
             Else
-                Let DualIndex = IIf(Abs(N) > GetArrayLength(anArray), Array(), GetArrayLength(anArray) + N)
+                Let DualIndex = IIf(Abs(N) > GetArrayLength(AnArray), Array(), GetArrayLength(AnArray) + N)
             End If
         Else
             If N > 0 Then
-                Let DualIndex = IIf(N > GetNumberOfRows(anArray), Array(), -(GetNumberOfRows(anArray) - N))
+                Let DualIndex = IIf(N > GetNumberOfRows(AnArray), Array(), -(GetNumberOfRows(AnArray) - N))
             Else
-                Let DualIndex = IIf(Abs(N) > GetNumberOfRows(anArray), Array(), GetNumberOfRows(anArray) + N)
+                Let DualIndex = IIf(Abs(N) > GetNumberOfRows(AnArray), Array(), GetNumberOfRows(AnArray) + N)
             End If
         End If
     
-        Let Drop = Take(anArray, DualIndex)
+        Let Drop = Take(AnArray, DualIndex)
     
         Exit Function
     End If
@@ -281,11 +271,11 @@ Public Function Drop(anArray As Variant, N As Variant) As Variant
     Let c = 1
     Let RenormalizedIndices = ConstantArray(Empty, GetArrayLength(N))
     For Each var In N
-        Let RenormalizedIndices(c) = IIf(var < 0, IIf(NumberOfDimensions(anArray) = 1, GetNumberOfColumns(anArray), GetNumberOfRows(anArray)) + var + 1, var)
+        Let RenormalizedIndices(c) = IIf(var < 0, IIf(NumberOfDimensions(AnArray) = 1, GetNumberOfColumns(AnArray), GetNumberOfRows(AnArray)) + var + 1, var)
         Let c = c + 1
     Next
     
-    Let Drop = Take(anArray, ComplementOfSets(CreateSequentialArray(1, GetArrayLength(anArray)), RenormalizedIndices))
+    Let Drop = Take(AnArray, ComplementOfSets(CreateSequentialArray(1, GetArrayLength(AnArray)), RenormalizedIndices))
 End Function
 
 ' This function does the same thing as Worksheet.CopyFromRecordSet, but it does not fail when a column has an entry more than 255 characters long.
@@ -758,11 +748,11 @@ Public Function GetRow(aMatrix As Variant, RowNumber As Long) As Variant
 End Function
 
 Public Function GetSubRow(aMatrix As Variant, RowNumber As Long, StartColumn As Long, EndColumn As Long) As Variant
-    Dim anArray As Variant
+    Dim AnArray As Variant
     
-    Let anArray = GetRow(aMatrix, RowNumber)
+    Let AnArray = GetRow(aMatrix, RowNumber)
     
-    Let GetSubRow = GetSubArray(anArray, StartColumn, EndColumn)
+    Let GetSubRow = GetSubArray(AnArray, StartColumn, EndColumn)
 End Function
 
 ' Works on both 1D and 2D arrays, returning what makes sense (e.g. 1D arrays are interpreted as 1-row 2D arrays)
@@ -806,100 +796,100 @@ End Function
 ' Returns the requested subset of an column in a two-dimension array
 ' The result is returned as a one-dimensional array
 Public Function GetSubColumn(aMatrix As Variant, ColumnNumber As Long, StartRow As Long, EndRow As Long) As Variant
-    Dim anArray As Variant
+    Dim AnArray As Variant
     
-    Let anArray = GetColumn(aMatrix, ColumnNumber)
+    Let AnArray = GetColumn(aMatrix, ColumnNumber)
     
-    Let GetSubColumn = GetSubArray(anArray, StartRow, EndRow)
+    Let GetSubColumn = GetSubArray(AnArray, StartRow, EndRow)
 End Function
 
 ' Returns the first element of the array if one dimensional or the first row if two dimensional
 ' Returns Empty if arg not an array
 ' Returns Empty for an empty array
-Public Function First(anArray As Variant) As Variant
-    If Not IsArray(anArray) Then
+Public Function First(AnArray As Variant) As Variant
+    If Not IsArray(AnArray) Then
         Let First = Empty
-    ElseIf NumberOfDimensions(anArray) = 1 Then
-        If EmptyArrayQ(anArray) Then
+    ElseIf NumberOfDimensions(AnArray) = 1 Then
+        If EmptyArrayQ(AnArray) Then
             Let First = Empty
         Else
-            Let First = anArray(LBound(anArray))
+            Let First = AnArray(LBound(AnArray))
         End If
-    ElseIf NumberOfDimensions(anArray) = 2 Then
-        Let First = ConvertTo1DArray(GetRow(anArray, 1))
+    ElseIf NumberOfDimensions(AnArray) = 2 Then
+        Let First = ConvertTo1DArray(GetRow(AnArray, 1))
     Else
-        Let First = anArray
+        Let First = AnArray
     End If
 End Function
 
 ' Returns the first element of the array if one dimensional or the last row if two dimensional
 ' Returns Empty if arg not an array
 ' Returns Empty for an empty array
-Public Function Last(anArray As Variant) As Variant
-    If Not IsArray(anArray) Then
+Public Function Last(AnArray As Variant) As Variant
+    If Not IsArray(AnArray) Then
         Let Last = Empty
-    ElseIf NumberOfDimensions(anArray) = 1 Then
-        If EmptyArrayQ(anArray) Then
+    ElseIf NumberOfDimensions(AnArray) = 1 Then
+        If EmptyArrayQ(AnArray) Then
             Let Last = Empty
         Else
-            Let Last = anArray(UBound(anArray))
+            Let Last = AnArray(UBound(AnArray))
         End If
-    ElseIf NumberOfDimensions(anArray) = 2 Then
-        Let Last = ConvertTo1DArray(GetRow(anArray, GetNumberOfRows(anArray)))
+    ElseIf NumberOfDimensions(AnArray) = 2 Then
+        Let Last = ConvertTo1DArray(GetRow(AnArray, GetNumberOfRows(AnArray)))
     Else
-        Let Last = anArray
+        Let Last = AnArray
     End If
 End Function
 
 ' Returns a sub-array with all but the last element of the array.
 ' If the array is empty or has only one element, this function returns array() (e.g. empty array)
-Public Function Most(anArray As Variant) As Variant
-    If Not IsArray(anArray) Then
-        Let Most = anArray
-    ElseIf NumberOfDimensions(anArray) = 1 Then
-        If EmptyArrayQ(anArray) Then
+Public Function Most(AnArray As Variant) As Variant
+    If Not IsArray(AnArray) Then
+        Let Most = AnArray
+    ElseIf NumberOfDimensions(AnArray) = 1 Then
+        If EmptyArrayQ(AnArray) Then
             Let Most = Array()
-        ElseIf UBound(anArray) <= LBound(anArray) Then
+        ElseIf UBound(AnArray) <= LBound(AnArray) Then
             Let Most = Array()
-        ElseIf UBound(anArray) > LBound(anArray) Then
-            Let Most = GetSubArray(anArray, LBound(anArray), UBound(anArray) - 1)
+        ElseIf UBound(AnArray) > LBound(AnArray) Then
+            Let Most = GetSubArray(AnArray, LBound(AnArray), UBound(AnArray) - 1)
         End If
-    ElseIf NumberOfDimensions(anArray) = 2 Then
-        If EmptyArrayQ(anArray) Then
+    ElseIf NumberOfDimensions(AnArray) = 2 Then
+        If EmptyArrayQ(AnArray) Then
             Let Most = Array()
-        ElseIf UBound(anArray) <= LBound(anArray) Then
+        ElseIf UBound(AnArray) <= LBound(AnArray) Then
             Let Most = Array()
-        ElseIf UBound(anArray) > LBound(anArray) Then
-            Let Most = GetSubMatrix(anArray, LBound(anArray, 1), UBound(anArray, 1) - 1, LBound(anArray, 2), UBound(anArray, 2))
+        ElseIf UBound(AnArray) > LBound(AnArray) Then
+            Let Most = GetSubMatrix(AnArray, LBound(AnArray, 1), UBound(AnArray, 1) - 1, LBound(AnArray, 2), UBound(AnArray, 2))
         End If
     Else
-        Let Most = anArray
+        Let Most = AnArray
     End If
 End Function
 
 ' Returns a sub-array with all but the first element of the array.
 ' If the array is empty or has only one element, this function returns array() (e.g. empty array)
-Public Function Rest(anArray As Variant) As Variant
-    If Not IsArray(anArray) Then
-        Let Rest = anArray
-    ElseIf NumberOfDimensions(anArray) = 1 Then
-        If EmptyArrayQ(anArray) Then
+Public Function Rest(AnArray As Variant) As Variant
+    If Not IsArray(AnArray) Then
+        Let Rest = AnArray
+    ElseIf NumberOfDimensions(AnArray) = 1 Then
+        If EmptyArrayQ(AnArray) Then
             Let Rest = Array()
-        ElseIf UBound(anArray) <= LBound(anArray) Then
+        ElseIf UBound(AnArray) <= LBound(AnArray) Then
             Let Rest = Array()
-        ElseIf UBound(anArray) > LBound(anArray) Then
-            Let Rest = GetSubArray(anArray, LBound(anArray) + 1, UBound(anArray))
+        ElseIf UBound(AnArray) > LBound(AnArray) Then
+            Let Rest = GetSubArray(AnArray, LBound(AnArray) + 1, UBound(AnArray))
         End If
-    ElseIf NumberOfDimensions(anArray) = 2 Then
-        If EmptyArrayQ(anArray) Then
+    ElseIf NumberOfDimensions(AnArray) = 2 Then
+        If EmptyArrayQ(AnArray) Then
             Let Rest = Array()
-        ElseIf UBound(anArray) <= LBound(anArray) Then
+        ElseIf UBound(AnArray) <= LBound(AnArray) Then
             Let Rest = Array()
-        ElseIf UBound(anArray) > LBound(anArray) Then
-            Let Rest = GetSubMatrix(anArray, LBound(anArray, 1) + 1, UBound(anArray, 1), LBound(anArray, 2), UBound(anArray, 2))
+        ElseIf UBound(AnArray) > LBound(AnArray) Then
+            Let Rest = GetSubMatrix(AnArray, LBound(AnArray, 1) + 1, UBound(AnArray, 1), LBound(AnArray, 2), UBound(AnArray, 2))
         End If
     Else
-        Let Rest = anArray
+        Let Rest = AnArray
     End If
 End Function
 
@@ -911,29 +901,29 @@ End Function
 '
 ' This works differently from simply using Stack2DArrays(AnArray, AnElt) since it can return
 ' something that is not a matrix.  Stack2DArrays ALWAYS returns a matrix
-Public Function Append(anArray As Variant, AnElt As Variant) As Variant
+Public Function Append(AnArray As Variant, AnElt As Variant) As Variant
     Dim NewArray As Variant
     Dim AnArrayNumberOfDims As Integer
     
-    Let AnArrayNumberOfDims = NumberOfDimensions(anArray)
+    Let AnArrayNumberOfDims = NumberOfDimensions(AnArray)
     
-    If Not IsArray(anArray) Or AnArrayNumberOfDims > 2 Or _
-       (AnArrayNumberOfDims = 2 And GetNumberOfColumns(anArray) <> GetNumberOfColumns(AnElt)) Then
+    If Not IsArray(AnArray) Or AnArrayNumberOfDims > 2 Or _
+       (AnArrayNumberOfDims = 2 And GetNumberOfColumns(AnArray) <> GetNumberOfColumns(AnElt)) Then
         Let Append = Null
     
         Exit Function
     End If
     
     If IsNull(AnElt) Then
-        Let Append = anArray
+        Let Append = AnArray
         Exit Function
     End If
     
     ' If AnArray is 1D, then put the new element (whatever it may be) as the last element of a
     ' 1D array 1 longer than the original one.
-    If NumberOfDimensions(anArray) = 1 Then
-        Let NewArray = anArray
-        ReDim Preserve NewArray(LBound(anArray) To UBound(anArray) + 1)
+    If NumberOfDimensions(AnArray) = 1 Then
+        Let NewArray = AnArray
+        ReDim Preserve NewArray(LBound(AnArray) To UBound(AnArray) + 1)
         Let NewArray(UBound(NewArray)) = AnElt
         
         Let Append = NewArray
@@ -943,7 +933,7 @@ Public Function Append(anArray As Variant, AnElt As Variant) As Variant
     
     ' If AnArray has two dims and the same number of columns as AnElt, then stack AnElt as the bottom
     ' of AnArray
-    Let Append = Stack2DArrays(anArray, AnElt)
+    Let Append = Stack2DArrays(AnArray, AnElt)
 End Function
 
 ' Stacks two arrays (may be 1 or 2-dimensional) on top of each other, provided they
@@ -1021,35 +1011,35 @@ End Function
 ' This works differently from simply using Stack2DArrays(AnArray, AnElt)
 ' This one can give you something that is not a matrix.  Stack2DArrays ALWAYS returns
 ' a matrix
-Public Function Prepend(anArray As Variant, AnElt As Variant) As Variant
+Public Function Prepend(AnArray As Variant, AnElt As Variant) As Variant
     Dim NewArray() As Variant
     Dim AnArrayNumberOfDims As Integer
     Dim i As Long
     
-    Let AnArrayNumberOfDims = NumberOfDimensions(anArray)
+    Let AnArrayNumberOfDims = NumberOfDimensions(AnArray)
     
-    If Not IsArray(anArray) Or AnArrayNumberOfDims > 2 Or _
-       (AnArrayNumberOfDims = 2 And GetNumberOfColumns(anArray) <> GetNumberOfColumns(AnElt)) Then
+    If Not IsArray(AnArray) Or AnArrayNumberOfDims > 2 Or _
+       (AnArrayNumberOfDims = 2 And GetNumberOfColumns(AnArray) <> GetNumberOfColumns(AnElt)) Then
         Let Prepend = Null
     
         Exit Function
     End If
     
     If IsNull(AnElt) Then
-        Let Prepend = anArray
+        Let Prepend = AnArray
         Exit Function
     End If
     
     ' If AnArray is 1D, then put the new element (whatever it may be) as the last element of a
     ' 1D array 1 longer than the original one.
-    If NumberOfDimensions(anArray) = 1 Then
-        ReDim NewArray(LBound(anArray) To UBound(anArray) + 1)
+    If NumberOfDimensions(AnArray) = 1 Then
+        ReDim NewArray(LBound(AnArray) To UBound(AnArray) + 1)
         
-        For i = LBound(anArray) + 1 To UBound(anArray) + 1
-            Let NewArray(i) = anArray(i - 1)
+        For i = LBound(AnArray) + 1 To UBound(AnArray) + 1
+            Let NewArray(i) = AnArray(i - 1)
         Next i
         
-        Let NewArray(LBound(anArray)) = AnElt
+        Let NewArray(LBound(AnArray)) = AnElt
         
         Let Prepend = NewArray
         
@@ -1058,7 +1048,7 @@ Public Function Prepend(anArray As Variant, AnElt As Variant) As Variant
     
     ' If AnArray has two dims and the same number of columns as AnElt, then stack AnElt as the bottom
     ' of AnArray
-    Let Prepend = Stack2DArrays(AnElt, anArray)
+    Let Prepend = Stack2DArrays(AnElt, AnArray)
 End Function
 
 ' Results a 2D array with the appropriate sub-matrix.  Every attempt is made to return a sensible sub-array when
@@ -1133,30 +1123,30 @@ End Function
 ' This function expects StartIndex and EndIndex to follow the indexing convention of AnArray.
 ' In other words, it respects 0 and 1 as the starting indices of an Array.  The resulting
 ' subarray is returned with the same indexing convention as the original array.
-Public Function GetSubArray(anArray As Variant, StartIndex As Long, EndIndex As Long) As Variant
+Public Function GetSubArray(AnArray As Variant, StartIndex As Long, EndIndex As Long) As Variant
     Dim i As Long
     Dim ReturnedArray() As Variant
     
-    If Not IsArray(anArray) Or EndIndex < StartIndex Then
+    If Not IsArray(AnArray) Or EndIndex < StartIndex Then
         Let GetSubArray = Null
         Exit Function
     End If
     
-    If NumberOfDimensions(anArray) = 0 Then
-        Let GetSubArray = Array(anArray)
-    ElseIf NumberOfDimensions(anArray) = 1 Then
-        Let StartIndex = Application.Max(StartIndex, LBound(anArray))
-        Let EndIndex = Application.Min(EndIndex, UBound(anArray))
+    If NumberOfDimensions(AnArray) = 0 Then
+        Let GetSubArray = Array(AnArray)
+    ElseIf NumberOfDimensions(AnArray) = 1 Then
+        Let StartIndex = Application.Max(StartIndex, LBound(AnArray))
+        Let EndIndex = Application.Min(EndIndex, UBound(AnArray))
     
-        ReDim ReturnedArray(LBound(anArray) To EndIndex - StartIndex + LBound(anArray))
+        ReDim ReturnedArray(LBound(AnArray) To EndIndex - StartIndex + LBound(AnArray))
     
-        For i = LBound(anArray) To EndIndex - StartIndex + LBound(anArray)
-            Let ReturnedArray(i) = anArray(StartIndex + i - LBound(anArray))
+        For i = LBound(AnArray) To EndIndex - StartIndex + LBound(AnArray)
+            Let ReturnedArray(i) = AnArray(StartIndex + i - LBound(AnArray))
         Next i
         
         Let GetSubArray = ReturnedArray
     Else
-        Let GetSubArray = anArray
+        Let GetSubArray = AnArray
     End If
     
     If Not IsArray(GetSubArray) Then
@@ -1378,63 +1368,101 @@ Public Function StackArrayAs1DArray(aMatrix As Variant) As Variant
 End Function
 
 ' This function dumps an array (1D or 2D) into worksheet TempComputation and then returns a reference to
-' the underlying range.  Worksheet TempComputation is cleared before dumping.  Dimensions are preserved.
+' the underlying range.  Worksheet TempComputation is cleared before dump.  Dimensions are preserved.
 ' This means that an m x n array is dumped into an m x n range.  This function should not be used if
 ' leading single quotes (e.g "'") are part of the array's elements.
-Public Function ToTemp(anArray As Variant, Optional PreserveColumnTextFormats As Boolean = False) As Range
-    Call TempComputation.UsedRange.ClearFormats
+Public Function ToTemp(AnArray As Variant, Optional PreserveColumnTextFormats As Boolean = False) As Range
+    Dim c As Integer
+    Dim NumberOfRows As Long
+    Dim NumberOfColumns As Integer
+    Dim NumDimensions As Integer
+    
+    ' Exit if AnArray is empty
+    If EmptyArrayQ(AnArray) Or IsEmpty(AnArray) Then
+        Let ToTemp = Null
+        Exit Function
+    End If
+    
+    ' Clear used range
+    Call TempComputation.Cells.ClearFormats
     Call TempComputation.UsedRange.ClearContents
+        
+    Let NumDimensions = NumberOfDimensions(AnArray)
+        
+    Let NumberOfRows = GetNumberOfRows(AnArray)
+    Let NumberOfColumns = GetNumberOfColumns(AnArray)
+    
+    If PreserveColumnTextFormats Then
+        If NumberOfDimensions(AnArray) = 0 Then
+            Let TempComputation.Range("A1").NumberFormat = IIf(TypeName(AnArray) = "String", "@", "0")
+            Let TempComputation.Range("A1").Value2 = AnArray
+        Else
+            ' Loop over the target columns, applying the format of the array's first column element to the entire,
+            ' corresponding target range column
+            For c = 0 To NumberOfColumns - 1
+                If NumDimensions = 1 Then
+                    Let TempComputation.Range("A1").Offset(0, c).Resize(NumberOfRows, 1).NumberFormat = IIf(TypeName(AnArray(c + 1)) = "String", "@", "0")
+                Else
+                    Let TempComputation.Range("A1").Offset(0, c).Resize(NumberOfRows, 1).NumberFormat = IIf(TypeName(AnArray(1, c + 1)) = "String", "@", "0")
+                End If
+            Next c
+        End If
+    End If
+    
+    If NumDimensions = 1 Then
+        Let TempComputation.Range("A1").Resize(1, NumberOfColumns).Value2 = AnArray
+        
+        Set ToTemp = TempComputation.Range("A1").Resize(1, NumberOfColumns)
+    Else
+        Let TempComputation.Range("A1").Resize(NumberOfRows, NumberOfColumns).Value2 = AnArray
 
-    Set ToTemp = DumpInSheet(anArray, TempComputation.Range("A1"), PreserveColumnTextFormats)
+        Set ToTemp = TempComputation.Range("A1").Resize(NumberOfRows, NumberOfColumns)
+    End If
 End Function
 
 ' This function dumps an array (1D or 2D) into the worksheet with the range referenced by TopLeftCorner as the cell in the upper-left
 ' corner. It then returns a reference to the underlying range. Dimensions are preserved.  This means that an m x n array is dumped into
 ' an m x n range.
-'
-' This function is a helper for ArrayFormulas.DumpInSheet()
-Private Function DumpInSheetHelper(anArray As Variant, TopLeftCorner As Range, Optional PreserveColumnTextFormats As Boolean = False) As Range
+Public Function DumpInTempPositionWithoutFirstClearing(AnArray As Variant, TopLeftCorner As Range, Optional PreserveColumnTextFormats As Boolean = False) As Range
     Dim c As Integer
     Dim NumberOfRows As Long
     Dim NumberOfColumns As Integer
     Dim NumDimensions As Integer
 
-    Let NumDimensions = NumberOfDimensions(anArray)
-    Let NumberOfRows = GetNumberOfRows(anArray)
-    Let NumberOfColumns = GetNumberOfColumns(anArray)
+    Let NumDimensions = NumberOfDimensions(AnArray)
+    Let NumberOfRows = GetNumberOfRows(AnArray)
+    Let NumberOfColumns = GetNumberOfColumns(AnArray)
     
     If PreserveColumnTextFormats Then
         If NumDimensions = 0 Then
-            Let TempComputation.Range("A1").NumberFormat = IIf(TypeName(anArray) = "String", "@", "0")
-            Let TempComputation.Range("A1").Value2 = anArray
+            Let TempComputation.Range("A1").NumberFormat = IIf(TypeName(AnArray) = "String", "@", "0")
+            Let TempComputation.Range("A1").Value2 = AnArray
         Else
             ' Loop over the target columns, applying the format of the array's first column element to
             ' the entire, corresponding target range column
             For c = 0 To NumberOfColumns - 1
                 If NumDimensions = 1 Then
-                    Let TopLeftCorner.Offset(0, c).Resize(NumberOfRows, 1).NumberFormat = IIf(TypeName(anArray(c + LBound(anArray))) = "String", "@", "0")
+                    Let TopLeftCorner.Offset(0, c).Resize(NumberOfRows, 1).NumberFormat = IIf(TypeName(AnArray(c + LBound(AnArray))) = "String", "@", "0")
                 Else
-                    Let TopLeftCorner.Offset(0, c).Resize(NumberOfRows, 1).NumberFormat = IIf(TypeName(anArray(1, c + LBound(anArray, 2))) = "String", "@", "0")
+                    Let TopLeftCorner.Offset(0, c).Resize(NumberOfRows, 1).NumberFormat = IIf(TypeName(AnArray(1, c + LBound(AnArray, 2))) = "String", "@", "0")
                 End If
             Next c
         End If
     End If
 
     If NumDimensions = 1 Then
-        Let TopLeftCorner(1, 1).Resize(1, NumberOfColumns).Value2 = anArray
-        Set DumpInSheetHelper = TopLeftCorner(1, 1).Resize(1, NumberOfColumns)
+        Let TopLeftCorner(1, 1).Resize(1, NumberOfColumns).Value2 = AnArray
+        Set DumpInTempPositionWithoutFirstClearing = TopLeftCorner(1, 1).Resize(1, NumberOfColumns)
     Else
-        Let TopLeftCorner(1, 1).Resize(NumberOfRows, NumberOfColumns).Value2 = anArray
-        Set DumpInSheetHelper = TopLeftCorner(1, 1).Resize(NumberOfRows, NumberOfColumns)
+        Let TopLeftCorner(1, 1).Resize(NumberOfRows, NumberOfColumns).Value2 = AnArray
+        Set DumpInTempPositionWithoutFirstClearing = TopLeftCorner(1, 1).Resize(NumberOfRows, NumberOfColumns)
     End If
 End Function
 
-' This is an alias for function DumpInSheetHelper above
+' This is an alias for function DumpInTempPositionWithoutFirstClearing above
 ' This one handles empty arrays correctly, by doing nothing and returning Null
-Public Function DumpInSheet(anArray As Variant, _
-                            TopLeftCorner As Range, _
-                            Optional PreserveColumnTextFormats As Boolean = False) As Range
-    If IsNull(anArray) Then
+Public Function DumpInSheet(AnArray As Variant, TopLeftCorner As Range, Optional PreserveColumnTextFormats As Boolean = False) As Range
+    If IsNull(AnArray) Then
         Set DumpInSheet = Nothing
         Exit Function
     End If
@@ -1444,31 +1472,31 @@ Public Function DumpInSheet(anArray As Variant, _
         Exit Function
     End If
     
-    If StringQ(anArray) Or IsNumeric(anArray) Or IsDate(anArray) Then
-        Let TopLeftCorner.Value2 = anArray
+    If StringQ(AnArray) Or IsNumeric(AnArray) Or IsDate(AnArray) Then
+        Let TopLeftCorner.Value2 = AnArray
         Set DumpInSheet = TopLeftCorner
         Exit Function
     End If
 
-    If Not DimensionedQ(anArray) Then
+    If Not DimensionedQ(AnArray) Then
         Set DumpInSheet = Nothing
         Exit Function
     End If
 
-    If EmptyArrayQ(anArray) Or IsEmpty(anArray) Then
+    If EmptyArrayQ(AnArray) Or IsEmpty(AnArray) Then
         Set DumpInSheet = Nothing
         Exit Function
     End If
     
-    If GetArrayLength(anArray) = 0 Then
+    If GetArrayLength(AnArray) = 0 Then
         Set DumpInSheet = Nothing
         Exit Function
     End If
 
     If PreserveColumnTextFormats Then
-        Set DumpInSheet = DumpInSheetHelper(anArray, TopLeftCorner, PreserveColumnTextFormats:=PreserveColumnTextFormats)
+        Set DumpInSheet = DumpInTempPositionWithoutFirstClearing(AnArray, TopLeftCorner, PreserveColumnTextFormats:=PreserveColumnTextFormats)
     Else
-        Set DumpInSheet = DumpInSheetHelper(anArray, TopLeftCorner)
+        Set DumpInSheet = DumpInTempPositionWithoutFirstClearing(AnArray, TopLeftCorner)
     End If
 End Function
 
@@ -1731,6 +1759,8 @@ Public Function ElementwiseAddition(matrix1 As Variant, matrix2 As Variant) As V
     ' Return the result
     Let ElementwiseAddition = TheResults
 End Function
+
+
 
 ' This function performs matrix element-wise division on two 0D, 1D, or 2D arrays.  Clearly, the two arrays
 ' must have the same dimensions.  The result is returned as an array of the same dimensions as those of
@@ -2201,7 +2231,7 @@ End Function
 ' on the value of TimeDimension, and then returns a reference to the underlying range.  Dimensions are preserved.
 ' This means that an m x n array is dumped into an m x n range. A 1D array is dumped vertically to allow for bigger arrays since Excel 2010
 ' has a horizontal maximum under 17K columns.
-Public Function LagNRange(anArray As Variant, N As Variant, TimeDimension As String) As Range
+Public Function LagNRange(AnArray As Variant, N As Variant, TimeDimension As String) As Range
     Dim tmpSht As Worksheet
     
     ' Set reference to worksheet TempComputation
@@ -2211,20 +2241,20 @@ Public Function LagNRange(anArray As Variant, N As Variant, TimeDimension As Str
     tmpSht.UsedRange.ClearContents
     
     If TimeDimension = "Vertical" Then
-        If NumberOfDimensions(anArray) = 1 Then
-            Let tmpSht.Range("A1").Offset(N, 0).Resize(UBound(anArray)).Value2 = Application.Transpose(anArray)
-            Set LagNRange = tmpSht.Range("A1").Resize(UBound(anArray) + N, 1)
+        If NumberOfDimensions(AnArray) = 1 Then
+            Let tmpSht.Range("A1").Offset(N, 0).Resize(UBound(AnArray)).Value2 = Application.Transpose(AnArray)
+            Set LagNRange = tmpSht.Range("A1").Resize(UBound(AnArray) + N, 1)
         Else
-            Let tmpSht.Range("A1").Offset(N, 0).Resize(UBound(anArray, 1), UBound(anArray, 2)).Value2 = anArray
-            Set LagNRange = tmpSht.Range("A1").Resize(UBound(anArray, 1) + N, UBound(anArray, 2))
+            Let tmpSht.Range("A1").Offset(N, 0).Resize(UBound(AnArray, 1), UBound(AnArray, 2)).Value2 = AnArray
+            Set LagNRange = tmpSht.Range("A1").Resize(UBound(AnArray, 1) + N, UBound(AnArray, 2))
         End If
     ElseIf TimeDimension = "Horizontal" Then
-        If NumberOfDimensions(anArray) = 1 Then
-            Let tmpSht.Range("A1").Offset(0, N).Resize(UBound(anArray)).Value2 = Application.Transpose(anArray)
-            Set LagNRange = tmpSht.Range("A1").Resize(UBound(anArray) + N, 1)
+        If NumberOfDimensions(AnArray) = 1 Then
+            Let tmpSht.Range("A1").Offset(0, N).Resize(UBound(AnArray)).Value2 = Application.Transpose(AnArray)
+            Set LagNRange = tmpSht.Range("A1").Resize(UBound(AnArray) + N, 1)
         Else
-            Let tmpSht.Range("A1").Offset(0, N).Resize(UBound(anArray, 1), UBound(anArray, 2)).Value2 = anArray
-            Set LagNRange = tmpSht.Range("A1").Resize(UBound(anArray, 1), UBound(anArray, 2) + N)
+            Let tmpSht.Range("A1").Offset(0, N).Resize(UBound(AnArray, 1), UBound(AnArray, 2)).Value2 = AnArray
+            Set LagNRange = tmpSht.Range("A1").Resize(UBound(AnArray, 1), UBound(AnArray, 2) + N)
         End If
     Else
         Exit Function:
@@ -2352,18 +2382,18 @@ Public Function RandomMatrix(NRows As Long, NColumns As Long) As Variant
 End Function
 
 ' Alias for GetArrayLength
-Public Function Length(anArray As Variant) As Long
-    Let Length = GetArrayLength(anArray)
+Public Function Length(AnArray As Variant) As Long
+    Let Length = GetArrayLength(AnArray)
 End Function
 
 ' Alias for GetNumberOfRows
-Public Function NumberOfRows(anArray As Variant) As Long
-    Let NumberOfRows = GetNumberOfRows(anArray)
+Public Function NumberOfRows(AnArray As Variant) As Long
+    Let NumberOfRows = GetNumberOfRows(AnArray)
 End Function
 
 ' Alias for GetNumberOfColumns
-Public Function NumberOfColumns(anArray As Variant) As Long
-    Let NumberOfColumns = GetNumberOfColumns(anArray)
+Public Function NumberOfColumns(AnArray As Variant) As Long
+    Let NumberOfColumns = GetNumberOfColumns(AnArray)
 End Function
 
 ' Returns the number of elements in the first dimension
@@ -2684,7 +2714,7 @@ End Function
 ' This function transposes a 1D array of 1D arrays into a 1D array of 1D arrays.
 ' For instance,
 ' Array(Array(1,2,3), Array(10,20,30)) => Array(Array(1,10), Array(2, 20), Array(3, 30))
-Public Function TransposeRectangular1DArrayOf1DArrays(anArray As Variant) As Variant
+Public Function TransposeRectangular1DArrayOf1DArrays(AnArray As Variant) As Variant
     Dim r As Long
     Dim c As Long
     Dim TheResult() As Variant
@@ -2693,29 +2723,29 @@ Public Function TransposeRectangular1DArrayOf1DArrays(anArray As Variant) As Var
     Dim TheLength As Long
     
     ' Exit with null if AnArray is not an array
-    If Not IsArray(anArray) Then
+    If Not IsArray(AnArray) Then
         Let TransposeRectangular1DArrayOf1DArrays = Null
         Exit Function
     End If
     
     ' Exith with Null if AnArray is an empty array
-    If EmptyArrayQ(anArray) Then
+    If EmptyArrayQ(AnArray) Then
         Let TransposeRectangular1DArrayOf1DArrays = Null
         Exit Function
     End If
     
-    Let TheLength = GetArrayLength(First(anArray))
+    Let TheLength = GetArrayLength(First(AnArray))
     
-    For Each var In anArray
+    For Each var In AnArray
         If Not AtomicArrayQ(var) Or GetArrayLength(var) <> TheLength Then
             Let TransposeRectangular1DArrayOf1DArrays = Null
             Exit Function
         End If
     Next
     
-    Let TheMatrix = Pack2DArray(anArray)
+    Let TheMatrix = Pack2DArray(AnArray)
     ReDim TheResult(1 To GetNumberOfColumns(TheMatrix))
-    For c = 1 To GetArrayLength(First(anArray))
+    For c = 1 To GetArrayLength(First(AnArray))
         Let TheResult(c) = ConvertTo1DArray(GetColumn(TheMatrix, c))
     Next
     
@@ -3054,32 +3084,32 @@ End Function
 ' This function returns a variant. AnArray must be a 2D array.
 ' If either NRows and NCols is less than Ubound(AnArray,1) or Ubound(AnArray,2) then the resulting
 ' matrix truncates the input matrix accordingly
-Public Function Redim2DArray(anArray As Variant, NRows As Long, NCols As Long) As Variant
+Public Function Redim2DArray(AnArray As Variant, NRows As Long, NCols As Long) As Variant
     Dim NewArray() As Variant
     Dim r As Long
     Dim c As Long
     
-    If NumberOfDimensions(anArray) <> 2 Then
-        Let Redim2DArray = anArray
+    If NumberOfDimensions(AnArray) <> 2 Then
+        Let Redim2DArray = AnArray
         Exit Function
     End If
     
-    If Not IsArray(anArray) Then
-        Let Redim2DArray = anArray
+    If Not IsArray(AnArray) Then
+        Let Redim2DArray = AnArray
         Exit Function
     End If
     
-    If NRows < LBound(anArray, 1) Or NCols < LBound(anArray, 2) Then
-        Let Redim2DArray = anArray
+    If NRows < LBound(AnArray, 1) Or NCols < LBound(AnArray, 2) Then
+        Let Redim2DArray = AnArray
         Exit Function
     End If
             
-    ReDim NewArray(LBound(anArray, 1) To IIf(LBound(anArray, 1) = 0, NRows - 1, NRows), _
-                   LBound(anArray, 2) To IIf(LBound(anArray, 2) = 0, NCols - 1, NCols))
+    ReDim NewArray(LBound(AnArray, 1) To IIf(LBound(AnArray, 1) = 0, NRows - 1, NRows), _
+                   LBound(AnArray, 2) To IIf(LBound(AnArray, 2) = 0, NCols - 1, NCols))
                    
-    For r = LBound(anArray, 1) To Application.Min(NRows + IIf(LBound(anArray, 1) = 0, NRows - 1, NRows), UBound(anArray, 1))
-        For c = LBound(anArray, 2) To Application.Min(NCols + IIf(LBound(anArray, 2) = 0, NCols - 1, NRows), UBound(anArray, 2))
-            Let NewArray(r, c) = anArray(r, c)
+    For r = LBound(AnArray, 1) To Application.Min(NRows + IIf(LBound(AnArray, 1) = 0, NRows - 1, NRows), UBound(AnArray, 1))
+        For c = LBound(AnArray, 2) To Application.Min(NCols + IIf(LBound(AnArray, 2) = 0, NCols - 1, NRows), UBound(AnArray, 2))
+            Let NewArray(r, c) = AnArray(r, c)
         Next c
     Next r
     
@@ -3472,37 +3502,37 @@ End Function
 
 ' Fills in the banks in a 1D array.  Repeats the value in the first cell until it finds a different value.
 ' It then repeats that one until a new one is found.  And so forth.
-Public Function FillArrayBlanks(ByVal anArray As Variant) As Variant
+Public Function FillArrayBlanks(ByVal AnArray As Variant) As Variant
     Dim CurrentValue As Variant
     Dim c As Long
 
-    If Not DimensionedQ(anArray) Then
+    If Not DimensionedQ(AnArray) Then
         Let FillArrayBlanks = Null
         Exit Function
     End If
     
-    If EmptyArrayQ(anArray) Then
+    If EmptyArrayQ(AnArray) Then
         Let FillArrayBlanks = Array()
         Exit Function
     End If
 
-    If IsNull(First(anArray)) Then
+    If IsNull(First(AnArray)) Then
         Let CurrentValue = Empty
     Else
-        Let CurrentValue = First(anArray)
+        Let CurrentValue = First(AnArray)
     End If
     
-    For c = LBound(anArray, 1) To UBound(anArray, 1)
-        If IsEmpty(anArray(c)) Or IsNull(anArray(c)) Then
-            Let anArray(c) = CurrentValue
-        ElseIf anArray(c) = Empty Then
-            Let anArray(c) = CurrentValue
-        ElseIf CurrentValue <> anArray(c) Then
-            Let CurrentValue = anArray(c)
+    For c = LBound(AnArray, 1) To UBound(AnArray, 1)
+        If IsEmpty(AnArray(c)) Or IsNull(AnArray(c)) Then
+            Let AnArray(c) = CurrentValue
+        ElseIf AnArray(c) = Empty Then
+            Let AnArray(c) = CurrentValue
+        ElseIf CurrentValue <> AnArray(c) Then
+            Let CurrentValue = AnArray(c)
         End If
     Next c
             
-    Let FillArrayBlanks = anArray
+    Let FillArrayBlanks = AnArray
 End Function
 
 ' DESCRIPTION
@@ -3518,37 +3548,37 @@ End Function
 '
 ' RETURNED VALUE
 ' AnAtomicArrayOrTable after blanking out sequential repetitions of its elements.
-Public Function BlankOutArraySequentialRepetitions(ByVal anArray As Variant)
+Public Function BlankOutArraySequentialRepetitions(ByVal AnArray As Variant)
     Dim CurrentValue As Variant
     Dim c As Long
 
-    If Not DimensionedQ(anArray) Then
+    If Not DimensionedQ(AnArray) Then
         Let BlankOutArraySequentialRepetitions = Null
         Exit Function
     End If
     
-    If EmptyArrayQ(anArray) Then
+    If EmptyArrayQ(AnArray) Then
         Let BlankOutArraySequentialRepetitions = Array()
         Exit Function
     End If
     
-    If Not AtomicArrayQ(anArray) Then
+    If Not AtomicArrayQ(AnArray) Then
         Let BlankOutArraySequentialRepetitions = Null
         Exit Function
     End If
     
-    Let CurrentValue = First(anArray)
-    For c = LBound(anArray, 1) + 1 To UBound(anArray, 1)
-        If IsEmpty(anArray(c)) Or IsNull(anArray(c)) Then
-            Let anArray(c) = Empty
-        ElseIf CurrentValue = anArray(c) Then
-            Let anArray(c) = Empty
+    Let CurrentValue = First(AnArray)
+    For c = LBound(AnArray, 1) + 1 To UBound(AnArray, 1)
+        If IsEmpty(AnArray(c)) Or IsNull(AnArray(c)) Then
+            Let AnArray(c) = Empty
+        ElseIf CurrentValue = AnArray(c) Then
+            Let AnArray(c) = Empty
         Else
-            Let CurrentValue = anArray(c)
+            Let CurrentValue = AnArray(c)
         End If
     Next c
             
-    Let BlankOutArraySequentialRepetitions = anArray
+    Let BlankOutArraySequentialRepetitions = AnArray
 End Function
 
 ' DESCRIPTION
@@ -3610,7 +3640,7 @@ Public Function Riffle(A1DArray As Variant, Arg2 As Variant, Optional StepInterv
                 Exit Function
             End If
             
-            If Not PositiveWholeNumberArrayQ(StepInterval) And GetArrayLength(StepInterval) <> 3 Then
+            If Not PositiveIntegerArrayQ(StepInterval) And GetArrayLength(StepInterval) <> 3 Then
                 Let Riffle = Null
                 Exit Function
             End If
@@ -3713,23 +3743,23 @@ End Function
 ' 3. AnArray is not dimensioned
 ' 4. AnArray has number of dimesions other than 1 or 2
 ' 5. TheColumnIndex is given but is not a whole number
-Public Function GetElement(anArray As Variant, TheIndex As Long) As Variant
+Public Function GetElement(AnArray As Variant, TheIndex As Long) As Variant
     Dim NormalizedIndex As Long
        
-    If Not DimensionedQ(anArray) Then
+    If Not DimensionedQ(AnArray) Then
         Let GetElement = Null
         Exit Function
     End If
         
-    If EmptyArrayQ(anArray) Then
+    If EmptyArrayQ(AnArray) Then
         Let GetElement = Null
         Exit Function
     End If
     
-    If NumberOfDimensions(anArray) = 1 Then
-        Let GetElement = anArray(NormalizeArrayIndex(anArray, TheIndex))
-    ElseIf NumberOfDimensions(anArray) = 2 Then
-        Let GetElement = GetRow(anArray, NormalizeArrayIndex(anArray, TheIndex) + 1 - LBound(anArray, 1))
+    If NumberOfDimensions(AnArray) = 1 Then
+        Let GetElement = AnArray(NormalizeArrayIndex(AnArray, TheIndex))
+    ElseIf NumberOfDimensions(AnArray) = 2 Then
+        Let GetElement = GetRow(AnArray, NormalizeArrayIndex(AnArray, TheIndex) + 1 - LBound(AnArray, 1))
     Else
         Let GetElement = Null
         Exit Function
@@ -3750,23 +3780,23 @@ End Function
 ' happens assuming 1 is the first positive index in the array.
 '
 ' ***HERE Test the case when NormalizeWithRespectToColumnsQ = True
-Public Function NormalizeArrayIndex(anArray As Variant, _
+Public Function NormalizeArrayIndex(AnArray As Variant, _
                                     TheIndex As Long, _
                                     Optional NormalizeWithRespectToColumnsQ As Boolean = False, _
                                     Optional NormalizeTo1Q As Boolean = False) As Variant
     Dim IndexOffset As Long
                                     
-    If Not DimensionedQ(anArray) Then
+    If Not DimensionedQ(AnArray) Then
         Let NormalizeArrayIndex = Null
         Exit Function
     End If
     
-    If EmptyArrayQ(anArray) Then
+    If EmptyArrayQ(AnArray) Then
         Let NormalizeArrayIndex = Null
         Exit Function
     End If
     
-    If NormalizeWithRespectToColumnsQ And NumberOfDimensions(anArray) < 2 Then
+    If NormalizeWithRespectToColumnsQ And NumberOfDimensions(AnArray) < 2 Then
          Let NormalizeArrayIndex = Null
         Exit Function
     End If
@@ -3774,18 +3804,18 @@ Public Function NormalizeArrayIndex(anArray As Variant, _
     ' Case when NormalizeWithRespectToColumnsQ is passed explicitly with a value of True
     If NormalizeWithRespectToColumnsQ Then
         If NonNegativeWholeNumberQ(TheIndex) Then
-            If TheIndex < LBound(anArray, 2) Then
-                Let NormalizeArrayIndex = LBound(anArray, 2)
-            ElseIf TheIndex > UBound(anArray, 1) Then
-                Let NormalizeArrayIndex = UBound(anArray, 2)
+            If TheIndex < LBound(AnArray, 2) Then
+                Let NormalizeArrayIndex = LBound(AnArray, 2)
+            ElseIf TheIndex > UBound(AnArray, 1) Then
+                Let NormalizeArrayIndex = UBound(AnArray, 2)
             Else
                 Let NormalizeArrayIndex = TheIndex
             End If
         Else
-            If TheIndex < -NumberOfColumns(anArray) Then
-                Let NormalizeArrayIndex = LBound(anArray, 2)
+            If TheIndex < -NumberOfColumns(AnArray) Then
+                Let NormalizeArrayIndex = LBound(AnArray, 2)
             Else
-                Let NormalizeArrayIndex = UBound(anArray, 2) + TheIndex + 1
+                Let NormalizeArrayIndex = UBound(AnArray, 2) + TheIndex + 1
             End If
         End If
     End If
@@ -3795,29 +3825,29 @@ Public Function NormalizeArrayIndex(anArray As Variant, _
         If NormalizeTo1Q Then
             If TheIndex <= 1 Then
                 Let NormalizeArrayIndex = 1
-            ElseIf TheIndex >= GetArrayLength(anArray) Then
-                Let NormalizeArrayIndex = GetArrayLength(anArray)
+            ElseIf TheIndex >= GetArrayLength(AnArray) Then
+                Let NormalizeArrayIndex = GetArrayLength(AnArray)
             Else
-                Let NormalizeArrayIndex = TheIndex - 1 + LBound(anArray, 1)
+                Let NormalizeArrayIndex = TheIndex - 1 + LBound(AnArray, 1)
             End If
             
             Exit Function
         End If
     
-        If TheIndex <= LBound(anArray, 1) Then
-            Let NormalizeArrayIndex = LBound(anArray, 1)
-        ElseIf TheIndex >= UBound(anArray, 1) Then
-            Let NormalizeArrayIndex = UBound(anArray, 1)
+        If TheIndex <= LBound(AnArray, 1) Then
+            Let NormalizeArrayIndex = LBound(AnArray, 1)
+        ElseIf TheIndex >= UBound(AnArray, 1) Then
+            Let NormalizeArrayIndex = UBound(AnArray, 1)
         Else
             Let NormalizeArrayIndex = TheIndex
         End If
         
         Exit Function
     Else
-        If TheIndex < -GetArrayLength(anArray) Then
-            Let NormalizeArrayIndex = LBound(anArray, 1)
+        If TheIndex < -GetArrayLength(AnArray) Then
+            Let NormalizeArrayIndex = LBound(AnArray, 1)
         Else
-            Let NormalizeArrayIndex = UBound(anArray, 1) + TheIndex + 1
+            Let NormalizeArrayIndex = UBound(AnArray, 1) + TheIndex + 1
         End If
     End If
     
@@ -3825,25 +3855,25 @@ Public Function NormalizeArrayIndex(anArray As Variant, _
 End Function
 
 ' Same thing as ArrayFormulas.NormalizeArrayIndex, but for an array of indices
-Public Function NormalizeArrayIndices(anArray As Variant, _
+Public Function NormalizeArrayIndices(AnArray As Variant, _
                                       TheIndices() As Long, _
                                       Optional NormalizeTo1Q As Boolean = False) As Variant
     Dim r As Long
     Dim ResultsArray() As Variant
     
-    If Not DimensionedQ(anArray) Then
+    If Not DimensionedQ(AnArray) Then
         Let NormalizeArrayIndices = Null
         Exit Function
     End If
     
-    If EmptyArrayQ(anArray) Then
+    If EmptyArrayQ(AnArray) Then
         Let NormalizeArrayIndices = Null
         Exit Function
     End If
 
     ReDim ResultsArray(LBound(TheIndices) To UBound(TheIndices))
     For r = LBound(TheIndices) To UBound(TheIndices)
-        Let ResultsArray(r) = NormalizeArrayIndex(anArray:=anArray, _
+        Let ResultsArray(r) = NormalizeArrayIndex(AnArray:=AnArray, _
                                                   TheIndex:=TheIndices(r), _
                                                   NormalizeTo1Q:=NormalizeTo1Q)
     Next
@@ -3862,19 +3892,19 @@ End Function
 ' the nth element in the array regardless of how the indexing convention of the
 ' array.  For example, the second element in the array is at index
 ' TranslateIndex(AnArray, 2, 1)
-Public Function TranslateIndices(anArray As Variant, TheIndexOrIndexArray As Variant, FromLBound As Long) As Variant
+Public Function TranslateIndices(AnArray As Variant, TheIndexOrIndexArray As Variant, FromLBound As Long) As Variant
     Dim TheResult As Variant
     Dim ResultArray() As Variant
     Dim r As Long
 
     ' Exit with Null if AnArray is either not an array or has not been dimensioned.
-    If Not DimensionedQ(anArray) Then
+    If Not DimensionedQ(AnArray) Then
         Let TranslateIndex = Null
         Exit Function
     End If
 
     ' Exit if AnArray is the empty 1D array
-    If EmptyArrayQ(anArray) Then
+    If EmptyArrayQ(AnArray) Then
         Let TranslateIndex = Null
         Exit Function
     End If
@@ -3901,7 +3931,7 @@ Public Function TranslateIndices(anArray As Variant, TheIndexOrIndexArray As Var
         ' Recurse of each index in array TheIndexOrIndexArray
         ReDim ResultArray(LBound(TheIndexOrIndexArray, 1) To UBound(TheIndexOrIndexArray, 1))
         For r = LBound(TheIndexOrIndexArray, 1) To UBound(TheIndexOrIndexArray, 1)
-            Let ResultArray(r) = TranslateIndices(anArray, TheIndexOrIndexArray(r), FromLBound)
+            Let ResultArray(r) = TranslateIndices(AnArray, TheIndexOrIndexArray(r), FromLBound)
         Next
         
         ' Return the array of translated indices
@@ -3914,20 +3944,20 @@ Public Function TranslateIndices(anArray As Variant, TheIndexOrIndexArray As Var
     If NonNegativeWholeNumberQ(TheIndexOrIndexArray) Then
         If TheIndex <= FromLBound Then
             Let TheResult = FromLBound
-        ElseIf TheIndex >= FromLBound + GetArrayLength(anArray) - 1 Then
-            Let TheResult = FromLBound + GetArrayLength(anArray) - 1
+        ElseIf TheIndex >= FromLBound + GetArrayLength(AnArray) - 1 Then
+            Let TheResult = FromLBound + GetArrayLength(AnArray) - 1
         Else
             Let TheResult = TheIndexOrIndexArray
         End If
         
-        Let TranslateIndex = TheResult + LBound(anArray, 1) - FromLBound
+        Let TranslateIndex = TheResult + LBound(AnArray, 1) - FromLBound
         Exit Function
     End If
 
     ' Handles case of TheIndex negative
-    If TheIndex <= -GetArrayLength(anArray) Then
-        Let TranslateIndex = LBound(anArray, 1)
+    If TheIndex <= -GetArrayLength(AnArray) Then
+        Let TranslateIndex = LBound(AnArray, 1)
     Else
-        Let TranslateIndex = TheIndex + 1 + UBound(anArray, 1)
+        Let TranslateIndex = TheIndex + 1 + UBound(AnArray, 1)
     End If
 End Function
