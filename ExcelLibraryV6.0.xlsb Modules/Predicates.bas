@@ -17,11 +17,15 @@ Public Function DimensionedQ(arg As Variant) As Boolean
     
     On Error Resume Next
     
+    ' Exit with False
     If Not IsArray(arg) Then
         Let DimensionedQ = False
         Exit Function
     End If
     
+    ' If arg has not been dimensioned, this following line will raise an error.
+    ' Due to On Error Resume Next, the code will resume in the next line, which
+    ' will then check if an error has been raised.
     Let i = UBound(arg, 1)
     Let DimensionedQ = Err.Number = 0
 End Function
@@ -99,7 +103,7 @@ End Function
 ' True when arg is a dimensioned, non-empty array all of whose elements satisfy Predicates.AtomicQ.
 ' Returns False otherwise
 Public Function AtomicArrayQ(arg As Variant) As Boolean
-    Let AtomicArrayQ = ArrayQHelper(arg, "AtomicQ")
+    Let AtomicArrayQ = EveryQ(arg, "AtomicQ")
 End Function
 
 ' DESCRIPTION
@@ -148,7 +152,7 @@ End Function
 ' RETURNED VALUE
 ' True or False depending on whether arg is dimensioned, non-empty and all its elements satisfy Predicates.NumberQ
 Public Function NumberArrayQ(arg As Variant) As Boolean
-    Let NumberArrayQ = ArrayQHelper(arg, "NumberQ")
+    Let NumberArrayQ = EveryQ(arg, "NumberQ")
 End Function
 
 ' DESCRIPTION
@@ -187,7 +191,7 @@ End Function
 ' True or False depending on whether arg is dimensioned, non-empty and all its elements satisfy
 ' Predicates.WholeNumberQ
 Public Function WholeNumberArrayQ(arg As Variant) As Boolean
-    Let WholeNumberArrayQ = ArrayQHelper(arg, "WholeNumberQ")
+    Let WholeNumberArrayQ = EveryQ(arg, "WholeNumberQ")
 End Function
 
 ' DESCRIPTION
@@ -218,7 +222,7 @@ End Function
 ' True or False depending on whether or not its argument is dimensioned, non-empty and all
 ' its elements satisfy Predicates.PositiveWholeNumberQ
 Public Function PositiveWholeNumberArrayQ(arg As Variant) As Boolean
-    Let PositiveWholeNumberArrayQ = ArrayQHelper(arg, "PositiveWholeNumberQ")
+    Let PositiveWholeNumberArrayQ = EveryQ(arg, "PositiveWholeNumberQ")
 End Function
 
 ' DESCRIPTION
@@ -249,7 +253,7 @@ End Function
 ' True or False depending on whether arg is dimensioned, non-empty and all its elements satisfy
 ' Predicates.NegativeWholeNumberQ
 Public Function NegativeWholeNumberArrayQ(arg As Variant) As Boolean
-    Let NegativeWholeNumberArrayQ = ArrayQHelper(arg, "NegativeWholeNumberQ")
+    Let NegativeWholeNumberArrayQ = EveryQ(arg, "NegativeWholeNumberQ")
 End Function
 
 ' DESCRIPTION
@@ -280,7 +284,7 @@ End Function
 ' True or False depending on whether arg is dimensioned, non-empty and all its elements satisfy
 ' Predicates.NonNegativeWholeNumberQ
 Public Function NonNegativeWholeNumberArrayQ(arg As Variant) As Boolean
-    Let NonNegativeWholeNumberArrayQ = ArrayQHelper(arg, "NonNegativeWholeNumberQ")
+    Let NonNegativeWholeNumberArrayQ = EveryQ(arg, "NonNegativeWholeNumberQ")
 End Function
 
 ' DESCRIPTION
@@ -306,7 +310,7 @@ End Function
 ' True or False depending on whether arg is dimensioned, non-empty and all its elements satisfy
 ' Predicates.StringQ
 Public Function StringArrayQ(anArray As Variant) As Boolean
-    Let StringArrayQ = ArrayQHelper(arg, "StringQ")
+    Let StringArrayQ = EveryQ(anArray, "StringQ")
 End Function
 
 ' DESCRIPTION
@@ -334,7 +338,7 @@ End Function
 ' True or False depending on whether arg is dimensioned, non-empty and all its elements satisfy
 ' Predicates.DictionaryQ
 Public Function DictionaryArrayQ(anArray As Variant) As Boolean
-    Let DictionaryArrayQ = ArrayQHelper(arg, "DictionaryQ")
+    Let DictionaryArrayQ = EveryQ(anArray, "DictionaryQ")
 End Function
 
 ' DESCRIPTION
@@ -344,14 +348,14 @@ End Function
 ' 1. arg - any value or object reference
 '
 ' RETURNED VALUE
-' True or False depending on whether or not its argument string or a dictionary.
+' True or False depending on whether or not its argument string or a whole number.
 Public Function WholeNumberOrStringQ(arg As Variant) As Boolean
-    Let WholeNumberOrStringQ = Not (WholeNumberQ(arg) Or StringQ(arg))
+    Let WholeNumberOrStringQ = WholeNumberQ(arg) Or StringQ(arg)
 End Function
 
 ' DESCRIPTION
-' Boolean function returning True if its argument is a dimensioned, non-empty array all of whose
-' elements satisfy Predicates.WholeNumberOrStringQ.  Returns False otherwise.
+' Boolean function returning True if its argument is a dimensioned array all of whose elements satisfy
+' Predicates.WholeNumberOrStringQ.  Returns False otherwise.
 '
 ' PARAMETERS
 ' 1. arg - any value or object reference
@@ -360,33 +364,86 @@ End Function
 ' True or False depending on whether arg is dimensioned, non-empty and all its elements satisfy
 ' Predicates.WholeNumberOrStringQ
 Public Function WholeNumberOrStringArrayQ(anArray As Variant) As Boolean
-    Let WholeNumberOrStringArrayQ = ArrayQHelper(arg, "WholeNumberOrStringQ")
+    Let WholeNumberOrStringArrayQ = EveryQ(anArray, "WholeNumberOrStringQ")
 End Function
 
 ' DESCRIPTION
-' Boolean helper function returning True if its argument is a dimensioned, non-empty array all of
-' whose elements satisfy var \mapsto Application.Run(ThisWorkbook.Name & "!" & PredicateName, var).
-' Returns False otherwise.
+' Boolean function returning True if its argument is a string or a number. Returns False otherwise.
+'
+' PARAMETERS
+' 1. arg - any value or object reference
+'
+' RETURNED VALUE
+' True or False depending on whether or not its argument string or a number.
+Public Function NumberOrStringQ(arg As Variant) As Boolean
+    Let NumberOrStringQ = NumberQ(arg) Or StringQ(arg)
+End Function
+
+' DESCRIPTION
+' Boolean function returning True if its argument is a dimensioned array all of whose elements
+' satisfy Predicates.NumberOrStringQ.  Returns False otherwise.
 '
 ' PARAMETERS
 ' 1. arg - any value or object reference
 '
 ' RETURNED VALUE
 ' True or False depending on whether arg is dimensioned, non-empty and all its elements satisfy
-' Predicates.WholeNumberOrStringQ
-Private Function ArrayQHelper(anArray As Variant, PredicateName As String) As Boolean
+' Predicates.NumberOrStringQ
+Public Function NumberOrStringArrayQ(anArray As Variant) As Boolean
+    Let NumberOrStringArrayQ = EveryQ(anArray, "NumberOrStringQ")
+End Function
+
+' DESCRIPTION
+' Boolean function returning True if all of the elements in AnArray satisfy the predicate whose
+' name is PredicateName.
+'
+' PARAMETERS
+' 1. arg - any value or object reference
+'
+' RETURNED VALUE
+' True or False depending on whether arg is dimensioned and all its elements satisfy the
+' predicate with name PredicateName
+Public Function EveryQ(anArray As Variant, PredicateName As String) As Boolean
     Dim var As Variant
 
-    Let ArrayQHelper = True
+    Let EveryQ = True
 
-    If Not IsArray(anArray) Then
-        Let ArrayQHelper = False
+    If Not DimensionedQ(anArray) Then
+        Let EveryQ = False
         Exit Function
     End If
     
     For Each var In anArray
         If Not Application.Run(ThisWorkbook.Name & "!" & PredicateName, var) Then
-            Let ArrayQHelper = False
+            Let EveryQ = False
+            Exit Function
+        End If
+    Next
+End Function
+
+' DESCRIPTION
+' Boolean function returning True if at least one of the elements in AnArray satisfy the predcate
+' whose name is PredicateName.
+'
+' PARAMETERS
+' 1. arg - any value or object reference
+'
+' RETURNED VALUE
+' True or False depending on whether arg is dimensioned and at least one of its elements satisfies
+' the predicate with name PredicateName
+Public Function SomeQ(anArray As Variant, PredicateName As String) As Boolean
+    Dim var As Variant
+
+    Let SomeQ = False
+
+    If Not DimensionedQ(anArray) Then
+        Let SomeQ = False
+        Exit Function
+    End If
+    
+    For Each var In anArray
+        If Application.Run(ThisWorkbook.Name & "!" & PredicateName, var) Then
+            Let SomeQ = True
             Exit Function
         End If
     Next
@@ -448,6 +505,7 @@ Public Function MatrixQ(arg As Variant) As Boolean
     
     Let MatrixQ = False
     
+    ' Not necessary to test for DimensionedQ since NumberOfDimensions returns 0 for none arrays
     If NumberOfDimensions(arg) <> 2 Then Exit Function
 
     For Each var In arg
@@ -458,54 +516,156 @@ Public Function MatrixQ(arg As Variant) As Boolean
 End Function
 
 ' DESCRIPTION
-' Boolean function returns True if Returns True is its argument is 2D matrix with non-array entries.
+' Boolean function returns True if Returns True is its argument is 2D matrix with numeric entries.
 '
 ' PARAMETERS
 ' 1. arg - Any Excel value or reference
 '
 ' RETURNED VALUE
-' Returns True or False depending on whether or not its argument can be considered a table matrix.
-Public Function TableQ(arg As Variant) As Boolean
+' Returns True or False depending on whether or not its argument can be considered a numerical matrix.
+Public Function BooleanQ(arg As Variant) As Boolean
+    Let BooleanQ = TypeName(arg) = TypeName(True)
+End Function
+
+' DESCRIPTION
+' Boolean function returning True if its argument is a dimensioned array all of whose elements
+' satisfy Predicates.BooleanQ.  Returns False otherwise.
+'
+' PARAMETERS
+' 1. arg - any value or object reference
+'
+' RETURNED VALUE
+' True or False depending on whether arg is dimensioned, non-empty and all its elements satisfy
+' Predicates.BooleanQ
+Public Function BooleanArrayQ(anArray As Variant) As Boolean
+    Let BooleanArrayQ = EveryQ(anArray, "BooleanQ")
+End Function
+
+' DESCRIPTION
+' Boolean function returns True if Returns True is its argument is 2D matrix with Atomic entries.
+'
+' PARAMETERS
+' 1. arg - Any Excel value or reference
+'
+' RETURNED VALUE
+' Returns True or False depending on whether or not its argument can be considered a table.
+Public Function AtomicTableQ(arg As Variant) As Boolean
     Dim var As Variant
 
-    Let TableQ = False
+    Let AtomicTableQ = False
     
     If NumberOfDimensions(arg) <> 2 Then Exit Function
 
     For Each var In arg
-        If IsArray(var) Then Exit Function
+        If Not AtomicQ(var) Then Exit Function
     Next var
     
-    Let TableQ = True
+    Let AtomicTableQ = True
 End Function
 
-' Returns True is the argument is a row or column vector as defined by ColumVectorQ and RowVectorQ
+' DESCRIPTION
+' Boolean function returning True if its argument is printable (e.g. numeric, string, date, Boolean,
+' Empty or Null)
+'
+' PARAMETERS
+' 1. arg - Any Excel value or reference
+'
+' RETURNED VALUE
+' Returns True or False depending on whether or not its argument can be considered a printable
+Public Function PrintableQ(arg As Variant) As Boolean
+    Let PrintableQ = NumberOrStringQ(arg) Or BooleanQ(arg) Or IsDate(arg) Or IsEmpty(arg) Or IsNull(arg)
+End Function
+
+' DESCRIPTION
+' Boolean function returns True if Returns True is its argument is either an empty array or a 1D all of
+' whose elements satisfy PrintableQ
+'
+' PARAMETERS
+' 1. AnArray - Any Excel value or reference
+'
+' RETURNED VALUE
+' Returns True or False depending on whether or not its arguments is a printable array
+Public Function PrintableArrayQ(anArray As Variant) As Boolean
+    Let PrintableArrayQ = EveryQ(anArray, "PrintableQ")
+End Function
+
+' DESCRIPTION
+' Boolean function returns True if Returns True is its argument is 2D matrix with printable (e.g.
+' numeric, string, date, True, False, Empty or Null) entries.
+'
+' PARAMETERS
+' 1. arg - Any Excel value or reference
+'
+' RETURNED VALUE
+' Returns True or False depending on whether or not its argument can be considered a printable table.
+Public Function PrintableTableQ(arg As Variant) As Boolean
+    Dim var As Variant
+
+    Let PrintableTableQ = False
+    
+    If NumberOfDimensions(arg) <> 2 Then Exit Function
+
+    For Each var In arg
+        If Not PrintableQ(var) Then Exit Function
+    Next var
+    
+    Let PrintableTableQ = True
+End Function
+
+' DESCRIPTION
+' Boolean function returning True if its argument is a row or column vector as defined by
+' ColumVectorQ and RowVectorQ
+'
+' PARAMETERS
+' 1. arg - Any Excel value or reference
+'
+' RETURNED VALUE
+' Returns True or False depending on whether or not its argument can be considered a vector.
 Function VectorQ(arg As Variant) As Boolean
     Let VectorQ = RowVectorQ(arg) Or ColumnVectorQ(arg)
 End Function
 
-' Returns True is the argument is a column vector (e.g. n x 1 2D array with atomic entries exclusively)
-' comprised of numeric, atomic expressions excluively
+' DESCRIPTION
+' Boolean function returning True if its argument is a column vector (e.g. n x 1 2D array with
+' numeric entries exclusively) comprised of numeric, atomic expressions exclusively.
+' Returns True for the empty 1D array
+'
+' PARAMETERS
+' 1. arg - Any Excel value or reference
+'
+' RETURNED VALUE
+' Returns True or False depending on whether or not its argument is a column vector.
 Public Function ColumnVectorQ(arg As Variant) As Boolean
     Dim var As Variant
     
     Let ColumnVectorQ = False
     
-    If EmptyArrayQ(arg) Then Exit Function
+    ' Returning True for an empty array is necesary recursion to work properly on column vectors
+    If EmptyArrayQ(arg) Then
+        Let ColumnVectorQ = True
+        Exit Function
+    End If
     
     If NumberOfDimensions(arg) <> 2 Then Exit Function
     
     If LBound(arg, 2) <> UBound(arg, 2) Then Exit Function
     
     For Each var In arg
-        If Not IsNumeric(var) Then Exit Function
+        If Not NumberQ(var) Then Exit Function
     Next
 
     Let ColumnVectorQ = True
 End Function
 
-' Returns True if the argument is a row vector (e.g. a 1D vector comprised exclusively of
-' numeric entries).  Returns False for the empty 1D array
+' DESCRIPTION
+' Boolean function returning True if its argument is a row vector (e.g. a 1D vector comprised
+' exclusively of numeric entries).  Returns True for the empty 1D array
+'
+' PARAMETERS
+' 1. arg - Any Excel value or reference
+'
+' RETURNED VALUE
+' Returns True or False depending on whether or not its argument is a row vector.
 Public Function RowVectorQ(arg As Variant) As Boolean
     Dim var As Variant
     
@@ -513,7 +673,11 @@ Public Function RowVectorQ(arg As Variant) As Boolean
     
     If Not DimensionedQ(arg) Then Exit Function
     
-    If EmptyArrayQ(arg) Then Exit Function
+    ' Returning True for an empty array is necesary recursion to work properly on row vectors
+    If EmptyArrayQ(arg) Then
+        Let RowVectorQ = True
+        Exit Function
+    End If
     
     If NumberOfDimensions(arg) <> 1 Then Exit Function
     
@@ -522,17 +686,84 @@ Public Function RowVectorQ(arg As Variant) As Boolean
     Let RowVectorQ = True
 End Function
 
-' Returns true if the array could be interpreseted as a 1D array of atomic elements.
-' This means that this function returns True for each of the following examples:
+' DESCRIPTION
+' Boolean function returning True if its argument is a column array (e.g. n x 1 2D array with
+' atomic entries exclusively) comprised of numeric, atomic expressions exclusively.
+' Returns True for the empty 1D array
+'
+' PARAMETERS
+' 1. arg - Any Excel value or reference
+'
+' RETURNED VALUE
+' Returns True or False depending on whether or not its argument is a column vector.
+Public Function ColumnArrayQ(arg As Variant) As Boolean
+    Dim var As Variant
+    
+    Let ColumnArrayQ = False
+    
+    ' Returning True for an empty array is necesary recursion to work properly on column vectors
+    If EmptyArrayQ(arg) Then
+        Let ColumnArrayQ = True
+        Exit Function
+    End If
+    
+    If NumberOfDimensions(arg) <> 2 Then Exit Function
+    
+    If LBound(arg, 2) <> UBound(arg, 2) Then Exit Function
+    
+    For Each var In arg
+        If Not AtomicQ(var) Then Exit Function
+    Next
+
+    Let ColumnArrayQ = True
+End Function
+
+' DESCRIPTION
+' Alias for AtomicArrayQ. Included to preserve parallel structure (e.g. having both ColumnArrayQ
+' and RowArrayQ just like we have RowVectorQ and ColumnVectorQ).
+'
+' PARAMETERS
+' 1. arg - Any Excel value or reference
+'
+' RETURNED VALUE
+' Returns True or False depending on whether or not its argument is a row vector.
+Public Function RowArrayQ(arg As Variant) As Boolean
+    Let RowArrayQ = AtomicArrayQ(arg)
+End Function
+
+' DESCRIPTION
+' Boolean function returning True if its argument if either RowArrayQ or ColumnArrayQ return True
+'
+' PARAMETERS
+' 1. arg - Any Excel value or reference
+'
+' RETURNED VALUE
+' Returns True or False depending on whether or not its argument can be considered a row or column
+' array.
+Function RowOrColumnArrayQ(arg As Variant) As Boolean
+    Let RowOrColumnArrayQ = RowArrayQ(arg) Or ColumnArrayQ(arg)
+End Function
+
+' DESCRIPTION
+' Boolean function returning True if its argument could be interpreseted as a 1D array of atomic
+' elements. This means that this function returns True for each of the following examples:
+'
 ' 1. Array(1,2,3)
 ' 2. Array(Array(1,2,3))
 ' 3. Array(Array(Array(1,2,3)))),
 ' 4. [{1,2,3}], [{Array(1,2,3)}], etc. will evaluate to True.
-Public Function RowArrayQ(a As Variant) As Boolean
+'
+' PARAMETERS
+' 1. arg - Any Excel value or reference
+'
+' RETURNED VALUE
+' Returns True or False depending on whether or not its argument could be interpreted as a row
+' vector.
+Public Function InterpretableAsRowArrayQ(a As Variant) As Boolean
     Dim nd As Integer
     Dim i As Long
     
-    Let RowArrayQ = False
+    Let InterpretableAsRowArrayQ = False
     Let nd = NumberOfDimensions(a)
     
     ' If a has more than two or fewer than one dimension, then exit with False.
@@ -544,23 +775,23 @@ Public Function RowArrayQ(a As Variant) As Boolean
     If nd = 1 Then
         ' If this is a 1-element, 1D array
         If LBound(a, 1) = UBound(a, 1) Then
-            If IsArray(a) Then Let RowArrayQ = RowArrayQ(a(LBound(a)))
+            If IsArray(a) Then Let InterpretableAsRowArrayQ = InterpretableAsRowArrayQ(First(a))
             Exit Function
         ' If this is a multi-element 1D array
         Else
-            For i = LBound(a) To UBound(a)
-                If IsArray(a(i), 1) Then Exit Function
+            For i = LBound(a, 1) To UBound(a, 1)
+                If Not AtomicQ(a(i)) Then Exit Function
             Next i
         End If
         
-        Let RowArrayQ = True
+        Let InterpretableAsRowArrayQ = True
         Exit Function
     End If
     
     ' If we get here the array is two dimensional
     ' This is the 2D, single-element case
     If UBound(a, 1) = LBound(a, 1) And UBound(a, 2) = LBound(a, 2) Then
-        Let RowArrayQ = RowArrayQ(a(LBound(a, 1), LBound(a, 2)))
+        Let InterpretableAsRowArrayQ = InterpretableAsRowArrayQ(a(LBound(a, 1), LBound(a, 2)))
         Exit Function
     ' This is the case when we have a matrix that cannot be interpreted as a row
     ElseIf UBound(a, 1) > LBound(a, 1) And UBound(a, 2) > LBound(a, 2) Then
@@ -568,7 +799,7 @@ Public Function RowArrayQ(a As Variant) As Boolean
     ' This is the case when there is just one row
     ElseIf (UBound(a, 1) = LBound(a, 1)) And (UBound(a, 2) > LBound(a, 2)) Then
         For i = LBound(a, 2) To UBound(a, 2)
-            If IsArray(a(LBound(a, 1), i)) Then
+            If Not AtomicQ(a(LBound(a, 1), i)) Then
                 Exit Function
             End If
         Next i
@@ -577,21 +808,34 @@ Public Function RowArrayQ(a As Variant) As Boolean
         Exit Function
     End If
     
-    Let RowArrayQ = True
+    Let InterpretableAsRowArrayQ = True
 End Function
 
-' Returns true if the array is a row array (must be a 2D array)
-' This returns TRUE only for a 2D array with one column
-Public Function ColumnArrayQ(a As Variant) As Boolean
+' DESCRIPTION
+' Boolean function returning True if its argument could be interpreseted as a 2D, one-column
+' array of atomic elements. This means that this function returns True for each of the following
+' examples:
+'
+' 1. Array(1,2,3)
+' 2. Array(Array(1,2,3))
+' 3. [{1;2;3}], [{Array(1;2;3)}]
+'
+' PARAMETERS
+' 1. arg - Any Excel value or reference
+'
+' RETURNED VALUE
+' Returns True or False depending on whether or not its argument could be interpreted as a column
+' vector.
+Public Function InterpretableAsColumnArrayQ(a As Variant) As Boolean
     Dim nd As Integer
     Dim i As Long
     
     If EmptyArrayQ(a) Then
-        Let ColumnArrayQ = True
+        Let InterpretableAsColumnArrayQ = True
         Exit Function
     End If
     
-    Let ColumnArrayQ = False
+    Let InterpretableAsColumnArrayQ = False
     Let nd = NumberOfDimensions(a)
     
     If nd < 1 Or nd > 2 Then
@@ -600,10 +844,10 @@ Public Function ColumnArrayQ(a As Variant) As Boolean
     
     If nd = 1 Then
         If LBound(a) = UBound(a) Then
-            If Not IsArray(a(LBound(a))) Then
-                Let ColumnArrayQ = True
+            If Not Not AtomicQ(First(a)) Then
+                Let InterpretableAsColumnArrayQ = True
             Else
-                Let ColumnArrayQ = ColumnArrayQ(a(LBound(a, 1)))
+                Let InterpretableAsColumnArrayQ = InterpretableAsColumnArrayQ(a(LBound(a, 1)))
             End If
         End If
         
@@ -617,68 +861,81 @@ Public Function ColumnArrayQ(a As Variant) As Boolean
             If IsArray(a(i, UBound(a, 2))) Then Exit Function
         Next i
     
-        Let ColumnArrayQ = True
+        Let InterpretableAsColumnArrayQ = True
     ElseIf (UBound(a, 1) = LBound(a, 1)) And (UBound(a, 2) = LBound(a, 2)) Then
-        If IsArray(a(LBound(a, 1), LBound(a, 2))) Then
-            Let ColumnArrayQ = ColumnArrayQ(a(LBound(a, 1), LBound(a, 2)))
+        If Not AtomicQ(a(LBound(a, 1), LBound(a, 2))) Then
+            Let InterpretableAsColumnArrayQ = InterpretableAsColumnArrayQ(a(LBound(a, 1), LBound(a, 2)))
         Else
-            Let ColumnArrayQ = True
+            Let InterpretableAsColumnArrayQ = True
         End If
     End If
 End Function
 
-' This function determines if the given value is in the given array (1D or 2D)
+' DESCRIPTION
+' Boolean function returning True if TheValue is in the given 1D array. TheValue must
+' satisfy NumberOrStringQ. Every element in TheArray must also satisfy NumberOfStringQ
+'
+' PARAMETERS
+' 1. TheArray - A 1D array satisfying PrintableArrayQ
+' 2. TheValue - Any value satisfying Predicates.PrintableQ
+'
+' RETURNED VALUE
+' Returns True or False depending on whether or not the given value is in the given array
 Public Function MemberQ(TheArray As Variant, TheValue As Variant) As Boolean
     Dim i As Long
-    Dim TheResultFlag As Boolean
+    Dim var As Variant
     
     ' Assume result is False and change TheValue is in any one column of TheArray
-    Let TheResultFlag = False
+    Let MemberQ = False
     
-    If NumberOfDimensions(TheArray) <= 1 Then
-        Let MemberQ = IsValueIn1DArray(TheArray, TheValue)
+    ' Exit if TheArray is not a 1D array
+    If NumberOfDimensions(TheArray) <> 1 Then Exit Function
+    
+    ' Exit with False if TheValue fails PrintableQ TheArray fails PrintableArrayQ
+    If Not (PrintableQ(TheValue) And PrintableArrayQ(TheArray)) Then Exit Function
+    
+    For Each var In TheArray
+        If IsEmpty(var) And IsEmpty(TheValue) Then
+            Let MemberQ = True
+            Exit Function
+        End If
         
-        Exit Function
-    End If
+        If IsNull(var) And IsNull(TheValue) Then
+            Let MemberQ = True
+            Exit Function
+        End If
     
-    ' Go through all the columns, checking if the result is true for one of the columns
-    For i = 1 To UBound(TheArray, 2)
-        Let TheResultFlag = TheResultFlag Or IsValueIn1DArray(ConvertTo1DArray(GetColumn(TheArray, i)), TheValue)
-    Next i
-    
-    ' Set the value to return
-    Let MemberQ = TheResultFlag
+        If TypeName(var) = TypeName(TheValue) And var = TheValue Then
+            Let MemberQ = True
+            Exit Function
+        End If
+    Next
 End Function
 
-' This function determines if the given value is missig from the given array (1D or 2D).
-' It is the complete opposite of MemberQ
+' DESCRIPTION
+' Boolean function returning True if TheValue is not in the given 1D array. TheValue must
+' satisfy NumberOrStringQ. Every element in TheArray must also satisfy NumberOfStringQ
+'
+' PARAMETERS
+' 1. TheArray - A 1D array satisfying PrintableArrayQ
+' 2. TheValue - Any value satisfying PrintableQ
+'
+' RETURNED VALUE
+' Returns True or False depending on whether or not the given value is in the given array
 Public Function FreeQ(TheArray As Variant, TheValue As Variant) As Boolean
-    Let FreeQ = Not MemberQ(TheArray, TheValue)
+    Let FreeQ = IsArray(TheArray) And Not MemberQ(TheArray, TheValue)
 End Function
 
-' This is private, helper function used by MemberQ above. This function returns true only
-' if TheArray has dimension 0 and is equal to TheValue or if TheArray has dimension 1 and
-' TheValue is in TheArray.
-Private Function IsValueIn1DArray(TheArray As Variant, TheValue As Variant) As Boolean
-    If EmptyArrayQ(TheArray) Then
-        Let IsValueIn1DArray = False
-    
-        Exit Function
-    End If
-    
-    If NumberOfDimensions(TheArray) > 1 Then
-        Let IsValueIn1DArray = False
-    ElseIf NumberOfDimensions(TheArray) = 0 Then
-        Let IsValueIn1DArray = (TheValue = TheArray)
-    ElseIf IsNumeric(Application.Match(TheValue, TheArray, 0)) Then
-        Let IsValueIn1DArray = True
-    Else
-        Let IsValueIn1DArray = False
-    End If
-End Function
-
-' This predicate returns true if the given workbook has a worksheet with name WorksheetName.
-' Otherwise, it returns false
+' DESCRIPTION
+' Boolean function returning True if the given workbook has a worksheet with the given name.
+'
+' PARAMETERS
+' 1. aWorkbook - A workbook reference
+' 2. WorksheetName - A worksheet reference
+'
+' RETURNED VALUE
+' Returns True or False depending on whether or not the given workbook has a worksheet with
+' the given name
 Public Function WorksheetExistsQ(aWorkbook As Workbook, WorksheetName As String) As Boolean
     Let WorksheetExistsQ = False
     
@@ -690,10 +947,17 @@ Public Function WorksheetExistsQ(aWorkbook As Workbook, WorksheetName As String)
     On Error GoTo 0
 End Function
 
-' This predicate returns true if the given workbook has a sheet with name WorksheetName.
-' Otherwise, it returns false
+' DESCRIPTION
+' Boolean function returning True if the given workbook has a sheet with the given name.
+'
+' PARAMETERS
+' 1. aWorkbook - A workbook reference
+' 2. WorksheetName - A worksheet reference
+'
+' RETURNED VALUE
+' Returns True or False depending on whether or not the given workbook has a sheet with
+' the given name
 Public Function SheetExistsQ(aWorkbook As Workbook, SheetName As String) As Boolean
-    ' returns TRUE if the sheet exists in the active workbook
     Let SheetExistsQ = False
     
     On Error GoTo NoSuchSheet
@@ -703,12 +967,4 @@ Public Function SheetExistsQ(aWorkbook As Workbook, SheetName As String) As Bool
     End If
 
 NoSuchSheet:
-
 End Function
-
-
-
-
-
-
-

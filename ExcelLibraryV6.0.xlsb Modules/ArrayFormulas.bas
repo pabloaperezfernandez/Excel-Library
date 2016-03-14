@@ -2,6 +2,291 @@ Attribute VB_Name = "ArrayFormulas"
 Option Explicit
 Option Base 1
 
+' DESCRIPTION
+' This function returns the number of dimensions of any VBA expression.  Non-array expressions all have
+' 0 dimensions.  Undimemsioned arrays have 0 dimensions.
+'
+' PARAMETERS
+' 1. arg - any value or object reference
+'
+' RETURNED VALUE
+' Number of dimensions for its argument.  Dimensioned arrays are the only expressions returning non-zero.
+Public Function NumberOfDimensions(MyArray As Variant) As Long
+    Dim temp As Long
+    Dim i As Long
+    
+    On Error GoTo FinalDimension
+    
+    ' EmptyArrayQ returns false if MyArray is an undimensioned array
+    If EmptyArrayQ(MyArray) Then
+        Let NumberOfDimensions = 1
+        Exit Function
+    End If
+    
+    If Not IsArray(MyArray) Then
+        Let NumberOfDimensions = 0
+        Exit Function
+    End If
+    
+    For i = 1 To 60000
+        Let temp = LBound(MyArray, i)
+    Next i
+
+    Let NumberOfDimensions = i
+    
+    Exit Function
+        
+FinalDimension:
+    Let NumberOfDimensions = i - 1
+    Exit Function
+End Function
+
+' DESCRIPTION
+' Alias for NumberOfDimensions().  This function returns the number of dimensions of any VBA expression.
+' Non-array expressions all have 0 dimensions.  Undimemsioned arrays have 0 dimensions.
+'
+' PARAMETERS
+' 1. arg - any value or object reference
+'
+' RETURNED VALUE
+' Number of dimensions for its argument.  Dimensioned arrays are the only expressions returning non-zero.
+Public Function GetNumberOfDimensions(MyArray As Variant) As Long
+    Let GetNumberOfDimensions = NumberOfDimensions(MyArray)
+End Function
+
+' DESCRIPTION
+' This function returns the length of the given 1D or 2D array.  A 2D array is interpreted as 1D array
+' of its rows. Non-array expressions all have 0 dimensions.  Undimemsioned arrays have 0 dimensions.
+'
+' PARAMETERS
+' 1. arg - any value or object reference
+'
+' RETURNED VALUE
+' Length of the given array.  Dimensioned arrays are the only expressions returning non-zero.
+Public Function GetArrayLength(anArray As Variant) As Long
+    If Not DimensionedQ(anArray) Then
+        Let GetArrayLength = 0
+    Else
+        Let GetArrayLength = UBound(anArray, 1) - LBound(anArray, 1) + 1
+    End If
+End Function
+
+' DESCRIPTION
+' Alias for GetArrayLength.  This function returns the length of the given 1D or 2D array.  A 2D
+' array is interpreted as 1D array of its rows. Non-array expressions all have 0 dimensions.
+' Undimemsioned arrays have 0 dimensions.
+'
+' PARAMETERS
+' 1. arg - any value or object reference
+'
+' RETURNED VALUE
+' Length of the given array.  Dimensioned arrays are the only expressions returning non-zero.
+Public Function Length(anArray As Variant) As Long
+    Let Length = GetArrayLength(anArray)
+End Function
+
+' DESCRIPTION
+' This function returns the number of rows in the given 2D array.  An empty array is said to have
+' 0 rows.  Only dimensioned arrays return non-zero values.  All other parameters return 0.
+'
+' PARAMETERS
+' 1. arg - any value or object reference
+'
+' RETURNED VALUE
+' Length of the given array.  Dimensioned arrays are the only expressions returning non-zero.
+Public Function GetNumberOfRows(aMatrix As Variant) As Long
+    If Not DimensionedQ(aMatrix) Then
+        Let GetNumberOfRows = 0
+    ElseIf NumberOfDimensions(aMatrix) = 1 Then
+        Let GetNumberOfRows = 1
+    Else
+        Let GetNumberOfRows = UBound(aMatrix, 1) - LBound(aMatrix, 1) + 1
+    End If
+End Function
+
+' DESCRIPTION
+' Alias for GetNumberOfRows.  This function returns the number of rows in the given 2D array.
+' An empty array is said to have 0 rows.  Only dimensioned arrays return non-zero values.  All
+' other parameters return 0.
+'
+' PARAMETERS
+' 1. arg - any value or object reference
+'
+' RETURNED VALUE
+' Length of the given array.  Dimensioned arrays are the only expressions returning non-zero.
+Public Function NumberOfRows(anArray As Variant) As Long
+    Let NumberOfRows = GetNumberOfRows(anArray)
+End Function
+
+' DESCRIPTION
+' This function returns the number of columns in the given 2D array.  An empty array is said to
+' have 0 columns.  Only dimensioned arrays return non-zero values.  All other parameters return 0.
+'
+' PARAMETERS
+' 1. arg - any value or object reference
+'
+' RETURNED VALUE
+' Number of columns of the given array.  Dimensioned arrays are the only expressions returning non-zero.
+Public Function GetNumberOfColumns(anArray As Variant) As Long
+    If Not DimensionedQ(aMatrix) Then
+        Let GetNumberOfColumns = 0
+    ElseIf NumberOfDimensions(aMatrix) = 1 Then
+        Let GetNumberOfColumns = UBound(aMatrix, 1) - LBound(aMatrix, 1) + 1
+    Else
+        Let GetNumberOfColumns = UBound(aMatrix, 2) - LBound(aMatrix, 2) + 1
+    End If
+End Function
+
+' DESCRIPTION
+' Alias for GetNumberOfColumns. This function returns the number of columns in the given 2D array.
+' An empty array is said to have 0 columns.  Only dimensioned arrays return non-zero values.  All
+' other parameters return 0.
+'
+' PARAMETERS
+' 1. arg - any value or object reference
+'
+' RETURNED VALUE
+' Number of columns of the given array.  Dimensioned arrays are the only expressions returning non-zero.
+Public Function NumberOfColumns(anArray As Variant) As Long
+    Let NumberOfColumns = GetNumberOfColumns(anArray)
+End Function
+
+' DESCRIPTION
+' Returns the first element in the given array.  Returns Null if the array is empty or
+' there is a problem with it.  2D arrays are treated as an array of arrays, with each
+' row being one of the elements in the array.  In other words, this function would return
+' the same thing for [{1,2; 3,4}] and Array(Array(1,2), Array(3,4)).
+'
+' PARAMETERS
+' 1. arg - any value or object reference
+'
+' RETURNED VALUE
+' First element in the given array
+Public Function First(anArray As Variant) As Variant
+    If Not Dimensioned(anArray) Then
+        Let First = Null
+    ElseIf NumberOfDimensions(anArray) = 1 Then
+        If EmptyArrayQ(anArray) Then
+            Let First = Null
+        Else
+            Let First = anArray(LBound(anArray))
+        End If
+    ElseIf NumberOfDimensions(anArray) = 2 Then
+        Let First = ConvertTo1DArray(GetRow(anArray, 1))
+    Else
+        Let First = anArray
+    End If
+End Function
+
+' DESCRIPTION
+' Returns the last element in the given array.  Returns Null if the array is empty or
+' there is a problem with it.  2D arrays are treated as an array of arrays, with each
+' row being one of the elements in the array.  In other words, this function would return
+' the same thing for [{1,2; 3,4}] and Array(Array(1,2), Array(3,4)).
+'
+' PARAMETERS
+' 1. arg - any value or object reference
+'
+' RETURNED VALUE
+' Last element in the given array
+Public Function Last(anArray As Variant) As Variant
+    If Not Dimensioned(anArray) Then
+        Let Last = Null
+    ElseIf NumberOfDimensions(anArray) = 1 Then
+        If EmptyArrayQ(anArray) Then
+            Let Last = Null
+        Else
+            Let Last = anArray(UBound(anArray))
+        End If
+    ElseIf NumberOfDimensions(anArray) = 2 Then
+        Let Last = ConvertTo1DArray(GetRow(anArray, GetNumberOfRows(anArray)))
+    Else
+        Let Last = anArray
+    End If
+End Function
+
+' DESCRIPTION
+' Returns the 1D array given by all but the last element or the 2D given by all but the last row.
+' Returns Null if there is a problem with its argument.  Most of a one-element, 1D array or one-row,
+' 2D array returns the empty array.  2D arrays are treated as an array of arrays, with each row being
+' one of the elements in the array.  In other words, this function would return the same thing for
+' [{1,2; 3,4}] and Array(Array(1,2), Array(3,4)).
+'
+' PARAMETERS
+' 1. arg - any value or object reference
+'
+' RETURNED VALUE
+' An array with all but the last element of the array, interpreting 2D arrays as 1D arrays of their rows
+Public Function Most(anArray As Variant) As Variant
+    If NumberOfDimensions(anArray) = 1 Then
+        If EmptyArrayQ(anArray) Then
+            Let Most = Array()
+        ElseIf UBound(anArray) = LBound(anArray) Then
+            Let Most = Array()
+        Else
+            Let Most = GetSubArray(anArray, _
+                                   LBound(anArray), _
+                                   UBound(anArray) - 1)
+        End If
+    ElseIf NumberOfDimensions(anArray) = 2 Then
+        If EmptyArrayQ(anArray) Then
+            Let Most = Array()
+        ElseIf UBound(anArray, 1) = LBound(anArray, 1) Then
+            Let Most = Array()
+        Else
+            Let Most = GetSubMatrix(anArray, _
+                                    LBound(anArray, 1), _
+                                    UBound(anArray, 1) - 1, _
+                                    LBound(anArray, 2), _
+                                    UBound(anArray, 2))
+        End If
+    Else
+        Let Most = Null
+    End If
+End Function
+
+' DESCRIPTION
+' Returns the 1D array given by all but the first element or the 2D given by all but the first row.
+' Returns Null if there is a problem with its argument.  Rest of a one-element ,1D array or one-row 2D
+' array returns the empty array.  2D arrays are treated as an array of arrays, with each row being one
+' of the elements in the array.  In other words, this function would return the same thing for
+' [{1,2; 3,4}] and Array(Array(1,2), Array(3,4)).
+'
+' PARAMETERS
+' 1. arg - any value or object reference
+'
+' RETURNED VALUE
+' An array with all but the first element of the array, interpreting 2D arrays as 1D arrays of their rows
+Public Function Rest(anArray As Variant) As Variant
+    If Not IsArray(anArray) Then
+        Let Rest = anArray
+    ElseIf NumberOfDimensions(anArray) = 1 Then
+        If EmptyArrayQ(anArray) Then
+            Let Rest = Array()
+        ElseIf UBound(anArray) = LBound(anArray) Then
+            Let Rest = Array()
+        Else
+            Let Rest = GetSubArray(anArray, _
+                                   LBound(anArray) + 1, _
+                                   UBound(anArray))
+        End If
+    ElseIf NumberOfDimensions(anArray) = 2 Then
+        If EmptyArrayQ(anArray) Then
+            Let Rest = Array()
+        ElseIf UBound(anArray, 1) = LBound(anArray, 1) Then
+            Let Rest = Array()
+        Else
+            Let Rest = GetSubMatrix(anArray, _
+                                    LBound(anArray, 1) + 1, _
+                                    UBound(anArray, 1), _
+                                    LBound(anArray, 2), _
+                                    UBound(anArray, 2))
+        End If
+    Else
+        Let Rest = Null
+    End If
+End Function
+
 ' This function inserts either an atomic element into a 1D array satisfying RowVectorQ or
 ' a row into a 2D array filled exclusively with atomic elements
 ' AnArray is returned unevaluated if either AnArray, TheElt, or ThePos is not as expected.
@@ -545,45 +830,6 @@ Public Function ReverseVertically(MyArray As Variant) As Variant
     Let ReverseVertically = TmpSheet.Range("A1").CurrentRegion.Value2
 End Function
 
-' This function returns the number of dimensions in an array.  There is no built-in function
-' to do this.  Atomic expressions are assigned 0.
-' Atomic expressions have dimension 0
-' array() has dimension 1
-' [{1,2,3; 4, 5, 6}] has dimension 2
-' However, [{}] has dimension 0
-Public Function NumberOfDimensions(MyArray As Variant) As Long
-    Dim temp As Long
-    Dim i As Long
-    
-    On Error GoTo FinalDimension
-    
-    If EmptyArrayQ(MyArray) Then
-        Let NumberOfDimensions = 1
-        Exit Function
-    End If
-    
-    If Not IsArray(MyArray) Then
-        Let NumberOfDimensions = 0
-        Exit Function
-    End If
-    
-    For i = 1 To 60000
-        Let temp = LBound(MyArray, i)
-    Next i
-
-    Let NumberOfDimensions = i
-    
-    Exit Function
-        
-FinalDimension:
-    Let NumberOfDimensions = i - 1
-    Exit Function
-End Function
-
-' Alias for NumberOfDimensions()
-Public Function GetNumberOfDimensions(MyArray As Variant) As Long
-    Let GetNumberOfDimensions = NumberOfDimensions(MyArray)
-End Function
 
 ' Alias for Public Function ConvertTo1DArray(a As Variant) As Variant in this module
 ' This one handles any number of dimensions and nesting.
@@ -625,7 +871,7 @@ Public Function ConvertTo1DArray(a As Variant) As Variant
     
     Let nd = NumberOfDimensions(a)
 
-    If RowArrayQ(a) Then
+    If InterpretableAsRowArrayQ(a) Then
         ' Process arg is it has one dimensions
         If nd = 1 Then
             ' If this is a 1-element, 1D array
@@ -666,7 +912,7 @@ Public Function ConvertTo1DArray(a As Variant) As Variant
             
             Let ConvertTo1DArray = TheResult
         End If
-    ElseIf ColumnArrayQ(a) Then
+    ElseIf InterpretableAsColumnArrayQ(a) Then
         If EmptyArrayQ(a) Then
             Let ConvertTo1DArray = Array()
             Exit Function
@@ -811,96 +1057,6 @@ Public Function GetSubColumn(aMatrix As Variant, ColumnNumber As Long, StartRow 
     Let anArray = GetColumn(aMatrix, ColumnNumber)
     
     Let GetSubColumn = GetSubArray(anArray, StartRow, EndRow)
-End Function
-
-' Returns the first element of the array if one dimensional or the first row if two dimensional
-' Returns Empty if arg not an array
-' Returns Empty for an empty array
-Public Function First(anArray As Variant) As Variant
-    If Not IsArray(anArray) Then
-        Let First = Empty
-    ElseIf NumberOfDimensions(anArray) = 1 Then
-        If EmptyArrayQ(anArray) Then
-            Let First = Empty
-        Else
-            Let First = anArray(LBound(anArray))
-        End If
-    ElseIf NumberOfDimensions(anArray) = 2 Then
-        Let First = ConvertTo1DArray(GetRow(anArray, 1))
-    Else
-        Let First = anArray
-    End If
-End Function
-
-' Returns the first element of the array if one dimensional or the last row if two dimensional
-' Returns Empty if arg not an array
-' Returns Empty for an empty array
-Public Function Last(anArray As Variant) As Variant
-    If Not IsArray(anArray) Then
-        Let Last = Empty
-    ElseIf NumberOfDimensions(anArray) = 1 Then
-        If EmptyArrayQ(anArray) Then
-            Let Last = Empty
-        Else
-            Let Last = anArray(UBound(anArray))
-        End If
-    ElseIf NumberOfDimensions(anArray) = 2 Then
-        Let Last = ConvertTo1DArray(GetRow(anArray, GetNumberOfRows(anArray)))
-    Else
-        Let Last = anArray
-    End If
-End Function
-
-' Returns a sub-array with all but the last element of the array.
-' If the array is empty or has only one element, this function returns array() (e.g. empty array)
-Public Function Most(anArray As Variant) As Variant
-    If Not IsArray(anArray) Then
-        Let Most = anArray
-    ElseIf NumberOfDimensions(anArray) = 1 Then
-        If EmptyArrayQ(anArray) Then
-            Let Most = Array()
-        ElseIf UBound(anArray) <= LBound(anArray) Then
-            Let Most = Array()
-        ElseIf UBound(anArray) > LBound(anArray) Then
-            Let Most = GetSubArray(anArray, LBound(anArray), UBound(anArray) - 1)
-        End If
-    ElseIf NumberOfDimensions(anArray) = 2 Then
-        If EmptyArrayQ(anArray) Then
-            Let Most = Array()
-        ElseIf UBound(anArray) <= LBound(anArray) Then
-            Let Most = Array()
-        ElseIf UBound(anArray) > LBound(anArray) Then
-            Let Most = GetSubMatrix(anArray, LBound(anArray, 1), UBound(anArray, 1) - 1, LBound(anArray, 2), UBound(anArray, 2))
-        End If
-    Else
-        Let Most = anArray
-    End If
-End Function
-
-' Returns a sub-array with all but the first element of the array.
-' If the array is empty or has only one element, this function returns array() (e.g. empty array)
-Public Function Rest(anArray As Variant) As Variant
-    If Not IsArray(anArray) Then
-        Let Rest = anArray
-    ElseIf NumberOfDimensions(anArray) = 1 Then
-        If EmptyArrayQ(anArray) Then
-            Let Rest = Array()
-        ElseIf UBound(anArray) <= LBound(anArray) Then
-            Let Rest = Array()
-        ElseIf UBound(anArray) > LBound(anArray) Then
-            Let Rest = GetSubArray(anArray, LBound(anArray) + 1, UBound(anArray))
-        End If
-    ElseIf NumberOfDimensions(anArray) = 2 Then
-        If EmptyArrayQ(anArray) Then
-            Let Rest = Array()
-        ElseIf UBound(anArray) <= LBound(anArray) Then
-            Let Rest = Array()
-        ElseIf UBound(anArray) > LBound(anArray) Then
-            Let Rest = GetSubMatrix(anArray, LBound(anArray, 1) + 1, UBound(anArray, 1), LBound(anArray, 2), UBound(anArray, 2))
-        End If
-    Else
-        Let Rest = anArray
-    End If
 End Function
 
 ' Appends a new element to the given array handles 1D and 2D arrays. Returns Null
@@ -1098,7 +1254,7 @@ Private Function GetSubMatrixHelper(TheArray As Variant, TopRowNumber As Long, B
     Dim c As Long
     Dim SubMatrix() As Variant
     
-    If RowArrayQ(TheArray) Then
+    If InterpretableAsRowArrayQ(TheArray) Then
         ReDim SubMatrix(1, TopColumnNumber - BottomColumnNumber + LBound(TheArray))
         
         For c = BottomColumnNumber To TopColumnNumber
@@ -2349,54 +2505,6 @@ Public Function RandomMatrix(NRows As Long, NColumns As Long) As Variant
     
     ' Clear TmpSht
     Call ThisWorkbook.Worksheets("TempComputation").UsedRange.ClearContents
-End Function
-
-' Alias for GetArrayLength
-Public Function Length(anArray As Variant) As Long
-    Let Length = GetArrayLength(anArray)
-End Function
-
-' Alias for GetNumberOfRows
-Public Function NumberOfRows(anArray As Variant) As Long
-    Let NumberOfRows = GetNumberOfRows(anArray)
-End Function
-
-' Alias for GetNumberOfColumns
-Public Function NumberOfColumns(anArray As Variant) As Long
-    Let NumberOfColumns = GetNumberOfColumns(anArray)
-End Function
-
-' Returns the number of elements in the first dimension
-Public Function GetArrayLength(aMatrix As Variant) As Long
-    If Not IsArray(aMatrix) Then
-        Let GetArrayLength = 0
-    Else
-        Let GetArrayLength = UBound(aMatrix) - LBound(aMatrix) + 1
-    End If
-End Function
-
-' Returns the number of rows in a 2D array
-Public Function GetNumberOfRows(aMatrix As Variant) As Long
-    If Not IsArray(aMatrix) Then
-        Let GetNumberOfRows = 0
-    ElseIf NumberOfDimensions(aMatrix) = 1 Then
-        Let GetNumberOfRows = 1
-    Else
-        Let GetNumberOfRows = UBound(aMatrix, 1) - LBound(aMatrix, 1) + 1
-    End If
-End Function
-
-' Returns the number of columns in a 2D array. A 1D array is considered a 2D array with 1 row
-Public Function GetNumberOfColumns(aMatrix As Variant) As Long
-    If IsArray(aMatrix) Then
-        If NumberOfDimensions(aMatrix) = 1 Then
-            Let GetNumberOfColumns = UBound(aMatrix, 1) - LBound(aMatrix, 1) + 1
-        Else
-            Let GetNumberOfColumns = UBound(aMatrix, 2) - LBound(aMatrix, 2) + 1
-        End If
-    Else
-        Let GetNumberOfColumns = 0
-    End If
 End Function
 
 ' This function takes a 1D range and trims its contents after converting it to upper case

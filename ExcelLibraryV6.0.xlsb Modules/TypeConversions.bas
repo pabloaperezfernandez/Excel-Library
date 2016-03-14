@@ -3,7 +3,7 @@ Option Base 1
 Option Explicit
 
 ' Casts to strings a 1D array satisfying Predicates.AtomicArrayQ() or 2D array satisfying
-' Predicates.TableQ() to strings.  If there is a problem with the parameter, the function
+' Predicates.AtomicTableQ() to strings.  If there is a problem with the parameter, the function
 ' returns an uninitialized array (e.g. an array returning False from Predicates.DimensionedQ())
 '
 ' This function does not check if the elements of AnArray can be casted to the desired type.
@@ -36,7 +36,7 @@ Public Function ToStrings(anArray As Variant) As String()
     End If
 
     ' Handle the case of a true 2D array
-    If TableQ(anArray) Then
+    If AtomicTableQ(anArray) Then
         ReDim ResultArray(1 To NumberOfRows(anArray), 1 To NumberOfColumns(anArray))
 
         Let RowOffset = LBound(anArray, 1)
@@ -52,7 +52,7 @@ Public Function ToStrings(anArray As Variant) As String()
 End Function
 
 ' Casts to integers a 1D array satisfying Predicates.AtomicArrayQ() or 2D array satisfying
-' Predicates.TableQ() a integers. If there is a problem with the parameter, the function
+' Predicates.AtomicTableQ() a integers. If there is a problem with the parameter, the function
 ' returns an uninitialized array (e.g. an array returning False from Predicates.DimensionedQ())
 '
 ' This function does not check if the elements of AnArray can be casted to the desired type.
@@ -85,7 +85,7 @@ Public Function ToIntegers(anArray As Variant) As Integer()
     End If
 
     ' Handle the case of a true 2D array
-    If TableQ(anArray) Then
+    If AtomicTableQ(anArray) Then
         ReDim ResultArray(1 To NumberOfRows(anArray), 1 To NumberOfColumns(anArray))
 
         Let RowOffset = LBound(anArray, 1)
@@ -101,7 +101,7 @@ Public Function ToIntegers(anArray As Variant) As Integer()
 End Function
 
 ' Casts to longs a 1D array satisfying Predicates.AtomicArrayQ() or 2D array satisfying
-' Predicates.TableQ() a integers. If there is a problem with the parameter, the function
+' Predicates.AtomicTableQ() a integers. If there is a problem with the parameter, the function
 ' returns an uninitialized array (e.g. an array returning False from Predicates.DimensionedQ())
 '
 ' This function does not check if the elements of AnArray can be casted to the desired type.
@@ -134,7 +134,7 @@ Public Function ToLongs(anArray As Variant) As Long()
     End If
 
     ' Handle the case of a true 2D array
-    If TableQ(anArray) Then
+    If AtomicTableQ(anArray) Then
         ReDim ResultArray(1 To NumberOfRows(anArray), 1 To NumberOfColumns(anArray))
 
         Let RowOffset = LBound(anArray, 1)
@@ -150,7 +150,7 @@ Public Function ToLongs(anArray As Variant) As Long()
 End Function
 
 ' Casts to doubles a 1D array satisfying Predicates.AtomicArrayQ() or 2D array satisfying
-' Predicates.TableQ() a integers. If there is a problem with the parameter, the function
+' Predicates.AtomicTableQ() a integers. If there is a problem with the parameter, the function
 ' returns an uninitialized array (e.g. an array returning False from Predicates.DimensionedQ())
 '
 ' This function does not check if the elements of AnArray can be casted to the desired type.
@@ -183,7 +183,7 @@ Public Function ToDoubles(anArray As Variant) As Double()
     End If
 
     ' Handle the case of a true 2D array
-    If TableQ(anArray) Then
+    If AtomicTableQ(anArray) Then
         ReDim ResultArray(1 To NumberOfRows(anArray), 1 To NumberOfColumns(anArray))
 
         Let RowOffset = LBound(anArray, 1)
@@ -199,7 +199,7 @@ Public Function ToDoubles(anArray As Variant) As Double()
 End Function
 
 ' Casts to booleans a 1D array satisfying Predicates.AtomicArrayQ() or 2D array satisfying
-' Predicates.TableQ() a integers. If there is a problem with the parameter, the function
+' Predicates.AtomicTableQ() a integers. If there is a problem with the parameter, the function
 ' returns an uninitialized array (e.g. an array returning False from Predicates.DimensionedQ())
 '
 ' This function does not check if the elements of AnArray can be casted to the desired type.
@@ -232,7 +232,7 @@ Public Function ToBooleans(anArray As Variant) As Boolean()
     End If
 
     ' Handle the case of a true 2D array
-    If TableQ(anArray) Then
+    If AtomicTableQ(anArray) Then
         ReDim ResultArray(1 To NumberOfRows(anArray), 1 To NumberOfColumns(anArray))
 
         Let RowOffset = LBound(anArray, 1)
@@ -248,7 +248,7 @@ Public Function ToBooleans(anArray As Variant) As Boolean()
 End Function
 
 ' Casts to worksheets a 1D array satisfying Predicates.AtomicArrayQ() or 2D array satisfying
-' Predicates.TableQ() a integers. If there is a problem with the parameter, the function
+' Predicates.AtomicTableQ() a integers. If there is a problem with the parameter, the function
 ' returns an uninitialized array (e.g. an array returning False from Predicates.DimensionedQ())
 '
 ' This function does not check if the elements of AnArray can be casted to the desired type.
@@ -281,7 +281,7 @@ Public Function ToWorksheets(anArray As Variant) As Worksheet()
     End If
 
     ' Handle the case of a true 2D array
-    If TableQ(anArray) Then
+    If AtomicTableQ(anArray) Then
         ReDim ResultArray(1 To NumberOfRows(anArray), 1 To NumberOfColumns(anArray))
 
         Let RowOffset = LBound(anArray, 1)
@@ -297,7 +297,7 @@ Public Function ToWorksheets(anArray As Variant) As Worksheet()
 End Function
 
 ' Casts to workbooks 1D array satisfying Predicates.AtomicArrayQ() or 2D array satisfying
-' Predicates.TableQ() a integers. If there is a problem with the parameter, the function
+' Predicates.AtomicTableQ() a integers. If there is a problem with the parameter, the function
 ' returns an uninitialized array (e.g. an array returning False from Predicates.DimensionedQ())
 '
 ' This function does not check if the elements of AnArray can be casted to the desired type.
@@ -330,7 +330,7 @@ Public Function ToWorkbooks(anArray As Variant) As Workbook()
     End If
 
     ' Handle the case of a true 2D array
-    If TableQ(anArray) Then
+    If AtomicTableQ(anArray) Then
         ReDim ResultArray(1 To NumberOfRows(anArray), 1 To NumberOfColumns(anArray))
 
         Let RowOffset = LBound(anArray, 1)

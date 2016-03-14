@@ -1062,14 +1062,14 @@ Public Sub TestConvertTo1DArray()
     Debug.Print
 End Sub
 
-Public Sub TestColumnArrayQ()
+Public Sub TestInterpretableAsColumnArrayQ()
     Dim v As Variant
     Dim a() As Variant
     Dim b() As Variant
     
     Let v = [{1, 2, 3; 4,5,6; 7,8,9}]
     Debug.Print "Testing: [{1, 2, 3; 4,5,6; 7,8,9}]"
-    Debug.Print ColumnArrayQ(v)
+    Debug.Print InterpretableAsColumnArrayQ(v)
     Debug.Print
 
     ReDim a(1, 3)
@@ -1077,54 +1077,54 @@ Public Sub TestColumnArrayQ()
     Let a(1, 2) = 2
     Let a(1, 3) = 3
     Debug.Print "Testing: [{1, 2, 3}]"
-    Debug.Print ColumnArrayQ(a)
+    Debug.Print InterpretableAsColumnArrayQ(a)
     Debug.Print
 
     Let v = [{1; 2; 3}]
     Debug.Print "Testing: [{1; 2; 3}]"
-    Debug.Print ColumnArrayQ(v)
+    Debug.Print InterpretableAsColumnArrayQ(v)
     Debug.Print
 
     Let v = Array([{1; 2; 3}])
     Debug.Print "Testing: Array([{1; 2; 3}])"
-    Debug.Print ColumnArrayQ(v)
+    Debug.Print InterpretableAsColumnArrayQ(v)
     Debug.Print
     
     Let v = [{[{1;2;3}]; 4; 5}]
     Debug.Print "Testing: [{[{1;2;3}]; 4; 5}]"
-    Debug.Print ColumnArrayQ(v)
+    Debug.Print InterpretableAsColumnArrayQ(v)
     Debug.Print
 
     ReDim a(1, 1)
     Let a(1, 1) = [{1;2;3}]
     Debug.Print "Testing: [{[{1;2;3}]}]"
-    Debug.Print ColumnArrayQ(a)
+    Debug.Print InterpretableAsColumnArrayQ(a)
     Debug.Print
 
     Let v = Array(1, 2, 3)
     Debug.Print "Testing: Array(1, 2, 3)"
-    Debug.Print ColumnArrayQ(v)
+    Debug.Print InterpretableAsColumnArrayQ(v)
     Debug.Print
     
     Let v = Array(Array(1, 2, 3))
     Debug.Print "Testing: Array(Array(1, 2, 3))"
-    Debug.Print ColumnArrayQ(v)
+    Debug.Print InterpretableAsColumnArrayQ(v)
     Debug.Print
     
     Let v = Array(Array(Array(1, 2, 3)))
     Debug.Print "Testing: Array(Array(Array(1, 2, 3)))"
-    Debug.Print ColumnArrayQ(v)
+    Debug.Print InterpretableAsColumnArrayQ(v)
     Debug.Print
     
     Let v = Array([{1, 2, 3}])
     Debug.Print "Testing: Array([{1, 2, 3}])"
-    Debug.Print ColumnArrayQ(v)
+    Debug.Print InterpretableAsColumnArrayQ(v)
     Debug.Print
     
     ReDim a(1 To 1, 1 To 1)
     Let a(1, 1) = Array(1, 2, 3)
     Debug.Print "Testing: [{Array(1, 2, 3)}]"
-    Debug.Print ColumnArrayQ(a)
+    Debug.Print InterpretableAsColumnArrayQ(a)
     Debug.Print
     
     ReDim a(1 To 1, 1 To 1)
@@ -1133,69 +1133,69 @@ Public Sub TestColumnArrayQ()
     Let a(1, 1) = v
     Let b(1, 1) = a
     Debug.Print "Testing: [{[{[{1; 2; 3}]}]}]"
-    Debug.Print ColumnArrayQ(v)
+    Debug.Print InterpretableAsColumnArrayQ(v)
     Debug.Print
     
     Let v = Array()
     Debug.Print "Testing: Array()"
-    Debug.Print ColumnArrayQ(v)
+    Debug.Print InterpretableAsColumnArrayQ(v)
     Debug.Print
 End Sub
 
-Public Sub TestRowArrayQ()
+Public Sub TestInterpretableAsRowArrayQ()
     Dim v As Variant
     Dim a() As Variant
     
     Let v = [{1, 2, 3; 4,5,6; 7,8,9}]
     Debug.Print "Testing: [{1, 2, 3; 4,5,6; 7,8,9}]"
-    Debug.Print RowArrayQ(v)
+    Debug.Print InterpretableAsRowArrayQ(v)
     Debug.Print
 
     Let v = [{1, 2, 3}]
     Debug.Print "Testing: [{1, 2, 3}]"
-    Debug.Print RowArrayQ(v)
+    Debug.Print InterpretableAsRowArrayQ(v)
     Debug.Print
 
     ReDim a(1 To 1, 1 To 1)
     Let a(1, 1) = [{1, 2, 3}]
     Debug.Print "Testing: [{[{1, 2, 3}]}]"
-    Debug.Print RowArrayQ(a)
+    Debug.Print InterpretableAsRowArrayQ(a)
     Debug.Print
 
     Let v = [{1; 2; 3}]
     Debug.Print "Testing: [{1; 2; 3}]"
-    Debug.Print RowArrayQ(v)
+    Debug.Print InterpretableAsRowArrayQ(v)
     Debug.Print
 
     Let v = Array(1, 2, 3)
     Debug.Print "Testing: Array(1, 2, 3)"
-    Debug.Print RowArrayQ(v)
+    Debug.Print InterpretableAsRowArrayQ(v)
     Debug.Print
     
     Let v = Array(Array(1, 2, 3))
     Debug.Print "Testing: Array(Array(1, 2, 3))"
-    Debug.Print RowArrayQ(v)
+    Debug.Print InterpretableAsRowArrayQ(v)
     Debug.Print
     
     Let v = Array(Array(Array(1, 2, 3)))
     Debug.Print "Testing: Array(Array(Array(1, 2, 3)))"
-    Debug.Print RowArrayQ(v)
+    Debug.Print InterpretableAsRowArrayQ(v)
     Debug.Print
     
     Let v = Array([{1, 2, 3}])
     Debug.Print "Testing: Array([{1, 2, 3}])"
-    Debug.Print RowArrayQ(v)
+    Debug.Print InterpretableAsRowArrayQ(v)
     Debug.Print
     
     ReDim a(1 To 1, 1 To 1)
     Let a(1, 1) = Array(1, 2, 3)
     Debug.Print "Testing: [{Array(1, 2, 3)}]"
-    Debug.Print RowArrayQ(a)
+    Debug.Print InterpretableAsRowArrayQ(a)
     Debug.Print
     
     Let v = Array()
     Debug.Print "Testing: Array()"
-    Debug.Print RowArrayQ(v)
+    Debug.Print InterpretableAsRowArrayQ(v)
     Debug.Print
 End Sub
 

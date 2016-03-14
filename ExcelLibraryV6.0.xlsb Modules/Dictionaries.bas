@@ -66,10 +66,10 @@ End Function
 ' DESCRIPTION
 ' This function translates the elements of a 1D or 2D arrays using a dictionary.
 ' We impose no restriction on the dictionary's elements.  Hence, an arg satisfying
-' Predicates.AtomicArrayQ or Predicates.TableQ may fail to after passing through this function.
+' Predicates.AtomicArrayQ or Predicates.AtomicTableQ may fail to after passing through this function.
 '
 ' PARAMETERS
-' 1. AnAtomicArrayOrTable       - An array satisfying Predicates.AtomicArrayQ or Predicates.TableQ
+' 1. AnAtomicArrayOrTable       - An array satisfying Predicates.AtomicArrayQ or Predicates.AtomicTableQ
 ' 2. aDict                      - A dictionary
 '
 ' RETURNED VALUE
@@ -100,7 +100,7 @@ Public Function TranslateUsingDictionary(AnAtomicArrayOrTable As Variant, aDict 
         Exit Function
     End If
     
-    If Not (AtomicArrayQ(AnAtomicArrayOrTable) Or TableQ(AnAtomicArrayOrTable)) Then
+    If Not (AtomicArrayQ(AnAtomicArrayOrTable) Or AtomicTableQ(AnAtomicArrayOrTable)) Then
         Let TranslateUsingDictionary = Null
         Exit Function
     End If
