@@ -2,7 +2,11 @@ Attribute VB_Name = "Charts"
 Option Base 1
 Option Explicit
 
-Public Function GenerateLineChartTimeSeries(TargetWorksheet As Worksheet, SourceRange As Range, TheTitle As String, XAxisData As Range, ToPlotBy As XlRowCol) As ChartObject
+Public Function GenerateLineChartTimeSeries(TargetWorksheet As Worksheet, _
+                                            SourceRange As Range, _
+                                            TheTitle As String, _
+                                            XAxisData As Range, _
+                                            ToPlotBy As XlRowCol) As ChartObject
     Dim co As ChartObject
 
     Set co = TargetWorksheet.ChartObjects.Add(Left:=10, Width:=500, Top:=10, height:=300)

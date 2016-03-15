@@ -50,7 +50,9 @@ End Function
 '
 ' If the optional parameter TargetWorksheet is supplied, then the function returns Null
 ' and copies the consolidated data into the target worksheet starting in cell A1.
-Public Function ConsolidateWorksheets(WorksheetsArray() As Worksheet, Optional StartingRow As Variant, Optional TargetWorksheet As Variant) As Variant
+Public Function ConsolidateWorksheets(WorksheetsArray() As Worksheet, _
+                                      Optional StartingRow As Variant, _
+                                      Optional TargetWorksheet As Variant) As Variant
     Dim Headers As Variant
     Dim NumberOfColumns As Integer
     Dim NumberOfRows As Long
@@ -125,7 +127,9 @@ Public Function ConsolidateWorksheets(WorksheetsArray() As Worksheet, Optional S
     Call ConsolidationWorksheet.Delete
 End Function
 
-Public Function ConsolidateWorksheetsHorizontally(WorksheetsArray() As Worksheet, Optional StartingColumn As Variant, Optional TargetWorksheet As Variant) As Variant
+Public Function ConsolidateWorksheetsHorizontally(WorksheetsArray() As Worksheet, _
+                                                  Optional StartingColumn As Variant, _
+                                                  Optional TargetWorksheet As Variant) As Variant
     Dim var As Variant
     Dim NRows As Variant
     Dim NCols As Variant

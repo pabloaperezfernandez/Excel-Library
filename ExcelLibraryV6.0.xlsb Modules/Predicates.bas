@@ -39,13 +39,13 @@ End Function
 '
 ' RETURNED VALUE
 ' True when arg is a dimensioned, 1D, empty array.  Returns False otherwise
-Public Function EmptyArrayQ(anArray As Variant) As Boolean
+Public Function EmptyArrayQ(AnArray As Variant) As Boolean
     ' Exit with False if AnArray is not an array or has not been dimensioned
-    If Not DimensionedQ(anArray) Then
+    If Not DimensionedQ(AnArray) Then
         Let EmptyArrayQ = False
     ' Return True if we have an array with lower Ubound than LBound
     Else
-        Let EmptyArrayQ = UBound(anArray, 1) - LBound(anArray, 1) < 0
+        Let EmptyArrayQ = UBound(AnArray, 1) - LBound(AnArray, 1) < 0
     End If
 End Function
 
@@ -102,8 +102,27 @@ End Function
 ' RETURNED VALUE
 ' True when arg is a dimensioned, non-empty array all of whose elements satisfy Predicates.AtomicQ.
 ' Returns False otherwise
-Public Function AtomicArrayQ(arg As Variant) As Boolean
-    Let AtomicArrayQ = EveryQ(arg, "AtomicQ")
+Public Function AtomicArrayQ(AnArray As Variant) As Boolean
+    ' This function is written independently of AllTrueQ because AllTrueQ depends on this pricate
+    Dim var As Variant
+    
+    ' Set default return value
+    Let AtomicArrayQ = False
+    
+    ' Exit with False if arg is not a dimensioned array
+    If Not DimensionedQ(AnArray) Then Exit Function
+    
+    ' Exit with True if arg is an empty array
+    If EmptyArrayQ(AnArray) Then
+        Let AtomicArrayQ = True
+        Exit Function
+    End If
+    
+    For Each var In AnArray
+        If Not AtomicQ(var) Then Exit Function
+    Next
+    
+    Let AtomicArrayQ = True
 End Function
 
 ' DESCRIPTION
@@ -152,7 +171,7 @@ End Function
 ' RETURNED VALUE
 ' True or False depending on whether arg is dimensioned, non-empty and all its elements satisfy Predicates.NumberQ
 Public Function NumberArrayQ(arg As Variant) As Boolean
-    Let NumberArrayQ = EveryQ(arg, "NumberQ")
+    Let NumberArrayQ = AllTrueQ(arg, ThisWorkbook, "NumberQ")
 End Function
 
 ' DESCRIPTION
@@ -191,7 +210,7 @@ End Function
 ' True or False depending on whether arg is dimensioned, non-empty and all its elements satisfy
 ' Predicates.WholeNumberQ
 Public Function WholeNumberArrayQ(arg As Variant) As Boolean
-    Let WholeNumberArrayQ = EveryQ(arg, "WholeNumberQ")
+    Let WholeNumberArrayQ = AllTrueQ(arg, ThisWorkbook, "WholeNumberQ")
 End Function
 
 ' DESCRIPTION
@@ -222,7 +241,7 @@ End Function
 ' True or False depending on whether or not its argument is dimensioned, non-empty and all
 ' its elements satisfy Predicates.PositiveWholeNumberQ
 Public Function PositiveWholeNumberArrayQ(arg As Variant) As Boolean
-    Let PositiveWholeNumberArrayQ = EveryQ(arg, "PositiveWholeNumberQ")
+    Let PositiveWholeNumberArrayQ = AllTrueQ(arg, thisworbook, "PositiveWholeNumberQ")
 End Function
 
 ' DESCRIPTION
@@ -253,7 +272,7 @@ End Function
 ' True or False depending on whether arg is dimensioned, non-empty and all its elements satisfy
 ' Predicates.NegativeWholeNumberQ
 Public Function NegativeWholeNumberArrayQ(arg As Variant) As Boolean
-    Let NegativeWholeNumberArrayQ = EveryQ(arg, "NegativeWholeNumberQ")
+    Let NegativeWholeNumberArrayQ = AllTrueQ(arg, "NegativeWholeNumberQ")
 End Function
 
 ' DESCRIPTION
@@ -284,7 +303,7 @@ End Function
 ' True or False depending on whether arg is dimensioned, non-empty and all its elements satisfy
 ' Predicates.NonNegativeWholeNumberQ
 Public Function NonNegativeWholeNumberArrayQ(arg As Variant) As Boolean
-    Let NonNegativeWholeNumberArrayQ = EveryQ(arg, "NonNegativeWholeNumberQ")
+    Let NonNegativeWholeNumberArrayQ = AllTrueQ(arg, ThisWorkbook, "NonNegativeWholeNumberQ")
 End Function
 
 ' DESCRIPTION
@@ -309,8 +328,8 @@ End Function
 ' RETURNED VALUE
 ' True or False depending on whether arg is dimensioned, non-empty and all its elements satisfy
 ' Predicates.StringQ
-Public Function StringArrayQ(anArray As Variant) As Boolean
-    Let StringArrayQ = EveryQ(anArray, "StringQ")
+Public Function StringArrayQ(AnArray As Variant) As Boolean
+    Let StringArrayQ = AllTrueQ(AnArray, ThisWorkbook, "StringQ")
 End Function
 
 ' DESCRIPTION
@@ -337,8 +356,8 @@ End Function
 ' RETURNED VALUE
 ' True or False depending on whether arg is dimensioned, non-empty and all its elements satisfy
 ' Predicates.DictionaryQ
-Public Function DictionaryArrayQ(anArray As Variant) As Boolean
-    Let DictionaryArrayQ = EveryQ(anArray, "DictionaryQ")
+Public Function DictionaryArrayQ(AnArray As Variant) As Boolean
+    Let DictionaryArrayQ = AllTrueQ(AnArray, ThisWorkbook, "DictionaryQ")
 End Function
 
 ' DESCRIPTION
@@ -363,8 +382,8 @@ End Function
 ' RETURNED VALUE
 ' True or False depending on whether arg is dimensioned, non-empty and all its elements satisfy
 ' Predicates.WholeNumberOrStringQ
-Public Function WholeNumberOrStringArrayQ(anArray As Variant) As Boolean
-    Let WholeNumberOrStringArrayQ = EveryQ(anArray, "WholeNumberOrStringQ")
+Public Function WholeNumberOrStringArrayQ(AnArray As Variant) As Boolean
+    Let WholeNumberOrStringArrayQ = AllTrueQ(AnArray, ThisWorkbook, "WholeNumberOrStringQ")
 End Function
 
 ' DESCRIPTION
@@ -389,36 +408,106 @@ End Function
 ' RETURNED VALUE
 ' True or False depending on whether arg is dimensioned, non-empty and all its elements satisfy
 ' Predicates.NumberOrStringQ
-Public Function NumberOrStringArrayQ(anArray As Variant) As Boolean
-    Let NumberOrStringArrayQ = EveryQ(anArray, "NumberOrStringQ")
+Public Function NumberOrStringArrayQ(AnArray As Variant) As Boolean
+    Let NumberOrStringArrayQ = AllTrueQ(AnArray, ThisWorkbook, "NumberOrStringQ")
 End Function
 
 ' DESCRIPTION
 ' Boolean function returning True if all of the elements in AnArray satisfy the predicate whose
-' name is PredicateName.
+' name is PredicateName.  If PredicateName is not provided, then the function returns True when
+' all of the elements of AnArray are True.
 '
 ' PARAMETERS
-' 1. arg - any value or object reference
+' 1. AnArray - A dimensioned 1D array
+' 2. PredicateName (optional) - A string representing the predicates name
+' 3. WorkbookReference (optional) - A workbook reference to the workbook holding the predicate
 '
 ' RETURNED VALUE
 ' True or False depending on whether arg is dimensioned and all its elements satisfy the
-' predicate with name PredicateName
-Public Function EveryQ(anArray As Variant, PredicateName As String) As Boolean
+' predicate with name PredicateName or are True when PredicateName is missing.
+Public Function AllTrueQ(AnArray As Variant, _
+                         Optional WorkbookReference As Variant, _
+                         Optional PredicateName As Variant) As Boolean
     Dim var As Variant
-
-    Let EveryQ = True
-
-    If Not DimensionedQ(anArray) Then
-        Let EveryQ = False
+    
+    ' Set the default return value of True
+    Let AllTrueQ = True
+    
+    ' Exit with False if AnArrat is not dimensioned
+    If Not DimensionedQ(AnArray) Then
+        Let AllTrueQ = False
         Exit Function
     End If
     
-    For Each var In anArray
-        If Not Application.Run(ThisWorkbook.Name & "!" & PredicateName, var) Then
-            Let EveryQ = False
+    ' Exit the True of AnArray is an empty array
+    If EmptyArrayQ(AnArray) Then
+        Let AllTrueQ = True
+        Exit Function
+    End If
+
+    ' Exit with False if AnArray is not a atomic array
+    If Not AtomicArrayQ(AnArray) Then
+        Let AllTrueQ = False
+        Exit Function
+    End If
+    
+    ' Exit with Null if PredicateName not missing and PredicateName not a string
+    If Not IsMissing(PredicateName) Then
+        If Not StringQ(PredicateName) Then
+            Let AllTrueQ = False
             Exit Function
         End If
+    End If
+    
+    ' Exit with Null if only one of WorkbookReference and PredicateName is missing
+    If (IsMissing(WorkbookReference) And Not IsMissing(PredicateName)) Or _
+       (Not IsMissing(WorkbookReference) And IsMissing(PredicateName)) Then
+        Let AllTrueQ = False
+        Exit Function
+    End If
+    
+    ' Exit with Null if PredicateName missing and AnArray is not an array of Booleans
+    If IsMissing(PredicateName) And Not BooleanArrayQ(AnArray) Then
+        Let AllTrueQ = False
+        Exit Function
+    End If
+    
+    For Each var In AnArray
+        If Not IsMissing(PredicateName) Then
+            If Not Application.Run(WorkbookReference.Name & "!" & PredicateName, var) Then
+                Let AllTrueQ = False
+                Exit Function
+            End If
+        Else
+            If Not var Then
+                Let AllTrueQ = False
+                Exit Function
+            End If
+        End If
     Next
+End Function
+
+' DESCRIPTION
+' Boolean function returning True if all of the elements in AnArray fail the predicate whose
+' name is PredicateName.  If PredicateName is missing, the function returns True when all
+' of AnArray are False.
+'
+' PARAMETERS
+' 1. AnArray - A dimensioned 1D or 2D array
+' 2. PredicateName (optional) - A string representing the predicates name
+' 3. WorkbookReference (optional) - A workbook reference to the workbook holding the predicate
+'
+' RETURNED VALUE
+' True or False depending on whether arg is dimensioned and all its elements fail the
+' predicate with name PredicateName or are False when PredicateName is missing.
+Public Function NoneTrueQ(AnArray As Variant, _
+                          Optional WorkbookReference As Variant, _
+                          Optional PredicateName As Variant) As Boolean
+    If IsMissing(PredicateName) Then
+        Let NoneTrueQ = Not AllTrueQ(AnArray)
+    Else
+        Let NoneTrueQ = Not AllTrueQ(AnArray, WorkbookReference, PredicateName)
+    End If
 End Function
 
 ' DESCRIPTION
@@ -431,20 +520,58 @@ End Function
 ' RETURNED VALUE
 ' True or False depending on whether arg is dimensioned and at least one of its elements satisfies
 ' the predicate with name PredicateName
-Public Function SomeQ(anArray As Variant, PredicateName As String) As Boolean
+Public Function AnyTrueQ(AnArray As Variant, _
+                         Optional WorkbookReference As Variant, _
+                         Optional PredicateName As String) As Boolean
     Dim var As Variant
+    
+    ' Set the default return value of True
+    Let AnyTrueQ = False
 
-    Let SomeQ = False
-
-    If Not DimensionedQ(anArray) Then
-        Let SomeQ = False
+    ' Exit with False if AnArray is not a atomic array
+    If Not AtomicArrayQ(AnArray) Then
+        Let AnyTrueQ = False
         Exit Function
     End If
     
-    For Each var In anArray
-        If Application.Run(ThisWorkbook.Name & "!" & PredicateName, var) Then
-            Let SomeQ = True
+    ' Exit the True of AnArray is an empty array
+    If EmptyArrayQ(AnArray) Then
+        Let AnyTrueQ = True
+        Exit Function
+    End If
+    
+    ' Exit with Null if PredicateName not missing and PredicateName not a string
+    If Not IsMissing(PredicateName) Then
+        If Not StringQ(PredicateName) Then
+            Let AnyTrueQ = False
             Exit Function
+        End If
+    End If
+    
+    ' Exit with Null if only one of WorkbookReference and PredicateName is missing
+    If (IsMissing(WorkbookReference) And Not IsMissing(PredicateName)) Or _
+       (Not IsMissing(WorkbookReference) And IsMissing(PredicateName)) Then
+        Let AnyTrueQ = False
+        Exit Function
+    End If
+    
+    ' Exit with Null if PredicateName missing and AnArray is not an array of Booleans
+    If IsMissing(PredicateName) And Not BooleanArrayQ(AnArray) Then
+        Let AnyTrueQ = False
+        Exit Function
+    End If
+    
+    For Each var In AnArray
+        If Not IsMissing(PredicateName) Then
+            If Application.Run(WorkbookReference.Name & "!" & PredicateName, var) Then
+                Let AnyTrueQ = True
+                Exit Function
+            End If
+        Else
+            If var Then
+                Let AnyTrueQ = True
+                Exit Function
+            End If
         End If
     Next
 End Function
@@ -537,8 +664,24 @@ End Function
 ' RETURNED VALUE
 ' True or False depending on whether arg is dimensioned, non-empty and all its elements satisfy
 ' Predicates.BooleanQ
-Public Function BooleanArrayQ(anArray As Variant) As Boolean
-    Let BooleanArrayQ = EveryQ(anArray, "BooleanQ")
+Public Function BooleanArrayQ(AnArray As Variant) As Boolean
+    ' This function is written independently of AllTrueQ because AllTrueQ depends on this pricate
+    Dim var As Variant
+    
+    ' Set default return value
+    Let BooleanArrayQ = False
+    
+    ' Exit with False if arg is not a dimensioned array
+    If Not DimensionedQ(AnArray) Then Exit Function
+    
+    ' Exit with True if arg is an empty array
+    If EmptyArrayQ(AnArray) Then Exit Function
+    
+    For Each var In AnArray
+        If Not BooleanQ(var) Then Exit Function
+    Next
+    
+    Let BooleanArrayQ = True
 End Function
 
 ' DESCRIPTION
@@ -585,8 +728,8 @@ End Function
 '
 ' RETURNED VALUE
 ' Returns True or False depending on whether or not its arguments is a printable array
-Public Function PrintableArrayQ(anArray As Variant) As Boolean
-    Let PrintableArrayQ = EveryQ(anArray, "PrintableQ")
+Public Function PrintableArrayQ(AnArray As Variant) As Boolean
+    Let PrintableArrayQ = AllTrueQ(AnArray, ThisWorkbook, "PrintableQ")
 End Function
 
 ' DESCRIPTION

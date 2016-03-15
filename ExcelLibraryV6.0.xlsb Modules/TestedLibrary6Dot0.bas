@@ -6,19 +6,19 @@ Option Base 1
 ' Miscellaneous VBA
 '********************************************************************************************
 Public Sub TestForEachOnUnDimensionedArray()
-    Dim anArray() As Variant
+    Dim AnUndimensionedArray() As Variant
     Dim var As Variant
     
     On Error GoTo ErrorHandler
     
     Debug.Print "Testing for each on an empty array"
-    For Each var In Array()
+    For Each var In EmptyArray()
         Debug.Print "Did one iteration."
     Next
     
     ' This should raise anerror
     Debug.Print "Testing for each on an undimensioned array"
-    For Each var In anArray
+    For Each var In AnUndimensionedArray
         Debug.Print "Did one iteration."
     Next
     
@@ -39,33 +39,46 @@ End Sub
 '********************************************************************************************
 ' Predicates
 '********************************************************************************************
-
-Public Sub TestPredicatesEveryQ()
+Public Sub TestPredicatesAllTrueQ()
     Dim UndimensionedArray() As Variant
 
-    Debug.Print "EveryQ(Array(1,2,4), ""WholeNumberQ"") is " & EveryQ(Array(1, 2, 4), "WholeNumberQ")
-    Debug.Print "EveryQ(Array(1,2,4.0), ""WholeNumberQ"") is " & EveryQ(Array(1, 2, 4#), "WholeNumberQ")
-    Debug.Print "EveryQ(Array(1,2,4), ""NumberQ"") is " & EveryQ(Array(1, 2, 4), "NumberQ")
-    Debug.Print "EveryQ(Array(1,2,4.0), ""NumberQ"") is " & EveryQ(Array(1, 2, 4#), "NumberQ")
-    Debug.Print "EveryQ(Array(1,2,4.0), ""StringQ"") is " & EveryQ(Array(1, 2, 4#), "StringQ")
-    Debug.Print "EveryQ(Array(""a"", ""b"",Empty), ""StringQ"") is " & EveryQ(Array("a", "b", Empty), "StringQ")
-    Debug.Print "EveryQ(Array(""a"", ""b""), ""StringQ"") is " & EveryQ(Array("a", "b"), "StringQ")
-    Debug.Print "EveryQ(Array(), ""StringQ"") is " & EveryQ(Array(), "StringQ")
-    Debug.Print "EveryQ(UndimensionedArray, ""StringQ"") is " & EveryQ(UndimensionedArray, "StringQ")
+    Debug.Print "AllTrueQ(Array(1,2,4), ""WholeNumberQ"") is " & AllTrueQ(Array(1, 2, 4), ThisWorkbook, "WholeNumberQ")
+    Debug.Print "AllTrueQ(Array(1,2,4.0), ""WholeNumberQ"") is " & AllTrueQ(Array(1, 2, 4#), ThisWorkbook, "WholeNumberQ")
+    Debug.Print "AllTrueQ(Array(1,2,4), ""NumberQ"") is " & AllTrueQ(Array(1, 2, 4), ThisWorkbook, "NumberQ")
+    Debug.Print "AllTrueQ(Array(1,2,4.0), ""NumberQ"") is " & AllTrueQ(Array(1, 2, 4#), ThisWorkbook, "NumberQ")
+    Debug.Print "AllTrueQ(Array(1,2,4.0), ""StringQ"") is " & AllTrueQ(Array(1, 2, 4#), ThisWorkbook, "StringQ")
+    Debug.Print "AllTrueQ(Array(""a"", ""b"",Empty), ""StringQ"") is " & AllTrueQ(Array("a", "b", Empty), ThisWorkbook, "StringQ")
+    Debug.Print "AllTrueQ(Array(""a"", ""b""), ""StringQ"") is " & AllTrueQ(Array("a", "b"), ThisWorkbook, "StringQ")
+    Debug.Print "AllTrueQ(EmptyArray(), ""StringQ"") is " & AllTrueQ(EmptyArray(), ThisWorkbook, "StringQ")
+    Debug.Print "AllTrueQ(UndimensionedArray, ""StringQ"") is " & AllTrueQ(UndimensionedArray, ThisWorkbook, "StringQ")
 End Sub
 
-Public Sub TestPredicatesSomeQ()
+Public Sub TestPredicatesAnyTrueQ()
     Dim UndimensionedArray() As Variant
 
-    Debug.Print "SomeQ(Array(1,2,4), ""WholeNumberQ"") is " & SomeQ(Array(1, 2, 4), "WholeNumberQ")
-    Debug.Print "SomeQ(Array(1,2,4.0), ""WholeNumberQ"") is " & SomeQ(Array(1, 2, 4#), "WholeNumberQ")
-    Debug.Print "SomeQ(Array(1,2,4), ""NumberQ"") is " & SomeQ(Array(1, 2, 4), "NumberQ")
-    Debug.Print "SomeQ(Array(1,2,4.0), ""NumberQ"") is " & SomeQ(Array(1, 2, 4#), "NumberQ")
-    Debug.Print "SomeQ(Array(1,2,4.0), ""StringQ"") is " & SomeQ(Array(1, 2, 4#), "StringQ")
-    Debug.Print "SomeQ(Array(""a"", ""b"",Empty), ""StringQ"") is " & SomeQ(Array("a", "b", Empty), "StringQ")
-    Debug.Print "SomeQ(Array(""a"", ""b""), ""StringQ"") is " & SomeQ(Array("a", "b"), "StringQ")
-    Debug.Print "SomeQ(Array(), ""StringQ"") is " & SomeQ(Array(), "StringQ")
-    Debug.Print "SomeQ(UndimensionedArray, ""StringQ"") is " & SomeQ(UndimensionedArray, "StringQ")
+    Debug.Print "AnyTrueQ(Array(1,2,4), ThisWorkbook, ""WholeNumberQ"") is " & AnyTrueQ(Array(1, 2, 4), ThisWorkbook, "WholeNumberQ")
+    Debug.Print "AnyTrueQ(Array(1,2,4.0), ThisWorkbook, ""WholeNumberQ"") is " & AnyTrueQ(Array(1, 2, 4#), ThisWorkbook, "WholeNumberQ")
+    Debug.Print "AnyTrueQ(Array(1,2,4), ThisWorkbook, ""NumberQ"") is " & AnyTrueQ(Array(1, 2, 4), ThisWorkbook, "NumberQ")
+    Debug.Print "AnyTrueQ(Array(1,2,4.0), ThisWorkbook, ""NumberQ"") is " & AnyTrueQ(Array(1, 2, 4#), ThisWorkbook, "NumberQ")
+    Debug.Print "AnyTrueQ(Array(1,2,4.0), ThisWorkbook, ""StringQ"") is " & AnyTrueQ(Array(1, 2, 4#), ThisWorkbook, "StringQ")
+    Debug.Print "AnyTrueQ(Array(""a"", ""b"",Empty), ThisWorkbook, ""StringQ"") is " & AnyTrueQ(Array("a", "b", Empty), ThisWorkbook, "StringQ")
+    Debug.Print "AnyTrueQ(Array(""a"", ""b""), ThisWorkbook, ""StringQ"") is " & AnyTrueQ(Array("a", "b"), ThisWorkbook, "StringQ")
+    Debug.Print "AnyTrueQ(EmptyArray(), ThisWorkbook, ""StringQ"") is " & AnyTrueQ(EmptyArray(), ThisWorkbook, "StringQ")
+    Debug.Print "AnyTrueQ(UndimensionedArray, ThisWorkbook, ""StringQ"") is " & AnyTrueQ(UndimensionedArray, ThisWorkbook, "StringQ")
+End Sub
+
+Public Sub TestPredicatesNoneTrueQ()
+    Dim UndimensionedArray() As Variant
+
+    Debug.Print "NoneTrueQ(Array(1,2,4), ThisWorkbook, ""WholeNumberQ"") is " & NoneTrueQ(Array(1, 2, 4), ThisWorkbook, "WholeNumberQ")
+    Debug.Print "NoneTrueQ(Array(1,2,4.0), ThisWorkbook, ""WholeNumberQ"") is " & NoneTrueQ(Array(1, 2, 4#), ThisWorkbook, "WholeNumberQ")
+    Debug.Print "NoneTrueQ(Array(1,2,4), ThisWorkbook, ""NumberQ"") is " & NoneTrueQ(Array(1, 2, 4), ThisWorkbook, "NumberQ")
+    Debug.Print "NoneTrueQ(Array(1,2,4.0), ThisWorkbook, ""NumberQ"") is " & NoneTrueQ(Array(1, 2, 4#), ThisWorkbook, "NumberQ")
+    Debug.Print "NoneTrueQ(Array(1,2,4.0), ThisWorkbook, ""StringQ"") is " & NoneTrueQ(Array(1, 2, 4#), ThisWorkbook, "StringQ")
+    Debug.Print "NoneTrueQ(Array(""a"", ""b"",Empty), ThisWorkbook, ""StringQ"") is " & NoneTrueQ(Array("a", "b", Empty), ThisWorkbook, "StringQ")
+    Debug.Print "NoneTrueQ(Array(""a"", ""b""), ThisWorkbook, ""StringQ"") is " & NoneTrueQ(Array("a", "b"), ThisWorkbook, "StringQ")
+    Debug.Print "NoneTrueQ(EmptyArray(), ThisWorkbook, ""StringQ"") is " & NoneTrueQ(EmptyArray(), ThisWorkbook, "StringQ")
+    Debug.Print "NoneTrueQ(UndimensionedArray, ThisWorkbook, ""StringQ"") is " & NoneTrueQ(UndimensionedArray, ThisWorkbook, "StringQ")
 End Sub
 
 Public Sub TestPredicatesDimensionedQ()
@@ -74,7 +87,7 @@ Public Sub TestPredicatesDimensionedQ()
     Dim c As Integer
     Dim wbk As Workbook
     
-    Debug.Print "Array() is dimensioned is " & DimensionedQ(Array())
+    Debug.Print "EmptyArray() is dimensioned is " & DimensionedQ(EmptyArray())
     Debug.Print "a() is dimensioned is " & DimensionedQ(a)
     Debug.Print "b(1 To 2) is dimensioned is " & DimensionedQ(b)
     Debug.Print "c is an integer is dimensioned is " & DimensionedQ(c)
@@ -87,7 +100,7 @@ Public Sub TestPredicatesEmptyArrayQ()
     Dim c As Integer
     Dim wbk As Workbook
     
-    Debug.Print "Array() is EmptyArrayQ is " & EmptyArrayQ(Array())
+    Debug.Print "EmptyArray() is EmptyArrayQ is " & EmptyArrayQ(EmptyArray())
     Debug.Print "a() is EmptyArrayQ is " & EmptyArrayQ(a)
     Debug.Print "b(1 To 2) is EmptyArrayQ is " & EmptyArrayQ(b)
     Debug.Print "c is an integer is EmptyArrayQ is " & EmptyArrayQ(c)
@@ -104,7 +117,7 @@ Public Sub TestPredicatesAtomicQ()
     Dim aWorkbook As Workbook
     Dim aListObject As ListObject
     Dim aVariant As Variant
-    Dim anArray(1 To 2) As Integer
+    Dim AnArray(1 To 2) As Integer
     
     Set aWorksheet = ActiveSheet
     Set aWorkbook = ThisWorkbook
@@ -122,7 +135,7 @@ Public Sub TestPredicatesAtomicQ()
     Debug.Print "aWorkbook is AtomicQ is " & AtomicQ(aWorkbook)
     Debug.Print "aListObject is AtomicQ is " & AtomicQ(aListObject)
     Debug.Print "aVariant is AtomicQ is " & AtomicQ(aVariant)
-    Debug.Print "anArray is AtomicQ is " & AtomicQ(anArray)
+    Debug.Print "anArray is AtomicQ is " & AtomicQ(AnArray)
 
     Call aListObject.Delete
 End Sub
@@ -137,7 +150,7 @@ Public Sub TestPredicatesAtomicArrayQ()
     Dim aWorkbook As Workbook
     Dim aListObject As ListObject
     Dim aVariant As Variant
-    Dim anArray(1 To 2) As Integer
+    Dim AnArray(1 To 2) As Integer
     
     Set aWorksheet = ActiveSheet
     Set aWorkbook = ThisWorkbook
@@ -145,8 +158,8 @@ Public Sub TestPredicatesAtomicArrayQ()
     
     For Each aVariant In Array(Array(anInteger, aDouble), _
                                Array(aDate, aString), _
-                               Array(Array(), 1), _
-                               Array(), _
+                               Array(EmptyArray(), 1), _
+                               EmptyArray(), _
                                Array(Null, Empty), _
                                Array(Nothing, 1))
         Debug.Print "Test is " & AtomicArrayQ(aVariant)
@@ -165,7 +178,7 @@ Public Sub TestPredicatesNumberQ()
     Dim aWorkbook As Workbook
     Dim aListObject As ListObject
     Dim aVariant As Variant
-    Dim anArray(1 To 2) As Integer
+    Dim AnArray(1 To 2) As Integer
     
     Set aWorksheet = ActiveSheet
     Set aWorkbook = ThisWorkbook
@@ -183,7 +196,7 @@ Public Sub TestPredicatesNumberQ()
     Debug.Print "aWorkbook is NumberQ is " & NumberQ(aWorkbook)
     Debug.Print "aListObject is NumberQ is " & NumberQ(aListObject)
     Debug.Print "aVariant is NumberQ is " & NumberQ(aVariant)
-    Debug.Print "anArray is NumberQ is " & NumberQ(anArray)
+    Debug.Print "anArray is NumberQ is " & NumberQ(AnArray)
 
     Call aListObject.Delete
 End Sub
@@ -198,7 +211,7 @@ Public Sub TestPredicatesNumberArrayQ()
     Dim aWorkbook As Workbook
     Dim aListObject As ListObject
     Dim aVariant As Variant
-    Dim anArray(1 To 2) As Integer
+    Dim AnArray(1 To 2) As Integer
     
     Set aWorksheet = ActiveSheet
     Set aWorkbook = ThisWorkbook
@@ -206,8 +219,8 @@ Public Sub TestPredicatesNumberArrayQ()
     
     For Each aVariant In Array(Array(anInteger, aDouble), _
                                Array(aDate, aString), _
-                               Array(Array(), 1), _
-                               Array(), _
+                               Array(EmptyArray(), 1), _
+                               EmptyArray(), _
                                Array(Null, Empty), _
                                Array(Nothing, 1))
         Debug.Print "Test is " & NumberArrayQ(aVariant)
@@ -226,7 +239,7 @@ Public Sub TestPredicatesWholeNumberQ()
     Dim aWorkbook As Workbook
     Dim aListObject As ListObject
     Dim aVariant As Variant
-    Dim anArray(1 To 2) As Integer
+    Dim AnArray(1 To 2) As Integer
     
     Set aWorksheet = ActiveSheet
     Set aWorkbook = ThisWorkbook
@@ -244,7 +257,7 @@ Public Sub TestPredicatesWholeNumberQ()
     Debug.Print "aWorkbook is WholeNumberQ is " & WholeNumberQ(aWorkbook)
     Debug.Print "aListObject is WholeNumberQ is " & WholeNumberQ(aListObject)
     Debug.Print "aVariant is WholeNumberQ is " & WholeNumberQ(aVariant)
-    Debug.Print "anArray is WholeNumberQ is " & WholeNumberQ(anArray)
+    Debug.Print "anArray is WholeNumberQ is " & WholeNumberQ(AnArray)
 
     Call aListObject.Delete
 End Sub
@@ -259,7 +272,7 @@ Public Sub TestPredicatesWholeNumberArrayQ()
     Dim aWorkbook As Workbook
     Dim aListObject As ListObject
     Dim aVariant As Variant
-    Dim anArray(1 To 2) As Integer
+    Dim AnArray(1 To 2) As Integer
     
     Set aWorksheet = ActiveSheet
     Set aWorkbook = ThisWorkbook
@@ -268,8 +281,8 @@ Public Sub TestPredicatesWholeNumberArrayQ()
     For Each aVariant In Array(Array(1, 2), _
                                Array(anInteger, aDouble), _
                                Array(aDate, aString), _
-                               Array(Array(), 1), _
-                               Array(), _
+                               Array(EmptyArray(), 1), _
+                               EmptyArray(), _
                                Array(Null, Empty), _
                                Array(Nothing, 1))
         Debug.Print "Test is " & WholeNumberArrayQ(aVariant)
@@ -289,7 +302,7 @@ Public Sub TestPredicatesPositiveWholeNumberQ()
     Dim aWorkbook As Workbook
     Dim aListObject As ListObject
     Dim aVariant As Variant
-    Dim anArray(1 To 2) As Integer
+    Dim AnArray(1 To 2) As Integer
     
     Set aWorksheet = ActiveSheet
     Set aWorkbook = ThisWorkbook
@@ -308,7 +321,7 @@ Public Sub TestPredicatesPositiveWholeNumberQ()
     Debug.Print "aWorkbook is PositiveWholeNumberQ is " & PositiveWholeNumberQ(aWorkbook)
     Debug.Print "aListObject is PositiveWholeNumberQ is " & PositiveWholeNumberQ(aListObject)
     Debug.Print "aVariant is PositiveWholeNumberQ is " & PositiveWholeNumberQ(aVariant)
-    Debug.Print "anArray is PositiveWholeNumberQ is " & PositiveWholeNumberQ(anArray)
+    Debug.Print "anArray is PositiveWholeNumberQ is " & PositiveWholeNumberQ(AnArray)
     Debug.Print "aNegativeInteger is PositiveWholeNumberQ is " & PositiveWholeNumberQ(aNegativeInteger)
 
     Call aListObject.Delete
@@ -324,7 +337,7 @@ Public Sub TestPredicatesPositiveWholeNumberArrayQ()
     Dim aWorkbook As Workbook
     Dim aListObject As ListObject
     Dim aVariant As Variant
-    Dim anArray(1 To 2) As Integer
+    Dim AnArray(1 To 2) As Integer
     
     Set aWorksheet = ActiveSheet
     Set aWorkbook = ThisWorkbook
@@ -333,8 +346,8 @@ Public Sub TestPredicatesPositiveWholeNumberArrayQ()
     For Each aVariant In Array(Array(1, 2), _
                                Array(anInteger, aDouble), _
                                Array(aDate, aString), _
-                               Array(Array(), 1), _
-                               Array(), _
+                               Array(EmptyArray(), 1), _
+                               EmptyArray(), _
                                Array(Null, Empty), _
                                Array(Nothing, 1), _
                                Array(-1, 2, 1))
@@ -355,7 +368,7 @@ Public Sub TestPredicatesNegativeWholeNumberQ()
     Dim aWorkbook As Workbook
     Dim aListObject As ListObject
     Dim aVariant As Variant
-    Dim anArray(1 To 2) As Integer
+    Dim AnArray(1 To 2) As Integer
     
     Set aWorksheet = ActiveSheet
     Set aWorkbook = ThisWorkbook
@@ -374,7 +387,7 @@ Public Sub TestPredicatesNegativeWholeNumberQ()
     Debug.Print "aWorkbook is NegativeWholeNumberQ is " & NegativeWholeNumberQ(aWorkbook)
     Debug.Print "aListObject is NegativeWholeNumberQ is " & NegativeWholeNumberQ(aListObject)
     Debug.Print "aVariant is NegativeWholeNumberQ is " & NegativeWholeNumberQ(aVariant)
-    Debug.Print "anArray is NegativeWholeNumberQ is " & NegativeWholeNumberQ(anArray)
+    Debug.Print "anArray is NegativeWholeNumberQ is " & NegativeWholeNumberQ(AnArray)
     Debug.Print "aNegativeInteger is NegativeWholeNumberQ is " & NegativeWholeNumberQ(aNegativeInteger)
 
     Call aListObject.Delete
@@ -390,7 +403,7 @@ Public Sub TestPredicatesNegativeWholeNumberArrayQ()
     Dim aWorkbook As Workbook
     Dim aListObject As ListObject
     Dim aVariant As Variant
-    Dim anArray(1 To 2) As Integer
+    Dim AnArray(1 To 2) As Integer
     
     Set aWorksheet = ActiveSheet
     Set aWorkbook = ThisWorkbook
@@ -399,8 +412,8 @@ Public Sub TestPredicatesNegativeWholeNumberArrayQ()
     For Each aVariant In Array(Array(-1, -2), _
                                Array(anInteger, aDouble), _
                                Array(aDate, aString), _
-                               Array(Array(), 1), _
-                               Array(), _
+                               Array(EmptyArray(), 1), _
+                               EmptyArray(), _
                                Array(Null, Empty), _
                                Array(Nothing, 1), _
                                Array(-1, 2, 1), _
@@ -422,7 +435,7 @@ Public Sub TestPredicatesNonNonNegativeWholeNumberQ()
     Dim aWorkbook As Workbook
     Dim aListObject As ListObject
     Dim aVariant As Variant
-    Dim anArray(1 To 2) As Integer
+    Dim AnArray(1 To 2) As Integer
     
     Set aWorksheet = ActiveSheet
     Set aWorkbook = ThisWorkbook
@@ -441,7 +454,7 @@ Public Sub TestPredicatesNonNonNegativeWholeNumberQ()
     Debug.Print "aWorkbook is NonNegativeWholeNumberQ is " & NonNegativeWholeNumberQ(aWorkbook)
     Debug.Print "aListObject is NonNegativeWholeNumberQ is " & NonNegativeWholeNumberQ(aListObject)
     Debug.Print "aVariant is NonNegativeWholeNumberQ is " & NonNegativeWholeNumberQ(aVariant)
-    Debug.Print "anArray is NonNegativeWholeNumberQ is " & NonNegativeWholeNumberQ(anArray)
+    Debug.Print "anArray is NonNegativeWholeNumberQ is " & NonNegativeWholeNumberQ(AnArray)
     Debug.Print "aNegativeInteger is NonNegativeWholeNumberQ is " & NonNegativeWholeNumberQ(aNegativeInteger)
 
     Call aListObject.Delete
@@ -457,7 +470,7 @@ Public Sub TestPredicatesNonNegativeWholeNumberArrayQ()
     Dim aWorkbook As Workbook
     Dim aListObject As ListObject
     Dim aVariant As Variant
-    Dim anArray(1 To 2) As Integer
+    Dim AnArray(1 To 2) As Integer
     
     Set aWorksheet = ActiveSheet
     Set aWorkbook = ThisWorkbook
@@ -466,8 +479,8 @@ Public Sub TestPredicatesNonNegativeWholeNumberArrayQ()
     For Each aVariant In Array(Array(-1, -2), _
                                Array(anInteger, aDouble), _
                                Array(aDate, aString), _
-                               Array(Array(), 1), _
-                               Array(), _
+                               Array(EmptyArray(), 1), _
+                               EmptyArray(), _
                                Array(Null, Empty), _
                                Array(Nothing, 1), _
                                Array(-1, 2, 1), _
@@ -490,7 +503,7 @@ Public Sub TestPredicatesWholeNumberOrStringQ()
     Dim aWorkbook As Workbook
     Dim aListObject As ListObject
     Dim aVariant As Variant
-    Dim anArray(1 To 2) As Integer
+    Dim AnArray(1 To 2) As Integer
     
     Set aWorksheet = ActiveSheet
     Set aWorkbook = ThisWorkbook
@@ -509,7 +522,7 @@ Public Sub TestPredicatesWholeNumberOrStringQ()
     Debug.Print "aWorkbook is WholeNumberOrStringQ is " & WholeNumberOrStringQ(aWorkbook)
     Debug.Print "aListObject is WholeNumberOrStringQ is " & WholeNumberOrStringQ(aListObject)
     Debug.Print "aVariant is WholeNumberOrStringQ is " & WholeNumberOrStringQ(aVariant)
-    Debug.Print "anArray is WholeNumberOrStringQ is " & WholeNumberOrStringQ(anArray)
+    Debug.Print "anArray is WholeNumberOrStringQ is " & WholeNumberOrStringQ(AnArray)
     Debug.Print "aNegativeInteger is WholeNumberOrStringQ is " & WholeNumberOrStringQ(aNegativeInteger)
 
     Call aListObject.Delete
@@ -525,7 +538,7 @@ Public Sub TestPredicatesWholeNumberOrStringArrayQ()
     Dim aWorkbook As Workbook
     Dim aListObject As ListObject
     Dim aVariant As Variant
-    Dim anArray(1 To 2) As Integer
+    Dim AnArray(1 To 2) As Integer
     
     Set aWorksheet = ActiveSheet
     Set aWorkbook = ThisWorkbook
@@ -534,8 +547,8 @@ Public Sub TestPredicatesWholeNumberOrStringArrayQ()
     For Each aVariant In Array(Array(-1, -2), _
                                Array(anInteger, aDouble), _
                                Array(aDate, aString), _
-                               Array(Array(), 1), _
-                               Array(), _
+                               Array(EmptyArray(), 1), _
+                               EmptyArray(), _
                                Array(Null, Empty), _
                                Array(Nothing, 1), _
                                Array(-1, 2, 1), _
@@ -558,7 +571,7 @@ Public Sub TestPredicatesNumberOrStringQ()
     Dim aWorkbook As Workbook
     Dim aListObject As ListObject
     Dim aVariant As Variant
-    Dim anArray(1 To 2) As Integer
+    Dim AnArray(1 To 2) As Integer
     
     Set aWorksheet = ActiveSheet
     Set aWorkbook = ThisWorkbook
@@ -577,7 +590,7 @@ Public Sub TestPredicatesNumberOrStringQ()
     Debug.Print "aWorkbook is NumberOrStringQ is " & NumberOrStringQ(aWorkbook)
     Debug.Print "aListObject is NumberOrStringQ is " & NumberOrStringQ(aListObject)
     Debug.Print "aVariant is NumberOrStringQ is " & NumberOrStringQ(aVariant)
-    Debug.Print "anArray is NumberOrStringQ is " & NumberOrStringQ(anArray)
+    Debug.Print "anArray is NumberOrStringQ is " & NumberOrStringQ(AnArray)
     Debug.Print "aNegativeInteger is NumberOrStringQ is " & NumberOrStringQ(aNegativeInteger)
 
     Call aListObject.Delete
@@ -593,7 +606,7 @@ Public Sub TestPredicatesNumberOrStringArrayQ()
     Dim aWorkbook As Workbook
     Dim aListObject As ListObject
     Dim aVariant As Variant
-    Dim anArray(1 To 2) As Integer
+    Dim AnArray(1 To 2) As Integer
     
     Set aWorksheet = ActiveSheet
     Set aWorkbook = ThisWorkbook
@@ -602,8 +615,8 @@ Public Sub TestPredicatesNumberOrStringArrayQ()
     For Each aVariant In Array(Array(-1, -2), _
                                Array(anInteger, aDouble), _
                                Array(aDate, aString), _
-                               Array(Array(), 1), _
-                               Array(), _
+                               Array(EmptyArray(), 1), _
+                               EmptyArray(), _
                                Array(Null, Empty), _
                                Array(Nothing, 1), _
                                Array(-1, 2, 1), _
@@ -635,7 +648,7 @@ Public Sub TestPredicatesDictionaryArrayQ()
 End Sub
 
 Public Sub TestPredicatesMatrixQ()
-    Dim anArray(1 To 2, 1 To 2) As Variant
+    Dim AnArray(1 To 2, 1 To 2) As Variant
 
     Debug.Print MatrixQ(Array(1, 2, 3))
     Debug.Print MatrixQ(1)
@@ -643,15 +656,15 @@ Public Sub TestPredicatesMatrixQ()
     Debug.Print MatrixQ([{1,2; 3,4}])
     Debug.Print MatrixQ([{1,2; "A",4}])
     
-    Let anArray(1, 1) = 1
-    Let anArray(1, 2) = 2
-    Let anArray(2, 1) = Empty
-    Let anArray(2, 2) = Null
-    Debug.Print MatrixQ(anArray)
+    Let AnArray(1, 1) = 1
+    Let AnArray(1, 2) = 2
+    Let AnArray(2, 1) = Empty
+    Let AnArray(2, 2) = Null
+    Debug.Print MatrixQ(AnArray)
 End Sub
 
 Public Sub TestPredicatesAtomicTableQ()
-    Dim anArray(1 To 2, 1 To 2) As Variant
+    Dim AnArray(1 To 2, 1 To 2) As Variant
     Dim wsht As Worksheet
     Dim wbk As Workbook
     
@@ -664,33 +677,33 @@ Public Sub TestPredicatesAtomicTableQ()
     Debug.Print "AtomicTableQ([{1,2; 3,4}]) is " & AtomicTableQ([{1,2; 3,4}]); ""
     Debug.Print "AtomicTableQ([{1,2; ""A"",4}]) is " & AtomicTableQ([{1,2; "A",4}])
     
-    Let anArray(1, 1) = 1
-    Let anArray(1, 2) = 2
-    Let anArray(2, 1) = Empty
-    Set anArray(2, 2) = wsht
-    Debug.Print "AtomicTableQ([{1,2; wsht,4}]) is " & AtomicTableQ(anArray)
+    Let AnArray(1, 1) = 1
+    Let AnArray(1, 2) = 2
+    Let AnArray(2, 1) = Empty
+    Set AnArray(2, 2) = wsht
+    Debug.Print "AtomicTableQ([{1,2; wsht,4}]) is " & AtomicTableQ(AnArray)
     
-    Let anArray(1, 1) = 1
-    Let anArray(1, 2) = 2
-    Let anArray(2, 1) = Empty
-    Set anArray(2, 2) = wbk
-    Debug.Print "AtomicTableQ([{1,2; wbk,4}]) is " & AtomicTableQ(anArray)
+    Let AnArray(1, 1) = 1
+    Let AnArray(1, 2) = 2
+    Let AnArray(2, 1) = Empty
+    Set AnArray(2, 2) = wbk
+    Debug.Print "AtomicTableQ([{1,2; wbk,4}]) is " & AtomicTableQ(AnArray)
 
-    Let anArray(1, 1) = 1
-    Let anArray(1, 2) = 2
-    Let anArray(2, 1) = Empty
-    Let anArray(2, 2) = Null
-    Debug.Print "AtomicTableQ([{1,2; Empty, Null}] is " & AtomicTableQ(anArray)
+    Let AnArray(1, 1) = 1
+    Let AnArray(1, 2) = 2
+    Let AnArray(2, 1) = Empty
+    Let AnArray(2, 2) = Null
+    Debug.Print "AtomicTableQ([{1,2; Empty, Null}] is " & AtomicTableQ(AnArray)
     
-    Let anArray(1, 1) = 1
-    Let anArray(1, 2) = 2
-    Let anArray(2, 1) = #1/2/2001#
-    Let anArray(2, 2) = True
-    Debug.Print "PrintableTableQ([{1,2; #1/2/2001#, True}] is " & AtomicTableQ(anArray)
+    Let AnArray(1, 1) = 1
+    Let AnArray(1, 2) = 2
+    Let AnArray(2, 1) = #1/2/2001#
+    Let AnArray(2, 2) = True
+    Debug.Print "PrintableTableQ([{1,2; #1/2/2001#, True}] is " & AtomicTableQ(AnArray)
 End Sub
 
 Public Sub TestPredicatesPrintableTableQ()
-    Dim anArray(1 To 2, 1 To 2) As Variant
+    Dim AnArray(1 To 2, 1 To 2) As Variant
     Dim wsht As Worksheet
     Dim wbk As Workbook
     
@@ -703,35 +716,35 @@ Public Sub TestPredicatesPrintableTableQ()
     Debug.Print "PrintableTableQ([{1,2; 3,4}]) is " & PrintableTableQ([{1,2; 3,4}]); ""
     Debug.Print "PrintableTableQ([{1,2; ""A"",4}]) is " & PrintableTableQ([{1,2; "A",4}])
 
-    Let anArray(1, 1) = 1
-    Let anArray(1, 2) = 2
-    Let anArray(2, 1) = Empty
-    Set anArray(2, 2) = wsht
-    Debug.Print "AtomicPrintableTableQ([{1,2; wsht,4}]) is " & PrintableTableQ(anArray)
+    Let AnArray(1, 1) = 1
+    Let AnArray(1, 2) = 2
+    Let AnArray(2, 1) = Empty
+    Set AnArray(2, 2) = wsht
+    Debug.Print "AtomicPrintableTableQ([{1,2; wsht,4}]) is " & PrintableTableQ(AnArray)
     
-    Let anArray(1, 1) = 1
-    Let anArray(1, 2) = 2
-    Let anArray(2, 1) = Empty
-    Set anArray(2, 2) = wbk
-    Debug.Print "AtomicPrintableTableQ([{1,2; Empty, wbk}]) is " & PrintableTableQ(anArray)
+    Let AnArray(1, 1) = 1
+    Let AnArray(1, 2) = 2
+    Let AnArray(2, 1) = Empty
+    Set AnArray(2, 2) = wbk
+    Debug.Print "AtomicPrintableTableQ([{1,2; Empty, wbk}]) is " & PrintableTableQ(AnArray)
 
-    Let anArray(1, 1) = 1
-    Let anArray(1, 2) = 2
-    Let anArray(2, 1) = Empty
-    Let anArray(2, 2) = Null
-    Debug.Print "PrintableTableQ([{1,2; Empty, Null}]) is " & PrintableTableQ(anArray)
+    Let AnArray(1, 1) = 1
+    Let AnArray(1, 2) = 2
+    Let AnArray(2, 1) = Empty
+    Let AnArray(2, 2) = Null
+    Debug.Print "PrintableTableQ([{1,2; Empty, Null}]) is " & PrintableTableQ(AnArray)
     
-    Let anArray(1, 1) = 1
-    Let anArray(1, 2) = 2
-    Let anArray(2, 1) = #1/2/2001#
-    Let anArray(2, 2) = True
-    Debug.Print "PrintableTableQ([{1,2; #1/2/2001#, True}]) is " & PrintableTableQ(anArray)
+    Let AnArray(1, 1) = 1
+    Let AnArray(1, 2) = 2
+    Let AnArray(2, 1) = #1/2/2001#
+    Let AnArray(2, 2) = True
+    Debug.Print "PrintableTableQ([{1,2; #1/2/2001#, True}]) is " & PrintableTableQ(AnArray)
     
-    Let anArray(1, 1) = 1
-    Let anArray(1, 2) = 2
-    Let anArray(2, 1) = #1/2/2001#
-    Set anArray(2, 2) = ThisWorkbook
-    Debug.Print "PrintableTableQ([{1,2; #1/2/2001#, ThisWorkbook}]) is " & PrintableTableQ(anArray)
+    Let AnArray(1, 1) = 1
+    Let AnArray(1, 2) = 2
+    Let AnArray(2, 1) = #1/2/2001#
+    Set AnArray(2, 2) = ThisWorkbook
+    Debug.Print "PrintableTableQ([{1,2; #1/2/2001#, ThisWorkbook}]) is " & PrintableTableQ(AnArray)
 End Sub
 
 Public Sub TestPredicatesColumnVectorQ()
@@ -752,8 +765,8 @@ Public Sub TestPredicatesColumnVectorQ()
     Debug.Print ColumnVectorQ(v)
     Debug.Print
     
-    Let v = Array()
-    Debug.Print "Testing: Array()"
+    Let v = EmptyArray()
+    Debug.Print "Testing: EmptyArray()"
     Debug.Print ColumnVectorQ(v)
     Debug.Print
     
@@ -781,8 +794,8 @@ Public Sub TestPredicatesRowVectorQ()
     Debug.Print RowVectorQ(v)
     Debug.Print
     
-    Let v = Array()
-    Debug.Print "Testing: Array()"
+    Let v = EmptyArray()
+    Debug.Print "Testing: EmptyArray()"
     Debug.Print RowVectorQ(v)
     Debug.Print
     
@@ -866,8 +879,8 @@ Public Sub TestInterpretableAsColumnArrayQ()
     Debug.Print InterpretableAsColumnArrayQ(v)
     Debug.Print
     
-    Let v = Array()
-    Debug.Print "Testing: Array()"
+    Let v = EmptyArray()
+    Debug.Print "Testing: EmptyArray()"
     Debug.Print InterpretableAsColumnArrayQ(v)
     Debug.Print
     
@@ -928,8 +941,8 @@ Public Sub TestPredicatesInterpretableAsRowArrayQ()
     Debug.Print InterpretableAsRowArrayQ(a)
     Debug.Print
     
-    Let v = Array()
-    Debug.Print "Testing: Array()"
+    Let v = EmptyArray()
+    Debug.Print "Testing: EmptyArray()"
     Debug.Print InterpretableAsRowArrayQ(v)
     Debug.Print
 End Sub
@@ -959,35 +972,35 @@ Public Sub TestPredicatesFreeQ()
 End Sub
 
 Public Sub TestFileNameJoin()
-    Dim anArray As Variant
+    Dim AnArray As Variant
     
-    Let anArray = Array("c:", "dir1", "dir2")
-    Debug.Print "The result is " & FileNameJoin(anArray)
+    Let AnArray = Array("c:", "dir1", "dir2")
+    Debug.Print "The result is " & FileNameJoin(AnArray)
     
-    Let anArray = Array("c:", "dir1", "file.txt")
-    Debug.Print "The result is " & FileNameJoin(anArray)
+    Let AnArray = Array("c:", "dir1", "file.txt")
+    Debug.Print "The result is " & FileNameJoin(AnArray)
     
-    Let anArray = Array("c:", "dir1", "file.txt")
-    Debug.Print "The result is " & FileNameJoin(anArray)
+    Let AnArray = Array("c:", "dir1", "file.txt")
+    Debug.Print "The result is " & FileNameJoin(AnArray)
     
-    Let anArray = Array()
-    Debug.Print "The result is " & FileNameJoin(anArray)
+    Let AnArray = EmptyArray()
+    Debug.Print "The result is " & FileNameJoin(AnArray)
 End Sub
 
 Public Sub TestFileNameSplit()
-    Dim anArray As Variant
+    Dim AnArray As Variant
     
-    Let anArray = Array("c:", "dir1", "dir2")
+    Let AnArray = Array("c:", "dir1", "dir2")
     Debug.Print "The result is"
-    PrintArray FileNameSplit(FileNameJoin(anArray))
+    PrintArray FileNameSplit(FileNameJoin(AnArray))
     Debug.Print
     
-    Let anArray = Array("c:", "dir1", "file.txt")
+    Let AnArray = Array("c:", "dir1", "file.txt")
     Debug.Print "The result is"
-    PrintArray FileNameSplit(FileNameJoin(anArray))
+    PrintArray FileNameSplit(FileNameJoin(AnArray))
     Debug.Print
     
-    Let anArray = Empty
+    Let AnArray = Empty
     Debug.Print "The result is"
     PrintArray FileNameSplit(Empty)
     Debug.Print "IsNull(FileNameSplit(Empty)) = " & IsNull(FileNameSplit(Empty))

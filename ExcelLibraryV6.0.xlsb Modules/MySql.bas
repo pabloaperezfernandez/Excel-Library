@@ -41,10 +41,13 @@ End Function
 ' database DbName. The function logs into server ServerNameOrIpAddress using username UserName with password
 ' ThePassword.  ColumnsNames is a string like (`TheDate`, `Identifier`, `Value`) indicating the fields to
 ' populate.
-Public Sub InjectCsvFileIntoMySql(TheDir As String, CsvFileName As String, _
-                                  DbName As String, TargetTable As String, _
+Public Sub InjectCsvFileIntoMySql(TheDir As String, _
+                                  CsvFileName As String, _
+                                  DbName As String, _
+                                  TargetTable As String, _
                                   ServerNameOrIpAddress As String, _
-                                  UserName As String, ThePassword As String, _
+                                  UserName As String, _
+                                  ThePassword As String, _
                                   ColumnNames As String)
 
     Call InjectFileIntoMysql(TheDir, CsvFileName, DbName, TargetTable, ServerNameOrIpAddress, UserName, ThePassword, ColumnNames, ",")
@@ -54,10 +57,13 @@ End Sub
 ' database DbName. The function logs into server ServerNameOrIpAddress using username UserName with password
 ' ThePassword.  ColumnsNames is a string like (`TheDate`, `Identifier`, `Value`) indicating the fields to
 ' populate.
-Public Sub InjectFileIntoMysql(TheDir As String, AFileName As String, _
-                                  DbName As String, TargetTable As String, _
+Public Sub InjectFileIntoMysql(TheDir As String, _
+                               AFileName As String, _
+                                  DbName As String, _
+                                  TargetTable As String, _
                                   ServerNameOrIpAddress As String, _
-                                  UserName As String, ThePassword As String, _
+                                  UserName As String, _
+                                  ThePassword As String, _
                                   ColumnNames As String, _
                                   ColumnSeparator As String, _
                                   Optional FieldEncloser As String = "\""")
@@ -95,7 +101,8 @@ End Sub
 Public Function GetTableHeaders(TableName As String, _
                                 DbName As String, _
                                 ServerNameOrIpAddress As String, _
-                                UserName As String, ThePassword As String) As Variant
+                                UserName As String, _
+                                ThePassword As String) As Variant
     Let GetTableHeaders = ConvertTo1DArray(ConnectAndSelect("SELECT * FROM `" & DbName & "`.`" & TableName & "` LIMIT 0,0;", _
                                                             DbName, _
                                                             ServerNameOrIpAddress, _
@@ -398,4 +405,56 @@ Public Sub CopyTableFromOneDbServerToAnother(SourceServerAddress As String, TheD
                                TargetServerAddress, TheDbName, TargetDbUsername, TargetDbPassword)
     
 End Sub
+
+' This function does the same thing as Worksheet.CopyFromRecordSet, but it does not fail when a column has an entry more than 255 characters long.
+Public Function ConvertRecordSetToMatrix(rst As ADODB.Recordset, _
+                                         Optional ReturnOption As ConvertRecordSetPayloadToMatrixOptionsType = HeadersAndBody) As Variant
+    Dim TheResults() As Variant
+    Dim CurrentRow As Long
+    Dim RowCount As Long
+    Dim NColumns As Long
+    Dim FirstRow As Long
+    Dim r As Long
+    Dim c As Long
+    Dim h As Long
+    
+    Let NColumns = rst.Fields.Count
+    Select Case ReturnOption
+        Case HeadersAndBody
+            Let FirstRow = 2
+        Case Body
+            Let FirstRow = 1
+        Case Else
+            Let FirstRow = 1
+    End Select
+    
+    ReDim TheResults(1 To NColumns, 1 To 1)
+    Let RowCount = 1
+    
+    If ReturnOption = Headers Or ReturnOption = HeadersAndBody Then
+        For h = 0 To NColumns - 1
+            Let TheResults(h + 1, 1) = rst.Fields(h).Name
+        Next h
+    End If
+    
+    If ReturnOption = Body Then
+        Let CurrentRow = 1
+    ElseIf ReturnOption = HeadersAndBody Then
+        Let CurrentRow = 2
+    End If
+    
+    While Not rst.EOF
+        Let RowCount = RowCount + 1
+        ReDim Preserve TheResults(1 To NColumns, 1 To RowCount)
+    
+        For c = 0 To NColumns - 1
+            Let TheResults(c + 1, CurrentRow) = rst.Fields(c).Value
+        Next c
+        
+        Call rst.MoveNext
+        Let CurrentRow = CurrentRow + 1
+    Wend
+    
+    Let ConvertRecordSetToMatrix = TransposeMatrix(TheResults)
+End Function
 

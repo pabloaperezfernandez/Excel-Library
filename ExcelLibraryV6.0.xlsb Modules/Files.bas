@@ -20,7 +20,7 @@ Public Function GetFileNames(ThePath As String, Optional ByVal ThePattern As Var
     Wend
     
     If FileNamesDict.Count = 0 Then
-        Let GetFileNames = Array()
+        Let GetFileNames = EmptyArray()
         Exit Function
     End If
 

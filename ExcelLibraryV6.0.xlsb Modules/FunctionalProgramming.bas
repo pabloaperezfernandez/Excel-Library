@@ -2,6 +2,46 @@ Attribute VB_Name = "FunctionalProgramming"
 Option Explicit
 Option Base 1
 
+' DESCRIPTION
+' Boolean function returning True if its argument is an array that has been dimensioned.
+' Returns False otherwise.  In other words, it returns False if its arg is neither an
+' an array nor dimensioned.
+'
+' PARAMETERS
+' 1. arg - any value or object reference
+'
+' RETURNED VALUE
+' True when arg is a dimensioned array. False otherwise.
+Public Function Through(AFunctionNameArray As Variant, CallingWorkbook As Workbook, AnElement As Variant) As Variant
+    Dim ResultArray() As Variant
+    Dim i As Long
+
+    ' Exit with Null if AFunctionNameArray is undimensioned
+    If Not StringArrayQ(AFunctionNameArray) Then
+        Let Through = Null
+        Exit Function
+    End If
+    
+    ' Exit the empty array if AFunctionNameArray satisfies EmptyArrayQ
+    If EmptyArrayQ(AFunctionNameArray) Then
+        Let Through = EmptyArray()
+        Exit Function
+    End If
+    
+    ' Exit with Null if AnElement fails AtomicQ
+    If Not AtomicQ(AnElement) Then
+        Let Through = Null
+        Exit Function
+    End If
+    
+    ReDim ResultArray(LBound(AFunctionNameArray) To UBound(AFunctionNameArray))
+    For i = LBound(AFunctionNameArray) To UBound(AFunctionNameArray)
+        Let ResultArray(i) = Run("'" & CallingWorkbook.Name & "'!" & AFunctionNameArray(i), AnElement)
+    Next i
+    
+    Let Through = ResultArray
+End Function
+
 ' This function returns an array of the same length as A1DArray with the result of apply
 ' the function with name AFunctionName to each element of A1Array
 '
@@ -21,26 +61,26 @@ Public Function ArrayMap(AFunctionName As String, CallingWorkbook As Workbook, A
 
     ' Parameter consistency checks
     If Not IsArray(A1DArray) Then
-        Let ArrayMap = Array()
+        Let ArrayMap = EmptyArray()
         
         Exit Function
     End If
     
     If NumberOfDimensions(A1DArray) <> 1 Then
-        Let ArrayMap = Array()
+        Let ArrayMap = EmptyArray()
         
         Exit Function
     End If
     
     
     If Not DimensionedQ(A1DArray) Then
-        Let ArrayMap = Array()
+        Let ArrayMap = EmptyArray()
         
         Exit Function
     End If
 
     If EmptyArrayQ(A1DArray) Then
-        Let ArrayMap = Array()
+        Let ArrayMap = EmptyArray()
         
         Exit Function
     End If
@@ -231,7 +271,7 @@ Public Function ArraySelect(A1DArray As Variant, TheWorkbook, AFunctionName As S
     Dim i As Long
         
     If NumberOfDimensions(A1DArray) <> 1 Then
-        Let ArraySelect = Array()
+        Let ArraySelect = EmptyArray()
         
         Exit Function
     End If
@@ -245,7 +285,7 @@ Public Function ArraySelect(A1DArray As Variant, TheWorkbook, AFunctionName As S
     Next i
     
     If TheResults.Count = 0 Then
-        Let ArraySelect = Array()
+        Let ArraySelect = EmptyArray()
     ElseIf TheResults.Count = 1 Then
         Let ArraySelect = Array(TheResults.Item(Key:=LBound(A1DArray)))
     Else
