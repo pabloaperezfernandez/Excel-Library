@@ -47,8 +47,7 @@ End Function
 '
 ' The function being mapped over the array must be an array of variants.  If it is not,
 ' one has to pass the optional TheDataType
-Public Function ArrayMap(AFunctionName As String, CallingWorkbook As Workbook, A1DArray As Variant, _
-                         Optional TheDataType As DataType) As Variant
+Public Function ArrayMap(AFunctionName As String, CallingWorkbook As Workbook, A1DArray As Variant) As Variant
     Dim TheResults() As Variant
     Dim IntegerArray() As Integer
     Dim LongArray() As Integer
@@ -72,7 +71,6 @@ Public Function ArrayMap(AFunctionName As String, CallingWorkbook As Workbook, A
         Exit Function
     End If
     
-    
     If Not DimensionedQ(A1DArray) Then
         Let ArrayMap = EmptyArray()
         
@@ -88,110 +86,11 @@ Public Function ArrayMap(AFunctionName As String, CallingWorkbook As Workbook, A
     ' Pre-allocate results array
     ReDim TheResults(LBound(A1DArray, 1) To UBound(A1DArray, 1))
     
-    ' Exit with Null if TheDataType is not one of the supported types
-    If Not IsMissing(TheDataType) Then
-        If FreeQ(Array(StringType, IntegerType, LongType, DoubleType, _
-                       BooleanType, WorksheetType, WorkbookType), _
-                 TheDataType) Then
-            Let ArrayMap = Null
-            Exit Function
-        End If
-        
-        For c = LBound(A1DArray) To UBound(A1DArray)
-            Let TheResults(c) = Run("'" & CallingWorkbook.Name & "'!" & AFunctionName, A1DArray(c))
-        Next c
-    
-        Let ArrayMap = TheResults
-        
-        Exit Function
-    End If
+    For c = LBound(A1DArray) To UBound(A1DArray)
+        Let TheResults(c) = Run("'" & CallingWorkbook.Name & "'!" & AFunctionName, A1DArray(c))
+    Next c
 
-    Select Case TheDataType
-        Case IntegerType
-            ReDim IntegerArray(LBound(A1DArray) To UBound(A1DArray))
-            
-            For c = LBound(A1DArray) To UBound(A1DArray)
-                Let IntegerArray(c) = CInt(A1DArray(c))
-            Next
-            
-            For c = LBound(A1DArray) To UBound(A1DArray)
-                Let TheResults(c) = Run("'" & CallingWorkbook.Name & "'!" & AFunctionName, IntegerArray(c))
-            Next c
-        
-            Let ArrayMap = TheResults
-        Case LongType
-            ReDim LongArray(LBound(A1DArray) To UBound(A1DArray))
-            
-            For c = LBound(A1DArray) To UBound(A1DArray)
-                Let LongArray(c) = CLng(A1DArray(c))
-            Next
-
-            For c = LBound(A1DArray) To UBound(A1DArray)
-                Let TheResults(c) = Run("'" & CallingWorkbook.Name & "'!" & AFunctionName, LongArray(c))
-            Next c
-        
-            Let ArrayMap = TheResults
-        Case DoubleType
-            ReDim DoubleArray(LBound(A1DArray) To UBound(A1DArray))
-            
-            For c = LBound(A1DArray) To UBound(A1DArray)
-                Let DoubleArray(c) = CDbl(A1DArray(c))
-            Next
-
-            For c = LBound(A1DArray) To UBound(A1DArray)
-                Let TheResults(c) = Run("'" & CallingWorkbook.Name & "'!" & AFunctionName, DoubleArray(c))
-            Next c
-        
-            Let ArrayMap = TheResults
-        Case StringType
-            ReDim StringArray(LBound(A1DArray) To UBound(A1DArray))
-            
-            For c = LBound(A1DArray) To UBound(A1DArray)
-                Let StringArray(c) = CStr(A1DArray(c))
-            Next
-
-            For c = LBound(A1DArray) To UBound(A1DArray)
-                Let TheResults(c) = Run("'" & CallingWorkbook.Name & "'!" & AFunctionName, StringArray(c))
-            Next c
-        
-            Let ArrayMap = TheResults
-        Case BooleanType
-            ReDim BooleanArray(LBound(A1DArray) To UBound(A1DArray))
-            
-            For c = LBound(A1DArray) To UBound(A1DArray)
-                Let BooleanArray(c) = CBool(A1DArray(c))
-            Next
-
-            For c = LBound(A1DArray) To UBound(A1DArray)
-                Let TheResults(c) = Run("'" & CallingWorkbook.Name & "'!" & AFunctionName, BooleanArray(c))
-            Next c
-        
-            Let ArrayMap = TheResults
-        Case WorksheetType
-            ReDim WorksheetArray(LBound(A1DArray) To UBound(A1DArray))
-            
-            For c = LBound(A1DArray) To UBound(A1DArray)
-                Set WorksheetArray(c) = A1DArray(c)
-            Next
-
-            For c = LBound(A1DArray) To UBound(A1DArray)
-                Let TheResults(c) = Run("'" & CallingWorkbook.Name & "'!" & AFunctionName, WorksheetArray(c))
-            Next c
-        
-            Let ArrayMap = TheResults
-        Case WorkbookType
-            ReDim WorkbookArray(LBound(A1DArray) To UBound(A1DArray))
-            
-            For c = LBound(A1DArray) To UBound(A1DArray)
-                Set WorkbookArray(c) = A1DArray(c)
-            Next
-
-            For c = LBound(A1DArray) To UBound(A1DArray)
-                Let TheResults(c) = Run("'" & CallingWorkbook.Name & "'!" & AFunctionName, WorkbookArray(c))
-            Next c
-        
-            Let ArrayMap = TheResults
-    End Select
+    Let ArrayMap = TheResults
 End Function
 
 ' Returns the result of performing a Mathematica-like MapThread.  It returns an array with the same

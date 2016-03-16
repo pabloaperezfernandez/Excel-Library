@@ -355,8 +355,8 @@ End Function
 ' This function translates the given non-zero index to the array's instrinsic covention.
 ' For instance, we want to convert TheIndexOrIndexArray=1 into AnArray's intrinsic convention
 ' that LBound=0 and UBound=2.  Then, this function maps 1 to 0.  Negative indices map -1 to the
-' last element of the array. Indices 0, < -Length(AnArray), and > Length(AnArray) cause the
-' function to return Null.  When the optional parameter RelativeToColumnsQ is explicit set
+' last element of the array. The function returns Null if Abs(TheIndex)>Length(AnArray) or
+' Abs(TheIndex)<1.  When the optional parameter RelativeToColumnsQ is explicit set
 ' to True, this function performs its operations relative to AnArray's columns.
 '
 ' PARAMETERS
@@ -368,6 +368,12 @@ End Function
 Public Function NormalizeIndex(AnArray As Variant, _
                                TheIndex As Variant, _
                                Optional RelativeToColumnsQ As Boolean = False) As Variant
+    ' Exit with Null if AnArray is undimensioned
+    If Not DimensionedQ(AnArray) Then
+        Let NormalizeIndex = Null
+        Exit Function
+    End If
+                               
     ' Exit if AnArray is the empty 1D array
     If EmptyArrayQ(AnArray) Then
         Let NormalizeIndex = Null

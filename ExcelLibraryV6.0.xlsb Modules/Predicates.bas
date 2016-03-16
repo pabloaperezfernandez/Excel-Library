@@ -3,6 +3,45 @@ Option Explicit
 Option Base 1
 
 ' DESCRIPTION
+' This function returns an array of strings with the names the predicates used to
+' identify atomic values.
+'
+' PARAMETERS
+'
+' RETURNED VALUE
+' array of strings with the names the predicates used to identify atomic values.
+Public Function GetAtomicTypePredicateNames() As String()
+    Let GetAtomicTypePredicateNames = ToStrings(Array("BooleanQ", _
+                                                      "DateQ", _
+                                                      "DictionaryQ", _
+                                                      "EmptyQ", _
+                                                      "ErrorQ", _
+                                                      "ListObjectQ", _
+                                                      "NullQ", _
+                                                      "NumberQ", _
+                                                      "StringQ", _
+                                                      "WorkbookQ", _
+                                                      "WorksheetQ"))
+End Function
+
+' DESCRIPTION
+' This function returns an array of strings with the names the predicates used to
+' identify printable values.
+'
+' PARAMETERS
+'
+' RETURNED VALUE
+' array of strings with the names the predicates used to identify pritable values.
+Public Function GetPrintableTypePredicateNames() As String()
+    Let GetPrintableTypePredicateNames = ToStrings(Array("BooleanQ", _
+                                                         "DateQ", _
+                                                         "EmptyQ", _
+                                                         "NullQ", _
+                                                         "NumberQ", _
+                                                         "StringQ"))
+End Function
+
+' DESCRIPTION
 ' Boolean function returning True if its argument is an array that has been dimensioned.
 ' Returns False otherwise.  In other words, it returns False if its arg is neither an
 ' an array nor dimensioned.
@@ -60,6 +99,7 @@ End Function
 ' 6. Worksheet
 ' 7. Workbook
 ' 8. ListObject
+' 9. Dictionary
 ' 9. Null
 ' 10. Empty
 '
@@ -71,24 +111,9 @@ End Function
 ' RETURNED VALUE
 ' True when arg has one of the types detailed above. Returns False otherwise
 Public Function AtomicQ(arg As Variant) As Boolean
-    Let AtomicQ = False
-    
-    If IsArray(arg) Then Exit Function
-    
-    If Not (TypeName(arg) = TypeName("a") Or _
-            TypeName(arg) = TypeName(True) Or _
-            TypeName(arg) = TypeName(CVErr(1)) Or _
-            TypeName(arg) = TypeName(TempComputation) Or _
-            TypeName(arg) = TypeName(ThisWorkbook) Or _
-            TypeName(arg) = "ListObject" Or _
-            IsNumeric(arg) Or _
-            IsDate(arg) Or _
-            IsNull(arg) Or _
-            IsEmpty(arg)) Then
-        Exit Function
-    End If
-    
-    Let AtomicQ = True
+    Let AtomicQ = DateQ(arg) Or DictionaryQ(arg) Or EmptyQ(arg) Or ErrorQ(arg) Or ListObjectQ(arg) Or _
+                  NullQ(arg) Or NumberQ(arg) Or NumberQ(arg) Or StringQ(arg) Or WorkbookQ(arg) Or _
+                  WorksheetQ(arg)
 End Function
 
 ' DESCRIPTION
@@ -136,29 +161,17 @@ End Function
 ' is available on 64-bit systems exclusively, and Decimal is not found in
 ' my systems.  Returns False otherwise.
 Public Function NumberQ(arg As Variant) As Boolean
-    Dim AByte As Byte
-    Dim anInteger As Integer
-    Dim ALong As Long
-    Dim ASingle As Single
-    Dim aDouble As Double
-    Dim ACurrency As Currency
+    Dim TheVarType As VbVarType
 
-    Select Case TypeName(arg)
-        Case TypeName(AByte)
-            Let NumberQ = True
-        Case TypeName(anInteger)
-            Let NumberQ = True
-        Case TypeName(ALong)
-            Let NumberQ = True
-        Case TypeName(ASingle)
-            Let NumberQ = True
-        Case TypeName(aDouble)
-            Let NumberQ = True
-        Case TypeName(ACurrency)
-            Let NumberQ = True
-        Case Else
-            Let NumberQ = False
-    End Select
+    Let TheVarType = VarType(arg)
+
+    If TheVarType = vbByte Or TheVarType = vbCurrency Or TheVarType = vbDecimal Or _
+       TheVarType = vbDouble Or TheVarType = vbInteger Or TheVarType = vbLong Or _
+       TheVarType = vbSingle Then
+        Let NumberQ = True
+    Else
+        Let NumberQ = False
+    End If
 End Function
 
 ' DESCRIPTION
@@ -183,20 +196,15 @@ End Function
 ' RETURNED VALUE
 ' True or False depending on whether or not its argument is a whole number.
 Public Function WholeNumberQ(arg As Variant) As Boolean
-    Dim AByte As Byte
-    Dim anInteger As Integer
-    Dim ALong As Long
+    Dim TheVarType As VbVarType
 
-    Select Case TypeName(arg)
-        Case TypeName(AByte)
-            Let WholeNumberQ = True
-        Case TypeName(anInteger)
-            Let WholeNumberQ = True
-        Case TypeName(ALong)
-            Let WholeNumberQ = True
-        Case Else
-            Let WholeNumberQ = False
-    End Select
+    Let TheVarType = VarType(arg)
+
+    If TheVarType = vbByte Or TheVarType = vbInteger Or TheVarType = vbLong Then
+        Let WholeNumberQ = True
+    Else
+        Let WholeNumberQ = False
+    End If
 End Function
 
 ' DESCRIPTION
@@ -333,34 +341,6 @@ Public Function StringArrayQ(AnArray As Variant) As Boolean
 End Function
 
 ' DESCRIPTION
-' Boolean function returning True if its argument is a dictionary. Returns False otherwise.
-'
-' PARAMETERS
-' 1. arg - any value or object reference
-'
-' RETURNED VALUE
-' True or False depending on whether or not its argument is a dictionary
-Public Function DictionaryQ(vValue As Variant) As Boolean
-    Dim obj As New Dictionary
-    
-    Let DictionaryQ = TypeName(vValue) = TypeName(obj)
-End Function
-
-' DESCRIPTION
-' Boolean function returning True if its argument is a dimensioned, non-empty array all of whose
-' elements satisfy Predicates.DictionaryQ.  Returns False otherwise.
-'
-' PARAMETERS
-' 1. arg - any value or object reference
-'
-' RETURNED VALUE
-' True or False depending on whether arg is dimensioned, non-empty and all its elements satisfy
-' Predicates.DictionaryQ
-Public Function DictionaryArrayQ(AnArray As Variant) As Boolean
-    Let DictionaryArrayQ = AllTrueQ(AnArray, ThisWorkbook, "DictionaryQ")
-End Function
-
-' DESCRIPTION
 ' Boolean function returning True if its argument is a string or a whole number. Returns False otherwise.
 '
 ' PARAMETERS
@@ -410,6 +390,189 @@ End Function
 ' Predicates.NumberOrStringQ
 Public Function NumberOrStringArrayQ(AnArray As Variant) As Boolean
     Let NumberOrStringArrayQ = AllTrueQ(AnArray, ThisWorkbook, "NumberOrStringQ")
+End Function
+
+' DESCRIPTION
+' Boolean function returning True if its argument is an initialized workbook reference.
+'
+' PARAMETERS
+' 1. arg - an initialized workbook reference
+'
+' RETURNED VALUE
+' True or False depending on whether arg its argument is an initialized workbook reference.
+Public Function WorkbookQ(arg As Variant) As Boolean
+    Let WorkbookQ = TypeName(arg) = TypeName(ThisWorkbook)
+End Function
+
+' DESCRIPTION
+' Boolean function returning True if its argument is a dimensioned, non-empty array all of whose
+' elements satisfy Predicates.WorkbookQ.  Returns False otherwise.
+'
+' PARAMETERS
+' 1. arg - any value or object reference
+'
+' RETURNED VALUE
+' True or False depending on whether arg is dimensioned, non-empty and all its elements satisfy
+' Predicates.WorkbookQ
+Public Function WorkbookArrayQ(AnArray As Variant) As Boolean
+    Let WorkbookArrayQ = AllTrueQ(AnArray, ThisWorkbook, "WorkbookQ")
+End Function
+
+
+' DESCRIPTION
+' Boolean function returning True if its argument is an initialized worksheet reference.
+'
+' PARAMETERS
+' 1. arg - an initialized workbook reference
+'
+' RETURNED VALUE
+' True or False depending on whether arg its argument is an initialized worksheet reference.
+Public Function WorksheetQ(arg As Variant) As Boolean
+    Let WorksheetQ = TypeName(arg) = TypeName(ThisWorkbook.Worksheets(1))
+End Function
+
+' DESCRIPTION
+' Boolean function returning True if its argument is a dimensioned, non-empty array all of whose
+' elements satisfy Predicates.WorksheetQ.  Returns False otherwise.
+'
+' PARAMETERS
+' 1. arg - any value or object reference
+'
+' RETURNED VALUE
+' True or False depending on whether arg is dimensioned, non-empty and all its elements satisfy
+' Predicates.WorksheetQ
+Public Function WorksheetArrayQ(AnArray As Variant) As Boolean
+    Let WorksheetArrayQ = AllTrueQ(AnArray, ThisWorkbook, "WorksheetQ")
+End Function
+
+' DESCRIPTION
+' Boolean function returning True if its argument is an initialized ListObject reference.
+'
+' PARAMETERS
+' 1. arg - an initialized workbook reference
+'
+' RETURNED VALUE
+' True or False depending on whether arg its argument is an initialized ListObject reference.
+Public Function ListObjectQ(arg As Variant) As Boolean
+    Let ListObjectQ = TypeName(arg) = "ListObject"
+End Function
+
+' DESCRIPTION
+' Boolean function returning True if its argument is a dimensioned, non-empty array all of whose
+' elements satisfy Predicates.ListObjectQ.  Returns False otherwise.
+'
+' PARAMETERS
+' 1. arg - any value or object reference
+'
+' RETURNED VALUE
+' True or False depending on whether arg is dimensioned, non-empty and all its elements satisfy
+' Predicates.ListObjectQ
+Public Function ListObjectArrayQ(AnArray As Variant) As Boolean
+    Let ListObjectArrayQ = AllTrueQ(AnArray, ThisWorkbook, "ListObjectQ")
+End Function
+
+' DESCRIPTION
+' Boolean function returning True if its argument is a dictionary. Returns False otherwise.
+'
+' PARAMETERS
+' 1. arg - any value or object reference
+'
+' RETURNED VALUE
+' True or False depending on whether or not its argument is a dictionary
+Public Function DictionaryQ(vValue As Variant) As Boolean
+    Dim obj As New Dictionary
+    
+    Let DictionaryQ = TypeName(vValue) = TypeName(obj)
+End Function
+
+' DESCRIPTION
+' Boolean function returning True if its argument is a dimensioned, non-empty array all of whose
+' elements satisfy Predicates.DictionaryQ.  Returns False otherwise.
+'
+' PARAMETERS
+' 1. arg - any value or object reference
+'
+' RETURNED VALUE
+' True or False depending on whether arg is dimensioned, non-empty and all its elements satisfy
+' Predicates.DictionaryQ
+Public Function DictionaryArrayQ(AnArray As Variant) As Boolean
+    Let DictionaryArrayQ = AllTrueQ(AnArray, ThisWorkbook, "DictionaryQ")
+End Function
+
+' DESCRIPTION
+' Boolean function returning True if its argument satisfies IsEmpty(). Returns False otherwise.
+'
+' PARAMETERS
+' 1. arg - any value or object reference
+'
+' RETURNED VALUE
+' True or False depending on whether or not its argument satisfies IsEmpty()
+Public Function EmptyQ(vValue As Variant) As Boolean
+    Let EmptyQ = IsEmpty(vValue)
+End Function
+
+' DESCRIPTION
+' Boolean function returning True if its argument satisfies IsNull(). Returns False otherwise.
+'
+' PARAMETERS
+' 1. arg - any value or object reference
+'
+' RETURNED VALUE
+' True or False depending on whether or not its argument satisfies IsNull()
+Public Function NullQ(vValue As Variant) As Boolean
+    Let NullQ = IsNull(vValue)
+End Function
+
+' DESCRIPTION
+' Boolean function returning True if its argument satisfies IsError(). Returns False otherwise.
+'
+' PARAMETERS
+' 1. arg - any value or object reference
+'
+' RETURNED VALUE
+' True or False depending on whether or not its argument satisfies IsError()
+Public Function ErrorQ(vValue As Variant) As Boolean
+    Let ErrorQ = IsNull(vValue)
+End Function
+
+' DESCRIPTION
+' Boolean function returning True if its argument is a dimensioned, non-empty array all of whose
+' elements satisfy Predicates.ErrorQ.  Returns False otherwise.
+'
+' PARAMETERS
+' 1. arg - any value or object reference
+'
+' RETURNED VALUE
+' True or False depending on whether arg is dimensioned, non-empty and all its elements satisfy
+' Predicates.ErrorQ
+Public Function ErrorArrayQ(AnArray As Variant) As Boolean
+    Let ErrorArrayQ = AllTrueQ(AnArray, ThisWorkbook, "ErrorQ")
+End Function
+
+' DESCRIPTION
+' Boolean function returning True if its argument satisfies IsDate(). Returns False otherwise.
+'
+' PARAMETERS
+' 1. arg - any value or object reference
+'
+' RETURNED VALUE
+' True or False depending on whether or not its argument satisfies IsDate()
+Public Function DateQ(vValue As Variant) As Boolean
+    Let DateQ = IsDate(vValue)
+End Function
+
+' DESCRIPTION
+' Boolean function returning True if its argument is a dimensioned, non-empty array all of whose
+' elements satisfy Predicates.DateQ.  Returns False otherwise.
+'
+' PARAMETERS
+' 1. arg - any value or object reference
+'
+' RETURNED VALUE
+' True or False depending on whether arg is dimensioned, non-empty and all its elements satisfy
+' Predicates.DateQ
+Public Function DateArrayQ(AnArray As Variant) As Boolean
+    Let DateArrayQ = AllTrueQ(AnArray, ThisWorkbook, "ErrorQ")
 End Function
 
 ' DESCRIPTION
@@ -503,6 +666,20 @@ End Function
 Public Function NoneTrueQ(AnArray As Variant, _
                           Optional WorkbookReference As Variant, _
                           Optional PredicateName As Variant) As Boolean
+    ' Exit with Null if AnArray is not dimensioned
+    If Not DimensionedQ(AnArray) Then
+        Let NoneTrueQ = False
+        Exit Function
+    End If
+    
+    ' Exit with True if AnArray is empty. This case is necessary because NoneTrueQ is not logically
+    ' the negation of AllTrueQ.  For NoneTrueQ to be true, all elements of AnArray must be False.
+    ' However, all elements of AnArray are False if AnArray is an empty set.
+    If EmptyArrayQ(AnArray) Then
+        Let NoneTrueQ = True
+        Exit Function
+    End If
+    
     If IsMissing(PredicateName) Then
         Let NoneTrueQ = Not AllTrueQ(AnArray)
     Else
@@ -716,7 +893,7 @@ End Function
 ' RETURNED VALUE
 ' Returns True or False depending on whether or not its argument can be considered a printable
 Public Function PrintableQ(arg As Variant) As Boolean
-    Let PrintableQ = NumberOrStringQ(arg) Or BooleanQ(arg) Or IsDate(arg) Or IsEmpty(arg) Or IsNull(arg)
+    Let PrintableQ = DateQ(arg) Or EmptyQ(arg) Or NullQ(arg) Or NumberQ(arg) Or StringQ(arg)
 End Function
 
 ' DESCRIPTION
@@ -1015,12 +1192,11 @@ Public Function InterpretableAsColumnArrayQ(a As Variant) As Boolean
 End Function
 
 ' DESCRIPTION
-' Boolean function returning True if TheValue is in the given 1D array. TheValue must
-' satisfy NumberOrStringQ. Every element in TheArray must also satisfy NumberOfStringQ
+' Boolean function returning True if TheValue is in the given 1D array.
 '
 ' PARAMETERS
-' 1. TheArray - A 1D array satisfying PrintableArrayQ
-' 2. TheValue - Any value satisfying Predicates.PrintableQ
+' 1. TheArray - A 1D array
+' 2. TheValue - Any Excel value or reference
 '
 ' RETURNED VALUE
 ' Returns True or False depending on whether or not the given value is in the given array
@@ -1034,10 +1210,12 @@ Public Function MemberQ(TheArray As Variant, TheValue As Variant) As Boolean
     ' Exit if TheArray is not a 1D array
     If NumberOfDimensions(TheArray) <> 1 Then Exit Function
     
-    ' Exit with False if TheValue fails PrintableQ TheArray fails PrintableArrayQ
-    If Not (PrintableQ(TheValue) And PrintableArrayQ(TheArray)) Then Exit Function
-    
     For Each var In TheArray
+        If IsError(var) Then
+            Let MemberQ = False
+            Exit Function
+        End If
+        
         If IsEmpty(var) And IsEmpty(TheValue) Then
             Let MemberQ = True
             Exit Function
@@ -1047,8 +1225,13 @@ Public Function MemberQ(TheArray As Variant, TheValue As Variant) As Boolean
             Let MemberQ = True
             Exit Function
         End If
-    
-        If TypeName(var) = TypeName(TheValue) And var = TheValue Then
+        
+        If IsObject(var) Then
+            Let MemberQ = TheValue Is var
+            Exit Function
+        End If
+
+        If VarType(var) = VarType(TheValue) And var = TheValue Then
             Let MemberQ = True
             Exit Function
         End If
