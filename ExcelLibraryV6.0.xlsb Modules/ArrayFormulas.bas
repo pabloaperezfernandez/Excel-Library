@@ -373,7 +373,7 @@ Public Function NormalizeIndex(AnArray As Variant, _
         Let NormalizeIndex = Null
         Exit Function
     End If
-                               
+     
     ' Exit if AnArray is the empty 1D array
     If EmptyArrayQ(AnArray) Then
         Let NormalizeIndex = Null
@@ -422,6 +422,53 @@ Public Function NormalizeIndex(AnArray As Variant, _
         Let NormalizeIndex = TheIndex + 1 + UBound(AnArray, IIf(RelativeToColumnsQ, 2, 1))
     End If
 End Function
+
+' DESCRIPTION
+' This function returns the requester part of an array.  It works just like Mathematica's Part[].  The returned
+' value depends on the form of parameter Indices.  Works on 1D and 2D arrays.
+'
+' PARAMETERS
+' 1. AnArray - A dimensioned array
+' 2. Indices - can be one of the forms below or Array(index_1, index_2), where index_i is any of the forms
+'    below. index_i specifies the slicing of array along dimension i.  If Indices = index_1 (using one of the
+'    forms below) on an atomic table, the table is considered a 1D array of 1D arrays.  A group of rows is
+'    always returned as a 2D array.  Indexing along the two dimensions is always returned as a 2D array unles
+'    it referes to a single location in the 2D array, in which case it is returned as an atomic element.
+'
+' Indices can take any of the following forms:
+' 1. [{n}] - equivalent to Array(n) to get element n
+' 2. [{n_1, n_2}] - Equivalent to Array(n_1, n_2) to get elements n_1 through n_2
+' 3. [{Empty, n}] - Equivalent to Array(Empty, n) to get all elements from 1 through n
+' 4. [{n, Empty}] - Equivalent to Array(n, Empty) to get all elements from n through -1
+' 5. [{n_1, n_2, step}] - Equivalent to Array(n_1, n_2, step) to get elements n_1 through n_2 every step
+'    elements
+' 6. Array([{n_1, n_2, ..., n_n}]) - Equivalent to Array(Array(n_1, n_2, ..., n_k)) to get elements n_1, n_2,
+'    ..., n_k.
+'
+' It is important to understand that [{...}] is used as a shorthand notation
+' to specify both 1D and proper 2D arrays.  Hence, [{1,2,3}]=Array(1,2,3) but
+' [{[{1,2}],[{3,4}]}] is not equal to Array(Array(1,2), Array(3,4)).  In fact,
+' [{[{1,2}],[{3,4}]}] raises an error.  However Array([{...}], [{...}]) is a valid
+' syntax to specify a 1D array of 1D arrays without having to use the more cumbersome
+' Array(Array(...), ..., Array(...))
+'
+' RETURNED VALUE
+' The requested slice or element of the array.
+Public Function Part(AnArray As Variant, Indices As Variant) As Variant
+    If Not DimensionedQ(AnArray) Or Not DimensionedQ(Indices) Then
+        Let Part = Null
+        Exit Function
+    End If
+    
+    If NumberOfDimensions(AnArray) < Length(Indices) Then
+        Let Part = Null
+        Exit Function
+    End If
+    
+    '***HERE1
+End Function
+
+
 
 ' DESCRIPTION
 ' Returns the row numbered RowNumber in 2D matrix aMatrix as a 1D matrix if it satisfies Predicates.TableQ.
@@ -3640,12 +3687,6 @@ Public Function BlankOutArraySequentialRepetitions(ByVal AnArray As Variant)
             
     Let BlankOutArraySequentialRepetitions = AnArray
 End Function
-
-' DESCRIPTION
-' Returns the nth element in an array. Negative indices start at the end of the array with index = -1.
-' This function returns Null if the index falls outside of the array or if the index is 0 or not an integer.
-' If the given array is 2D, the function
-'public function GetElement(AnArray,
 
 ' DESCRIPTION
 ' This function inserts new elements in a repeated fashion in between the elements of the

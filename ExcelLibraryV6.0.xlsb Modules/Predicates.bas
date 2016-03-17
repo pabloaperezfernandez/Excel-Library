@@ -10,18 +10,18 @@ Option Base 1
 '
 ' RETURNED VALUE
 ' array of strings with the names the predicates used to identify atomic values.
-Public Function GetAtomicTypePredicateNames() As String()
-    Let GetAtomicTypePredicateNames = ToStrings(Array("BooleanQ", _
-                                                      "DateQ", _
-                                                      "DictionaryQ", _
-                                                      "EmptyQ", _
-                                                      "ErrorQ", _
-                                                      "ListObjectQ", _
-                                                      "NullQ", _
-                                                      "NumberQ", _
-                                                      "StringQ", _
-                                                      "WorkbookQ", _
-                                                      "WorksheetQ"))
+Public Function GetAtomicTypePredicateNames() As Variant
+    Let GetAtomicTypePredicateNames = Array("BooleanQ", _
+                                            "DateQ", _
+                                            "DictionaryQ", _
+                                            "EmptyQ", _
+                                            "ErrorQ", _
+                                            "ListObjectQ", _
+                                            "NullQ", _
+                                            "NumberQ", _
+                                            "StringQ", _
+                                            "WorkbookQ", _
+                                            "WorksheetQ")
 End Function
 
 ' DESCRIPTION
@@ -32,13 +32,13 @@ End Function
 '
 ' RETURNED VALUE
 ' array of strings with the names the predicates used to identify pritable values.
-Public Function GetPrintableTypePredicateNames() As String()
-    Let GetPrintableTypePredicateNames = ToStrings(Array("BooleanQ", _
-                                                         "DateQ", _
-                                                         "EmptyQ", _
-                                                         "NullQ", _
-                                                         "NumberQ", _
-                                                         "StringQ"))
+Public Function GetPrintableTypePredicateNames() As Variant
+    Let GetPrintableTypePredicateNames = Array("BooleanQ", _
+                                               "DateQ", _
+                                               "EmptyQ", _
+                                               "NullQ", _
+                                               "NumberQ", _
+                                               "StringQ")
 End Function
 
 ' DESCRIPTION
@@ -66,6 +66,7 @@ Public Function DimensionedQ(arg As Variant) As Boolean
     ' Due to On Error Resume Next, the code will resume in the next line, which
     ' will then check if an error has been raised.
     Let i = UBound(arg, 1)
+    
     Let DimensionedQ = Err.Number = 0
 End Function
 
@@ -111,9 +112,7 @@ End Function
 ' RETURNED VALUE
 ' True when arg has one of the types detailed above. Returns False otherwise
 Public Function AtomicQ(arg As Variant) As Boolean
-    Let AtomicQ = DateQ(arg) Or DictionaryQ(arg) Or EmptyQ(arg) Or ErrorQ(arg) Or ListObjectQ(arg) Or _
-                  NullQ(arg) Or NumberQ(arg) Or NumberQ(arg) Or StringQ(arg) Or WorkbookQ(arg) Or _
-                  WorksheetQ(arg)
+    Let AtomicQ = AnyTrueQ(Through(GetAtomicTypePredicateNames(), ThisWorkbook, arg))
 End Function
 
 ' DESCRIPTION
@@ -128,26 +127,7 @@ End Function
 ' True when arg is a dimensioned, non-empty array all of whose elements satisfy Predicates.AtomicQ.
 ' Returns False otherwise
 Public Function AtomicArrayQ(AnArray As Variant) As Boolean
-    ' This function is written independently of AllTrueQ because AllTrueQ depends on this pricate
-    Dim var As Variant
-    
-    ' Set default return value
-    Let AtomicArrayQ = False
-    
-    ' Exit with False if arg is not a dimensioned array
-    If Not DimensionedQ(AnArray) Then Exit Function
-    
-    ' Exit with True if arg is an empty array
-    If EmptyArrayQ(AnArray) Then
-        Let AtomicArrayQ = True
-        Exit Function
-    End If
-    
-    For Each var In AnArray
-        If Not AtomicQ(var) Then Exit Function
-    Next
-    
-    Let AtomicArrayQ = True
+    Let AtomicArrayQ = AllTrueQ(AnArray, ThisWorkbook, "AtomicQ")
 End Function
 
 ' DESCRIPTION
@@ -418,7 +398,6 @@ Public Function WorkbookArrayQ(AnArray As Variant) As Boolean
     Let WorkbookArrayQ = AllTrueQ(AnArray, ThisWorkbook, "WorkbookQ")
 End Function
 
-
 ' DESCRIPTION
 ' Boolean function returning True if its argument is an initialized worksheet reference.
 '
@@ -607,15 +586,18 @@ Public Function AllTrueQ(AnArray As Variant, _
         Let AllTrueQ = True
         Exit Function
     End If
-
-    ' Exit with False if AnArray is not a atomic array
-    If Not AtomicArrayQ(AnArray) Then
-        Let AllTrueQ = False
-        Exit Function
-    End If
     
     ' Exit with Null if PredicateName not missing and PredicateName not a string
-    If Not IsMissing(PredicateName) Then
+    ' Exit with Null if PredicateName missing and AnArray is not an array of Booleans
+    ' Cannot use BooleanArrayQ here because it would cause a circular definitional reference
+    If IsMissing(PredicateName) Then
+        For Each var In AnArray
+            If Not BooleanQ(var) Then
+                Let AllTrueQ = False
+                Exit Function
+            End If
+        Next
+    Else
         If Not StringQ(PredicateName) Then
             Let AllTrueQ = False
             Exit Function
@@ -629,25 +611,21 @@ Public Function AllTrueQ(AnArray As Variant, _
         Exit Function
     End If
     
-    ' Exit with Null if PredicateName missing and AnArray is not an array of Booleans
-    If IsMissing(PredicateName) And Not BooleanArrayQ(AnArray) Then
-        Let AllTrueQ = False
-        Exit Function
-    End If
-    
-    For Each var In AnArray
-        If Not IsMissing(PredicateName) Then
+    If Not IsMissing(PredicateName) Then
+        For Each var In AnArray
             If Not Application.Run(WorkbookReference.Name & "!" & PredicateName, var) Then
                 Let AllTrueQ = False
                 Exit Function
             End If
-        Else
+        Next
+    Else
+        For Each var In AnArray
             If Not var Then
                 Let AllTrueQ = False
                 Exit Function
             End If
-        End If
-    Next
+        Next
+    End If
 End Function
 
 ' DESCRIPTION
@@ -666,6 +644,10 @@ End Function
 Public Function NoneTrueQ(AnArray As Variant, _
                           Optional WorkbookReference As Variant, _
                           Optional PredicateName As Variant) As Boolean
+    Dim var As Variant
+    
+    Let NoneTrueQ = True
+                          
     ' Exit with Null if AnArray is not dimensioned
     If Not DimensionedQ(AnArray) Then
         Let NoneTrueQ = False
@@ -675,16 +657,38 @@ Public Function NoneTrueQ(AnArray As Variant, _
     ' Exit with True if AnArray is empty. This case is necessary because NoneTrueQ is not logically
     ' the negation of AllTrueQ.  For NoneTrueQ to be true, all elements of AnArray must be False.
     ' However, all elements of AnArray are False if AnArray is an empty set.
-    If EmptyArrayQ(AnArray) Then
-        Let NoneTrueQ = True
-        Exit Function
+    If EmptyArrayQ(AnArray) Then Exit Function
+
+    ' Exit with Null if PredicateName not missing and PredicateName not a string
+    ' Exit with Null if PredicateName missing and AnArray is not an array of Booleans
+    ' Cannot use BooleanArrayQ here because it would cause a circular definitional reference
+    If IsMissing(PredicateName) Then
+        For Each var In AnArray
+            If Not BooleanQ(var) Then
+                Let NoneTrueQ = False
+                Exit Function
+            End If
+        Next
+    Else
+        If Not StringQ(PredicateName) Then
+            Let NoneTrueQ = False
+            Exit Function
+        End If
     End If
     
-    If IsMissing(PredicateName) Then
-        Let NoneTrueQ = Not AllTrueQ(AnArray)
-    Else
-        Let NoneTrueQ = Not AllTrueQ(AnArray, WorkbookReference, PredicateName)
-    End If
+    For Each var In AnArray
+        If Not IsMissing(PredicateName) Then
+            If Application.Run(WorkbookReference.Name & "!" & PredicateName, var) Then
+                Let NoneTrueQ = False
+                Exit Function
+            End If
+        Else
+            If var Then
+                Let NoneTrueQ = False
+                Exit Function
+            End If
+        End If
+    Next
 End Function
 
 ' DESCRIPTION
@@ -699,14 +703,14 @@ End Function
 ' the predicate with name PredicateName
 Public Function AnyTrueQ(AnArray As Variant, _
                          Optional WorkbookReference As Variant, _
-                         Optional PredicateName As String) As Boolean
+                         Optional PredicateName As Variant) As Boolean
     Dim var As Variant
     
     ' Set the default return value of True
     Let AnyTrueQ = False
 
-    ' Exit with False if AnArray is not a atomic array
-    If Not AtomicArrayQ(AnArray) Then
+    ' Exit with False if AnArray is not dimensioned array
+    If Not DimensionedQ(AnArray) Then
         Let AnyTrueQ = False
         Exit Function
     End If
@@ -718,7 +722,16 @@ Public Function AnyTrueQ(AnArray As Variant, _
     End If
     
     ' Exit with Null if PredicateName not missing and PredicateName not a string
-    If Not IsMissing(PredicateName) Then
+    ' Exit with Null if PredicateName missing and AnArray is not an array of Booleans
+    ' Cannot use BooleanArrayQ here because it would cause a circular definitional reference
+    If IsMissing(PredicateName) Then
+        For Each var In AnArray
+            If Not BooleanQ(var) Then
+                Let AnyTrueQ = False
+                Exit Function
+            End If
+        Next
+    Else
         If Not StringQ(PredicateName) Then
             Let AnyTrueQ = False
             Exit Function
@@ -732,25 +745,21 @@ Public Function AnyTrueQ(AnArray As Variant, _
         Exit Function
     End If
     
-    ' Exit with Null if PredicateName missing and AnArray is not an array of Booleans
-    If IsMissing(PredicateName) And Not BooleanArrayQ(AnArray) Then
-        Let AnyTrueQ = False
-        Exit Function
-    End If
-    
-    For Each var In AnArray
-        If Not IsMissing(PredicateName) Then
+    If Not IsMissing(PredicateName) Then
+        For Each var In AnArray
             If Application.Run(WorkbookReference.Name & "!" & PredicateName, var) Then
                 Let AnyTrueQ = True
                 Exit Function
             End If
-        Else
-            If var Then
-                Let AnyTrueQ = True
-                Exit Function
-            End If
+        Next
+    Else
+        For Each var In AnArray
+        If var Then
+            Let AnyTrueQ = True
+            Exit Function
         End If
-    Next
+        Next
+    End If
 End Function
 
 ' DESCRIPTION
@@ -828,7 +837,7 @@ End Function
 ' RETURNED VALUE
 ' Returns True or False depending on whether or not its argument can be considered a numerical matrix.
 Public Function BooleanQ(arg As Variant) As Boolean
-    Let BooleanQ = TypeName(arg) = TypeName(True)
+    Let BooleanQ = VarType(arg) = vbBoolean
 End Function
 
 ' DESCRIPTION
@@ -842,23 +851,7 @@ End Function
 ' True or False depending on whether arg is dimensioned, non-empty and all its elements satisfy
 ' Predicates.BooleanQ
 Public Function BooleanArrayQ(AnArray As Variant) As Boolean
-    ' This function is written independently of AllTrueQ because AllTrueQ depends on this pricate
-    Dim var As Variant
-    
-    ' Set default return value
-    Let BooleanArrayQ = False
-    
-    ' Exit with False if arg is not a dimensioned array
-    If Not DimensionedQ(AnArray) Then Exit Function
-    
-    ' Exit with True if arg is an empty array
-    If EmptyArrayQ(AnArray) Then Exit Function
-    
-    For Each var In AnArray
-        If Not BooleanQ(var) Then Exit Function
-    Next
-    
-    Let BooleanArrayQ = True
+    Let BooleanArrayQ = AllTrueQ(AnArray, ThisWorkbook, "BooleanQ")
 End Function
 
 ' DESCRIPTION
@@ -870,17 +863,7 @@ End Function
 ' RETURNED VALUE
 ' Returns True or False depending on whether or not its argument can be considered a table.
 Public Function AtomicTableQ(arg As Variant) As Boolean
-    Dim var As Variant
-
-    Let AtomicTableQ = False
-    
-    If NumberOfDimensions(arg) <> 2 Then Exit Function
-
-    For Each var In arg
-        If Not AtomicQ(var) Then Exit Function
-    Next var
-    
-    Let AtomicTableQ = True
+    Let AtomicTableQ = NumberOfDimensions(arg) = 2 And AtomicArrayQ(Flatten(arg))
 End Function
 
 ' DESCRIPTION
@@ -893,7 +876,7 @@ End Function
 ' RETURNED VALUE
 ' Returns True or False depending on whether or not its argument can be considered a printable
 Public Function PrintableQ(arg As Variant) As Boolean
-    Let PrintableQ = DateQ(arg) Or EmptyQ(arg) Or NullQ(arg) Or NumberQ(arg) Or StringQ(arg)
+    Let PrintableQ = AnyTrueQ(Through(GetPrintableTypePredicateNames(), arg))
 End Function
 
 ' DESCRIPTION
@@ -919,17 +902,7 @@ End Function
 ' RETURNED VALUE
 ' Returns True or False depending on whether or not its argument can be considered a printable table.
 Public Function PrintableTableQ(arg As Variant) As Boolean
-    Dim var As Variant
-
-    Let PrintableTableQ = False
-    
-    If NumberOfDimensions(arg) <> 2 Then Exit Function
-
-    For Each var In arg
-        If Not PrintableQ(var) Then Exit Function
-    Next var
-    
-    Let PrintableTableQ = True
+    Let PrintableTableQ = NumberOfDimensions(arg) = 2 And PrintableArrayQ(Flatten(arg))
 End Function
 
 ' DESCRIPTION
@@ -1293,4 +1266,177 @@ Public Function SheetExistsQ(aWorkbook As Workbook, SheetName As String) As Bool
     End If
 
 NoSuchSheet:
+End Function
+
+' DESCRIPTION
+' Boolean function returning True if the given parameter is 0.
+'
+' PARAMETERS
+' 1. arg - any Excel expression
+'
+' RETURNED VALUE
+' Returns True or False depending on whether or not its argument is zero
+Public Function ZeroQ(arg As Variant) As Boolean
+    If NumberQ(arg) Then
+        Let ZeroQ = arg = 0
+    Else
+        Let ZeroQ = False
+    End If
+End Function
+
+' DESCRIPTION
+' Boolean function returning True if the given parameter is a dimensioned, 1D array
+' all of whose elements satisfy ZeroQ.
+'
+' PARAMETERS
+' 1. arg - any Excel value or reference
+'
+' RETURNED VALUE
+' Returns True or False depending on whether or not all the elements in the 1D, dimensioned
+' array arg satisfy ZeroQ
+Public Function ZeroArrayQ(arg As Variant) As Boolean
+    Let ZeroArrayQ = AllTrueQ(AnArray, ThisWorkbook, "ZeroQ")
+End Function
+
+' DESCRIPTION
+' Boolean function returning True if the given parameter is 1.
+'
+' PARAMETERS
+' 1. arg - any Excel expression
+'
+' RETURNED VALUE
+' Returns True or False depending on whether or not its argument is 1
+Public Function OneQ(arg As Variant) As Boolean
+    If NumberQ(arg) Then
+        Let OneQ = arg = 1
+    Else
+        Let OneQ = False
+    End If
+End Function
+
+' DESCRIPTION
+' Boolean function returning True if the given parameter is a dimensioned, 1D array
+' all of whose elements satisfy ZeroQ.
+'
+' PARAMETERS
+' 1. arg - any Excel value or reference
+'
+' RETURNED VALUE
+' Returns True or False depending on whether or not all the elements in the 1D, dimensioned
+' array arg satisfy ZeroQ
+Public Function OneArrayQ(arg As Variant) As Boolean
+    Let OneArrayQ = AllTrueQ(AnArray, ThisWorkbook, "OneQ")
+End Function
+
+' DESCRIPTION
+' Boolean function returning True if its parameter any of the following forms:
+'
+' PARAMETERS
+' 1. TheIndex - Any Excel expression with of the following forms:
+'
+'        1. [{n}] - equivalent to Array(n) to get element n
+'        2. [{n_1, n_2}] - Equivalent to Array(n_1, n_2) to get elements n_1 through n_2
+'        3. [{Empty, n}] - Equivalent to Array(Empty, n) to get all elements from 1 through n
+'        4. [{n, Empty}] - Equivalent to Array(n, Empty) to get all elements from n through -1
+'        5. [{n_1, n_2, step}] - Equivalent to Array(n_1, n_2, step) to get elements n_1 through n_2 every step
+'           elements
+'        6. Array([{n_1, n_2, ..., n_n}]) - Equivalent to Array(Array(n_1, n_2, ..., n_k)) to get elements n_1, n_2,
+'           ..., n_k.
+'
+'
+' RETURNED VALUE
+' Returns True or False depending on whether or not the given parameter has one of the acceptable forms
+Public Function PartIndexQ(TheArray As Variant, TheIndex As Variant) As Boolean
+    Dim var As Variant
+
+    Let PartIndexQ = True
+
+    If PartIndexSingleElementQ(TheIndex) Then
+        If TheIndex = 0 Or Abs(TheIndex) > Length(TheArray) Then
+            Let PartIndexQ = False
+        End If
+    ElseIf PartIndexSequenceOfElementsQ(TheIndex) Then
+        If AnyTrueQ(Array(First(TheIndex) = 0, _
+                          Last(TheIndex) = 0, _
+                          Abs(First(TheIndex)) > Length(TheArray), _
+                          Abs(Last(TheIndex)) > Length(TheArray), _
+                          First(TheIndex) < 0 And First(TheIndex) > Last(TheIndex))) Then
+            Let PartIndexQ = False
+        End If
+    ElseIf PartIndexBeginningToElementQ(TheIndex) Then
+        If Last(TheIndex) = 0 Or Abs(lasttheindex) > Length(TheArray) Then
+            Let PartIndexQ = False
+        End If
+    ElseIf PartIndexElementToEndQ(TheIndex) Then
+        If Last(TheIndex) = 0 Or Abs(lasttheindex) > Length(TheArray) Then
+            Let PartIndexQ = False
+        End If
+    ElseIf PartIndexSteppedSequenceQ(TheIndex) Then
+        If AnyTrueQ(Array(First(TheIndex) = 0, _
+                          First(Rest(TheIndex)) = 0, _
+                          Last(TheIndex) = 0, _
+                          Abs(First(TheIndex)) > Length(TheArray), _
+                          Abs(First(Rest(TheIndex))) > Length(TheArray), _
+                          First(TheIndex) < 0 And First(TheIndex) > First(Rest(TheIndex)), _
+                          First(TheIndex) > 0 And First(Last(TheIndex)) < First(TheIndex))) Then
+            Let PartIndexQ = False
+        End If
+    ElseIf PartIndexSpecificElementsQ(TheIndex) Then
+        If AnyTrueQ(TheIndex, ThisWorkbook, "ZeroQ") Then
+            Let PartIndexQ = False
+        End If
+        
+        For Each var In TheIndex
+            If Abs(var) > Length(TheArray) Then
+                Let PartIndexQ = False
+            End If
+        Next
+    Else
+        Let PartIndexQ = False
+    End If
+End Function
+
+' DESCRIPTION
+' Boolean function returning True if its parameter the form [{n}] - equivalent to Array(n) to get element n
+'        2. [{n_1, n_2}] - Equivalent to Array(n_1, n_2) to get elements n_1 through n_2
+'        3. [{Empty, n}] - Equivalent to Array(Empty, n) to get all elements from 1 through n
+'        4. [{n, Empty}] - Equivalent to Array(n, Empty) to get all elements from n through -1
+'        5. [{n_1, n_2, step}] - Equivalent to Array(n_1, n_2, step) to get elements n_1 through n_2 every step
+'           elements
+'        6. Array([{n_1, n_2, ..., n_n}]) - Equivalent to Array(Array(n_1, n_2, ..., n_k)) to get elements n_1, n_2,
+'           ..., n_k.
+'
+'
+' RETURNED VALUE
+' Returns True or False depending on whether or not the given parameter has one of the acceptable forms
+Public Function PartIndexSingleElementQ(TheIndex As Variant) As Boolean
+    
+
+    If TheIndex = 0 Or Abs(TheIndex) > Length(TheArray) Then
+        Let PartIndexQ = False
+    End If
+End Function
+
+Public Function PartIndexSequenceOfElementsQ(TheIndex As Variant) As Boolean
+
+End Function
+
+Public Function PartIndexBeginningToElementQ(TheIndex As Variant) As Boolean
+
+End Function
+
+Public Function PartIndexElementToEndQ(TheIndex As Variant) As Boolean
+
+End Function
+
+Public Function PartIndexSteppedSequenceQ(TheIndex As Variant) As Boolean
+
+End Function
+
+Public Function PartIndexSpecificElementsQ(TheIndex As Variant) As Boolean
+
+End Function
+
+Public Function PartIndexArrayQ(IndexArray As Variant) As Boolean
+    Let PartIndexArrayQ = AllTrueQ(arg, ThisWorkbook, "PartIndexQ")
 End Function
