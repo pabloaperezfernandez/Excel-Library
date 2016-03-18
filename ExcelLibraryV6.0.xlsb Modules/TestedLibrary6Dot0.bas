@@ -5,6 +5,23 @@ Option Base 1
 '********************************************************************************************
 ' Miscellaneous VBA
 '********************************************************************************************
+Public Sub TestArrayParamUsage()
+    Call VarParamFunction
+    Debug.Print
+    Call VarParamFunction(0)
+    Debug.Print
+    Call VarParamFunction(0, 1)
+    Debug.Print
+    Call VarParamFunction(0, 1, 2)
+End Sub
+
+' Helper for TestArrayParamUsage() in this module
+Private Sub VarParamFunction(ParamArray Args() As Variant)
+    Debug.Print "Args() is missing is " & IsMissing(Args)
+    Debug.Print "Args() is dimensioned is " & DimensionedQ(CopyParamArray(Args))
+    Debug.Print "Was passed " & Length(CopyParamArray(Args)) & " arguments."
+End Sub
+
 Public Sub TestForEachOnUnDimensionedArray()
     Dim AnUndimensionedArray() As Variant
     Dim var As Variant

@@ -182,6 +182,8 @@ Public Function WholeNumberQ(arg As Variant) As Boolean
 
     If TheVarType = vbByte Or TheVarType = vbInteger Or TheVarType = vbLong Then
         Let WholeNumberQ = True
+    ElseIf TheVarType = vbDecimal Or TheVarType = vbDouble Or TheVarType = vbDouble Then
+        Let WholeNumberQ = CLng(arg) = arg
     Else
         Let WholeNumberQ = False
     End If
@@ -292,6 +294,36 @@ End Function
 ' Predicates.NonNegativeWholeNumberQ
 Public Function NonNegativeWholeNumberArrayQ(arg As Variant) As Boolean
     Let NonNegativeWholeNumberArrayQ = AllTrueQ(arg, ThisWorkbook, "NonNegativeWholeNumberQ")
+End Function
+
+' DESCRIPTION
+' Boolean function returning True if its argument is a nonzero whole number.
+'
+' PARAMETERS
+' 1. arg - any value or object reference
+'
+' RETURNED VALUE
+' True or False depending on whether or not its argument is a nonzero, whole number.
+Public Function NonzeroWholeNumberQ(arg As Variant) As Boolean
+    If WholeNumberQ(arg) Then
+        Let NonzeroWholeNumberQ = arg <> 0
+    Else
+        Let NonzeroWholeNumberQ = False
+    End If
+End Function
+
+' DESCRIPTION
+' Boolean function returning True if its argument is a dimensioned, non-empty array all of
+' whose elements satisfyPredicates.NonzeroWholeNumberQ.
+'
+' PARAMETERS
+' 1. arg - any value or object reference
+'
+' RETURNED VALUE
+' True or False depending on whether or not its argument is dimensioned, non-empty and all
+' its elements satisfy Predicates.NonzeroWholeNumberQ
+Public Function NonzeroWholeNumberArrayQ(arg As Variant) As Boolean
+    Let NonzeroWholeNumberArrayQ = AllTrueQ(arg, ThisWorkbook, "NonzeroWholeNumberQ")
 End Function
 
 ' DESCRIPTION
@@ -1334,7 +1366,7 @@ End Function
 ' PARAMETERS
 ' 1. TheIndex - Any Excel expression with of the following forms:
 '
-'        1. [{n}] - equivalent to Array(n) to get element n
+'        1. n - equivalent to Array(n) to get element n
 '        2. [{n_1, n_2}] - Equivalent to Array(n_1, n_2) to get elements n_1 through n_2
 '        3. [{Empty, n}] - Equivalent to Array(Empty, n) to get all elements from 1 through n
 '        4. [{n, Empty}] - Equivalent to Array(n, Empty) to get all elements from n through -1
@@ -1343,100 +1375,81 @@ End Function
 '        6. Array([{n_1, n_2, ..., n_n}]) - Equivalent to Array(Array(n_1, n_2, ..., n_k)) to get elements n_1, n_2,
 '           ..., n_k.
 '
-'
 ' RETURNED VALUE
 ' Returns True or False depending on whether or not the given parameter has one of the acceptable forms
-Public Function PartIndexQ(TheArray As Variant, TheIndex As Variant) As Boolean
-    Dim var As Variant
-
-    Let PartIndexQ = True
-
-    If PartIndexSingleElementQ(TheIndex) Then
-        If TheIndex = 0 Or Abs(TheIndex) > Length(TheArray) Then
-            Let PartIndexQ = False
-        End If
-    ElseIf PartIndexSequenceOfElementsQ(TheIndex) Then
-        If AnyTrueQ(Array(First(TheIndex) = 0, _
-                          Last(TheIndex) = 0, _
-                          Abs(First(TheIndex)) > Length(TheArray), _
-                          Abs(Last(TheIndex)) > Length(TheArray), _
-                          First(TheIndex) < 0 And First(TheIndex) > Last(TheIndex))) Then
-            Let PartIndexQ = False
-        End If
-    ElseIf PartIndexBeginningToElementQ(TheIndex) Then
-        If Last(TheIndex) = 0 Or Abs(lasttheindex) > Length(TheArray) Then
-            Let PartIndexQ = False
-        End If
-    ElseIf PartIndexElementToEndQ(TheIndex) Then
-        If Last(TheIndex) = 0 Or Abs(lasttheindex) > Length(TheArray) Then
-            Let PartIndexQ = False
-        End If
-    ElseIf PartIndexSteppedSequenceQ(TheIndex) Then
-        If AnyTrueQ(Array(First(TheIndex) = 0, _
-                          First(Rest(TheIndex)) = 0, _
-                          Last(TheIndex) = 0, _
-                          Abs(First(TheIndex)) > Length(TheArray), _
-                          Abs(First(Rest(TheIndex))) > Length(TheArray), _
-                          First(TheIndex) < 0 And First(TheIndex) > First(Rest(TheIndex)), _
-                          First(TheIndex) > 0 And First(Last(TheIndex)) < First(TheIndex))) Then
-            Let PartIndexQ = False
-        End If
-    ElseIf PartIndexSpecificElementsQ(TheIndex) Then
-        If AnyTrueQ(TheIndex, ThisWorkbook, "ZeroQ") Then
-            Let PartIndexQ = False
-        End If
-        
-        For Each var In TheIndex
-            If Abs(var) > Length(TheArray) Then
-                Let PartIndexQ = False
-            End If
-        Next
-    Else
-        Let PartIndexQ = False
-    End If
+Public Function PartIndexQ(TheIndex As Variant) As Boolean
+    Let PartIndexQ = AnyTrueQ(Through(Array("PartIndexSingleElementQ", _
+                                            "PartIndexSequenceOfElementsQ", _
+                                            "PartIndexSteppedSequenceQ", _
+                                            "PartIndexSpecificElementsQ"), _
+                                      ThisWorkbook, _
+                                      TheIndex))
 End Function
 
 ' DESCRIPTION
-' Boolean function returning True if its parameter the form [{n}] - equivalent to Array(n) to get element n
-'        2. [{n_1, n_2}] - Equivalent to Array(n_1, n_2) to get elements n_1 through n_2
-'        3. [{Empty, n}] - Equivalent to Array(Empty, n) to get all elements from 1 through n
-'        4. [{n, Empty}] - Equivalent to Array(n, Empty) to get all elements from n through -1
-'        5. [{n_1, n_2, step}] - Equivalent to Array(n_1, n_2, step) to get elements n_1 through n_2 every step
-'           elements
-'        6. Array([{n_1, n_2, ..., n_n}]) - Equivalent to Array(Array(n_1, n_2, ..., n_k)) to get elements n_1, n_2,
-'           ..., n_k.
+' Boolean function returning True if the given parameter is a dimensioned, 1D array
+' all of whose elements satisfy PartIndexQ.
 '
+' PARAMETERS
+' 1. arg - any Excel value or reference
 '
 ' RETURNED VALUE
-' Returns True or False depending on whether or not the given parameter has one of the acceptable forms
-Public Function PartIndexSingleElementQ(TheIndex As Variant) As Boolean
-    
-
-    If TheIndex = 0 Or Abs(TheIndex) > Length(TheArray) Then
-        Let PartIndexQ = False
-    End If
-End Function
-
-Public Function PartIndexSequenceOfElementsQ(TheIndex As Variant) As Boolean
-
-End Function
-
-Public Function PartIndexBeginningToElementQ(TheIndex As Variant) As Boolean
-
-End Function
-
-Public Function PartIndexElementToEndQ(TheIndex As Variant) As Boolean
-
-End Function
-
-Public Function PartIndexSteppedSequenceQ(TheIndex As Variant) As Boolean
-
-End Function
-
-Public Function PartIndexSpecificElementsQ(TheIndex As Variant) As Boolean
-
-End Function
-
-Public Function PartIndexArrayQ(IndexArray As Variant) As Boolean
+' Returns True or False depending on whether or not all the elements in the 1D, dimensioned
+' array arg satisfy PartIndexQ
+Public Function PartIndexArrayQ(arg As Variant) As Boolean
     Let PartIndexArrayQ = AllTrueQ(arg, ThisWorkbook, "PartIndexQ")
+End Function
+
+' DESCRIPTION
+' Boolean function returning True if its parameter is a nonzero whole number
+'
+' PARAMETERS
+' 1. arg - any Excel value or reference
+'
+' RETURNED VALUE
+' Returns True or False depending on whether or not its parameter is a nonzero whole number
+Public Function PartIndexSingleElementQ(TheIndex As Variant) As Boolean
+    Let PartIndexSingleElementQ = NonzeroWholeNumberQ(TheIndex)
+End Function
+
+' DESCRIPTION
+' Boolean function returning True if its parameter is a 2-element, 1D array of nonzero whole numbers.
+'
+' PARAMETERS
+' 1. arg - any Excel value or reference
+'
+' RETURNED VALUE
+' Returns True or False depending on whether or not its argument is a 2-element, 1D array of nonzero
+' whole number.
+Public Function PartIndexSequenceOfElementsQ(TheIndex As Variant) As Boolean
+    Let PartIndexSequenceOfElementsQ = Length(TheIndex) = 2 And NonzeroWholeNumberArrayQ(TheIndex)
+End Function
+
+' DESCRIPTION
+' Boolean function returning True if its parameter is a 3-element, 1D array of nonzero whole numbers.
+'
+' PARAMETERS
+' 1. arg - any Excel value or reference
+'
+' RETURNED VALUE
+' Returns True or False depending on whether or not its argument is a 2-element, 1D array of nonzero
+' whole number.
+Public Function PartIndexSteppedSequenceQ(TheIndex As Variant) As Boolean
+    Let PartIndexSteppedSequenceQ = Length(TheIndex) = 3 And NonzeroWholeNumberArrayQ(TheIndex)
+End Function
+
+' DESCRIPTION
+' Boolean function returning True if its parameter is an array whose only element is an array of nonzero
+' whole numbers.
+'
+' PARAMETERS
+' 1. arg - any Excel value or reference
+'
+' RETURNED VALUE
+' Returns True or False depending on whether or not its argument is an array whose only element is an array
+' of nonzero whole numbers.
+Public Function PartIndexSpecificElementsQ(TheIndex As Variant) As Boolean
+    If Length(TheIndex) = 1 Then
+        Let PartIndexSpecificElementsQ = NonzeroWholeNumberArrayQ(First(TheIndex))
+    End If
 End Function
