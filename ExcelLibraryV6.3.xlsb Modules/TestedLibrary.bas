@@ -43,83 +43,6 @@ Public Sub TestArrayDimensioning()
     Debug.Print "EmptyArrayQ(AnArray4) is " & EmptyArrayQ(AnArray4)
 End Sub
 
-Public Sub TestGetElement() ' Which also tests function ArrayFormulas.NormalizeIndex
-    Dim a(0 To 4) As Integer
-    Dim b(1 To 5) As Integer
-    Dim d(0 To 4, 0 To 5) As Integer
-    Dim e(1 To 5, 1 To 6) As Integer
-    Dim r As Long
-    Dim c As Long
-    
-    For r = 0 To 4
-        Let a(r) = r
-    Next
-    
-    Debug.Print "LBound(a,1), UBound(a,1) = " & LBound(a, 1), UBound(a, 1)
-    Debug.Print "a is:"
-    PrintArray a
- 
-    For r = 0 To 10
-        Debug.Print "GetElement(a, " & r & ") is " & GetElement(a, r)
-    Next r
-    
-    For r = -1 To -10 Step -1
-        Debug.Print "GetElement(a, " & r & ") is " & GetElement(a, r)
-    Next r
-    
-    Debug.Print
-    
-    For r = 0 To 4
-        For c = 0 To 5
-            Let d(r, c) = r * 10 + c
-        Next c
-    Next r
-    
-    Debug.Print "LBound(d,1), UBound(d,1),LBound(d,2), UBound(d,2)  = " & _
-                LBound(d, 1), UBound(d, 1), LBound(d, 2), UBound(d, 2)
-    Debug.Print "d is:"
-    PrintArray d
-    Debug.Print
-    
-    For r = 0 To 10
-        Debug.Print "GetElement(d, " & r & ") is "
-        PrintArray GetElement(d, r)
-        Debug.Print
-    Next r
-    
-    For r = -1 To -10 Step -1
-        Debug.Print "GetElement(d, " & r & ") is "
-        PrintArray GetElement(d, r)
-        Debug.Print
-    Next r
-    
-    Debug.Print
-    
-    For r = 1 To 5
-        For c = 1 To 6
-            Let e(r, c) = r * 10 + c
-        Next c
-    Next r
-    
-    Debug.Print "LBound(e,1), UBound(e,1),LBound(e,2), UBound(e,2)  = " & _
-                LBound(e, 1), UBound(e, 1), LBound(e, 2), UBound(e, 2)
-    Debug.Print "e is:"
-    PrintArray e
-    Debug.Print
-    
-    For r = 0 To 10
-        Debug.Print "GetElement(e, " & r & ") is "
-        PrintArray GetElement(e, r)
-        Debug.Print
-    Next r
-    
-    For r = -1 To -10 Step -1
-        Debug.Print "GetElement(e, " & r & ") is "
-        PrintArray GetElement(e, r)
-        Debug.Print
-    Next r
-End Sub
-
 Public Sub TestArrayIndicesAndMyFunctions()
     Dim r As Long
     Dim c As Long
@@ -444,7 +367,7 @@ Public Sub TestPack2DArray()
     PrintArray a
 End Sub
 
-' This tests ArrayFormulas.Predicates
+' This tests Arrays.Predicates
 Public Sub TestIsNumericArrayQ()
     Dim a As Variant
     
@@ -479,7 +402,7 @@ Public Sub TestIsNumericArrayQ()
     Debug.Print
 End Sub
 
-' This tests ArrayFormulas.Take
+' This tests Arrays.Take
 Public Sub TestTake()
     Dim a() As Integer
     Dim r As Long
@@ -622,7 +545,7 @@ Public Sub TestTake()
     Debug.Print
 End Sub
 
-' This tests ArrayFormulas.Drop
+' This tests Arrays.Drop
 Public Sub TestDrop()
     Dim a As Variant
     

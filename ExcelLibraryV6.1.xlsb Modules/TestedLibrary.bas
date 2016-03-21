@@ -43,7 +43,7 @@ Public Sub TestArrayDimensioning()
     Debug.Print "EmptyArrayQ(AnArray4) is " & EmptyArrayQ(AnArray4)
 End Sub
 
-Public Sub TestGetElement() ' Which also tests function ArrayFormulas.NormalizeIndex
+Public Sub TestGetElement() ' Which also tests function Arrays.NormalizeIndex
     Dim a(0 To 4) As Integer
     Dim b(1 To 5) As Integer
     Dim d(0 To 4, 0 To 5) As Integer
@@ -444,7 +444,7 @@ Public Sub TestPack2DArray()
     PrintArray a
 End Sub
 
-' This tests ArrayFormulas.Predicates
+' This tests Arrays.Predicates
 Public Sub TestIsNumericArrayQ()
     Dim a As Variant
     
@@ -479,7 +479,7 @@ Public Sub TestIsNumericArrayQ()
     Debug.Print
 End Sub
 
-' This tests ArrayFormulas.Take
+' This tests Arrays.Take
 Public Sub TestTake()
     Dim a() As Integer
     Dim r As Long
@@ -622,7 +622,7 @@ Public Sub TestTake()
     Debug.Print
 End Sub
 
-' This tests ArrayFormulas.Drop
+' This tests Arrays.Drop
 Public Sub TestDrop()
     Dim a As Variant
     

@@ -1,4 +1,4 @@
-Attribute VB_Name = "ArrayFormulas"
+Attribute VB_Name = "Arrays"
 Option Explicit
 Option Base 1
 
@@ -391,7 +391,7 @@ End Function
 ' Translated index from lbound = 1 to the array's intrinsic convention
 Public Function NormalizeIndex(AnArray As Variant, _
                                TheIndex As Variant, _
-                               Optional RelativeToColumnsQ As Boolean = False) As Variant
+                               Optional DimensionIndexRelativeTo As Long = 1) As Variant
     ' Exit with Null if AnArray is undimensioned
     If Not DimensionedQ(AnArray) Then
         Let NormalizeIndex = Null
@@ -403,45 +403,30 @@ Public Function NormalizeIndex(AnArray As Variant, _
         Let NormalizeIndex = Null
         Exit Function
     End If
-    
-    ' Exit with Null if AnArray fails both AtomicArrayQ and AtomicTableQ.
-    ' In other words, exit with an error code if AnArray is neither an accetable 1D array or 2D table
-    If NoneTrueQ(Through(Array("AtomicArrayQ", "AtomicTableQ"), ThisWorkbook, AnArray)) Then
-        Let NormalizeIndex = Null
-        Exit Function
-    End If
-    
+        
     ' Exit with Null if TheIndex is not a positive integer
     If Not NonzeroWholeNumberQ(TheIndex) Then
         Let NormalizeIndex = Null
         Exit Function
     End If
     
-    ' Exit with Null if RelativeToColumnsQ set to True and AnArray is not 2D
-    If RelativeToColumnsQ And NumberOfDimensions(AnArray) = 1 Then
+    ' Exit with Null if TheIndex is outside of acceptable bounds
+    If DimensionIndexRelativeTo > NumberOfDimensions(AnArray) Then
         Let NormalizeIndex = Null
         Exit Function
     End If
     
-    ' Exit with Null if TheIndex is outside of acceptable bounds
-    If RelativeToColumnsQ Then
-        If Abs(TheIndex) < 1 Or Abs(TheIndex) > NumberOfColumns(AnArray) Then
-            Let NormalizeIndex = Null
-            Exit Function
-        End If
-    Else
-        If Abs(TheIndex) < 1 Or Abs(TheIndex) > Length(AnArray) Then
-            Let NormalizeIndex = Null
-            Exit Function
-        End If
+    If Abs(TheIndex) < 1 Or Abs(TheIndex) > UBound(AnArray, DimensionIndexRelativeTo) - LBound(AnArray, DimensionIndexRelativeTo) + 1 Then
+        Let NormalizeIndex = Null
+        Exit Function
     End If
     
     ' Handles non-negative TheIndex case
     If TheIndex > 0 Then
-        Let NormalizeIndex = TheIndex + LBound(AnArray, IIf(RelativeToColumnsQ, 2, 1)) - 1
+        Let NormalizeIndex = TheIndex + LBound(AnArray, DimensionIndexRelativeTo) - 1
     ' Handles negative TheIndex case
     Else
-        Let NormalizeIndex = TheIndex + 1 + UBound(AnArray, IIf(RelativeToColumnsQ, 2, 1))
+        Let NormalizeIndex = TheIndex + 1 + UBound(AnArray, DimensionIndexRelativeTo)
     End If
 End Function
 
@@ -457,7 +442,7 @@ End Function
 ' Translated indices from lbound = 1 to the array's intrinsic convention
 Public Function NormalizeIndexArray(AnArray As Variant, _
                                     TheIndices As Variant, _
-                                    Optional RelativeToColumnsQ As Boolean = False) As Variant
+                                    Optional DimensionIndexRelativeTo As Long = 1) As Variant
     Dim ResultArray() As Variant
     Dim i As Long
                                
@@ -475,7 +460,7 @@ Public Function NormalizeIndexArray(AnArray As Variant, _
     
     ' Exit with Null if AnArray fails both AtomicArrayQ and AtomicTableQ.
     ' In other words, exit with an error code if AnArray is neither an accetable 1D array or 2D table
-    If NoneTrueQ(Through(Array("AtomicArrayQ", "AtomicTableQ"), ThisWorkbook, AnArray)) Then
+    If Not (AtomicArrayQ(AnArray) Or AtomicTableQ(AnArray)) Then
         Let NormalizeIndexArray = Null
         Exit Function
     End If
@@ -486,8 +471,8 @@ Public Function NormalizeIndexArray(AnArray As Variant, _
         Exit Function
     End If
     
-    ' Exit with Null if RelativeToColumnsQ set to True and AnArray is not 2D
-    If RelativeToColumnsQ And NumberOfDimensions(AnArray) = 1 Then
+    ' Exit with Null if DimensionIndexRelativeTo larger than the number of dimensions
+    If DimensionIndexRelativeTo > NumberOfDimensions(AnArray) Then
         Let NormalizeIndexArray = Null
         Exit Function
     End If
@@ -499,7 +484,7 @@ Public Function NormalizeIndexArray(AnArray As Variant, _
 
     ReDim ResultArray(LBound(TheIndices) To UBound(TheIndices))
     For i = LBound(TheIndices) To UBound(TheIndices)
-        Let ResultArray(i) = NormalizeIndex(AnArray, TheIndices(i))
+        Let ResultArray(i) = NormalizeIndex(AnArray, TheIndices(i), DimensionIndexRelativeTo)
     Next
     
     Let NormalizeIndexArray = ResultArray
@@ -568,22 +553,22 @@ Public Function ComputeSliceIndices(AnArray As Variant, ParamArray Indices() As 
     ' Process single element along one dimension
     For Each var In IndicesCopy
     If PartIndexSingleElementQ(First(IndicesCopy)) Then
-        Let ComputeSliceIndices =
+        Let ComputeSliceIndices = ComputeSingleElementIndex
     End If
     
     ' Process chunk along one dimension
     If PartIndexSequenceOfElementsQ(First(IndicesCopy)) Then
-        Let ComputeSliceIndices =
+        Let ComputeSliceIndices = ComputeChunkIndices
     End If
     
     ' Process specific elements along one dimension
     If PartIndexSpecificElementsQ(First(IndicesCopy)) Then
-        Let ComputeSliceIndices =
+        Let ComputeSliceIndices = ComputeSpecificElementIndices
     End If
     
     ' Process stepped chunk along one dimension
     If PartIndexSteppedSequenceQ(First(IndicesCopy)) Then
-        Let ComputeSliceIndices =
+        Let ComputeSliceIndices = ComputeSteppedIndices
     End If
 End Function
 
@@ -743,12 +728,19 @@ End Function
 ' The requested slice or element of the array.
 Public Function Part(AnArray As Variant, ParamArray Indices() As Variant) As Variant
     Dim IndicesCopy As Variant
+    Dim IndexIndex As Variant
+    Dim AnIndex As Variant
     Dim ReturnArray() As Variant
     Dim ni As Variant
-    Dim r As Long
-    Dim c As Long
+    Dim ir As Long ' for index r
+    Dim ic As Long ' for index c
+    Dim r As Long ' for matrix row
+    Dim c As Long ' for matrix column
+    Dim RowIndices As Variant
+    Dim ColumnIndices As Variant
     Dim var As Variant
     
+    ' We use our function to convert the ParamArray to a regular array
     Let IndicesCopy = CopyParamArray(Indices)
 
     ' Exit with Null if AnArray is neither an atomic array nor an atomic table
@@ -780,155 +772,150 @@ Public Function Part(AnArray As Variant, ParamArray Indices() As Variant) As Var
         Let Part = Null
         Exit Function
     End If
-
-    ' Process single element along one dimension
-    If PartIndexSingleElementQ(First(IndicesCopy)) Then
-        Let Part = PartFirstDimSingleElement(AnArray, IndicesCopy)
-    End If
     
-    ' Process chunk along one dimension
-    If PartIndexSequenceOfElementsQ(First(IndicesCopy)) Then
-        Let Part = PartFirstDimChunk(AnArray, IndicesCopy)
-    End If
-    
-    ' Process specific elements along one dimension
-    If PartIndexSpecificElementsQ(First(IndicesCopy)) Then
-        Let Part = PartFirstDimSpecificElements(AnArray, IndicesCopy)
-    End If
-    
-    ' Process stepped chunk along one dimension
-    If PartIndexSteppedSequenceQ(First(IndicesCopy)) Then
-        Let Part = PartFirstDimSteppedChunk(AnArray, IndicesCopy)
-    End If
-End Function
-
-Private Function PartFirstDimSingleElement(AnArray As Variant, IndicesCopy As Variant) As Variant
-    Dim ReturnArray() As Variant
-    Dim ni As Variant
-    Dim r As Long
-    Dim c As Long
-                
-    ' Set default value
-    Let PartFirstDimSingleElement = Null
-    
-    ' Normalize the index relative to the array's bounds
-    Let ni = NormalizeIndex(AnArray, First(IndicesCopy))
-    
-    ' Exit with Null if the index is invalid for this array
-    If IsNull(ni) Then Exit Function
-    
-    ' Assemble return value based on number of dimensions
-    If NumberOfDimensions(AnArray) = 1 Then
-        Let PartFirstDimSingleElement = AnArray(ni)
-    Else
-        ReDim ReturnArray(1 To 1, 1 To NumberOfColumns(AnArray))
-        For c = 1 To NumberOfColumns(AnArray)
-            Let ReturnArray(1, c) = AnArray(ni, NormalizeIndex(AnArray, c, True))
-        Next
+    ' Loop over the dimensions converting each index specification into an array of individual
+    ' element positions
+    For ir = 1 To Length(IndicesCopy)
+        ' Convert from out lbound=1 convention to IndicesCopy's intrinsic convention
+        Let IndexIndex = NormalizeIndex(IndicesCopy, ir)
         
-        Let PartFirstDimSingleElement = ReturnArray
-    End If
-End Function
-
-Private Function PartFirstDimChunk(AnArray As Variant, IndicesCopy As Variant) As Variant
-    Dim ReturnArray() As Variant
-    Dim ni As Variant
-    Dim r As Long
-    Dim c As Long
-
-    ' Set default value
-    Let PartFirstDimChunk = Null
-
-    ' Normalize the index relative to the array's bounds
-    Let ni = NormalizeIndexArray(AnArray, First(IndicesCopy))
+        ' Get the current dimensional index
+        Let AnIndex = IndicesCopy(IndexIndex)
     
-    ' Check index bounds to make sure they are within the array's
-    If AnyTrueQ(ni, ThisWorkbook, "NullQ") Then Exit Function
+        If PartIndexSingleElementQ(AnIndex) Then
+            Let IndicesCopy(IndexIndex) = Array(NormalizeIndex(AnArray, AnIndex, ir))
+        ElseIf PartIndexSequenceOfElementsQ(AnIndex) Then
+            If NormalizeIndex(AnArray, First(AnIndex), ir) = NormalizeIndex(AnArray, Last(AnIndex), ir) Then
+                Let IndicesCopy(IndexIndex) = Array(NormalizeIndex(AnArray, First(AnIndex), ir))
+            Else
+                Let IndicesCopy(IndexIndex) = PartIntervalIndices(AnArray, AnIndex, ir)
+            End If
+        ElseIf PartIndexSteppedSequenceQ(AnIndex) Then
+            Let IndicesCopy(IndexIndex) = PartSteppedIntervalIndices(AnArray, AnIndex, ir)
+        Else
+            Let IndicesCopy(IndexIndex) = NormalizeIndexArray(AnArray, First(AnIndex), ir)
+        End If
+        
+'        ' Exit with Null if any index is out of the array's bounds
+'        Let IndicesCopy(IndexIndex) = NormalizeIndexArray(AnArray, IndicesCopy(IndexIndex), ir)
+        
+        If NullQ(IndicesCopy(IndexIndex)) Then
+            Let Part = Null
+            Exit Function
+        End If
+        
+        If AnyTrueQ(IndicesCopy(IndexIndex), ThisWorkbook, "NullQ") Then
+            Let Part = Null
+            Exit Function
+        End If
+    Next
     
-    ' Exit with Null if First(ni)>Last(ni)
-    If First(ni) > Last(ni) Then Exit Function
-    
-    ' Assemble return value based on number of dimensions
+    ' Collect the chosen array's slice depending on its number of dimensions
     If NumberOfDimensions(AnArray) = 1 Then
-        ReDim ReturnArray(1 To Last(ni) - First(ni) + 1)
-        For c = 1 To Last(ni) - First(ni) + 1
-            Let ReturnArray(c) = AnArray(c + First(ni) - 1)
+        Let ColumnIndices = First(IndicesCopy)
+    
+        ' Pre-allocate a 1D array since AnArray is one-dimensional
+        ReDim ReturnArray(1 To Length(ColumnIndices))
+        
+        ' Extract the requested elements from AnArray
+        For c = 1 To Length(ColumnIndices)
+            Let ReturnArray(c) = AnArray(ColumnIndices(NormalizeIndex(ColumnIndices, c)))
         Next
-    Else
-        ReDim ReturnArray(1 To Last(ni) - First(ni) + 1, _
-                          1 To NumberOfColumns(AnArray))
-        For r = 1 To Last(ni) - First(ni) + 1
-            For c = 1 To NumberOfColumns(AnArray)
-                Let ReturnArray(r, c) = AnArray(r + First(ni) - 1, NormalizeIndex(AnArray, c))
+    ElseIf NumberOfDimensions(AnArray) = 2 Then
+        ' Get all columns from the requested rows
+        If Length(IndicesCopy) = 1 Then
+            Let RowIndices = First(IndicesCopy)
+        
+            ReDim ReturnArray(1 To Length(RowIndices), 1 To NumberOfColumns(AnArray))
+            For ir = 1 To Length(RowIndices)
+                For c = 1 To NumberOfColumns(AnArray)
+                    Let ReturnArray(ir, c) = AnArray(RowIndices(NormalizeIndex(RowIndices, ir)), _
+                                                     NormalizeIndex(AnArray, c, 2))
+                Next
             Next
-        Next
+        ' Get all elements requested
+        Else
+            Let RowIndices = First(IndicesCopy)
+            Let ColumnIndices = Last(IndicesCopy)
+        
+            ReDim ReturnArray(1 To Length(RowIndices), 1 To Length(ColumnIndices))
+            For ir = 1 To Length(RowIndices)
+                For ic = 1 To Length(ColumnIndices)
+                    Let ReturnArray(ir, ic) = AnArray(RowIndices(NormalizeIndex(RowIndices, ir)), _
+                                                      ColumnIndices(NormalizeIndex(ColumnIndices, ic)))
+                Next
+            Next
+        End If
+    Else
+        Let Part = Null
     End If
-
-    Let PartFirstDimChunk = ReturnArray
+    
+    Let Part = ReturnArray
 End Function
 
-Private Function PartFirstDimSpecificElements(AnArray As Variant, IndicesCopy As Variant) As Variant
-    Dim ReturnArray() As Variant
+' DESCRIPTION
+' This function converts a valid index range specification --as determined by Predicates.PartIndexSequenceOfElementsQ--
+' for function Arrays.Part into a sequence of individual indices. Suppose, the index has the form
+' Array(n_1, n_2) = Array(1,5) for 1D array with LBound = 1. This function returns Array(1, 2, 3, 4, 5).
+' This function performs no typechecking.
+'
+' PARAMETERS
+' 1. AnArray - A dimensioned array
+' 2. Indices - a sequence of indices (with at least one supplied) of the forms below, with each one
+'    referring to a different dimension of the array. At the moment we process only 1D and 2D arrays.
+'    So, Indices can only be one or two of the forms below.
+' 3. TheDimension - The array's dimension relative to which the operations are perform
+'
+' RETURNED VALUE
+' The requested sequence of indices
+Private Function PartIntervalIndices(AnArray As Variant, TheIndices As Variant, Optional TheDimension As Long = 1) As Variant
     Dim ni As Variant
-    Dim r As Long
-    Dim c As Long
     
-    ' Set default value
-    Let PartFirstDimSpecificElements = Null
-
-    ' Normalize the index relative to the array's bounds
-    Let ni = NormalizeIndexArray(AnArray, First(First(IndicesCopy)))
+    Let ni = NormalizeIndexArray(AnArray, TheIndices, TheDimension)
     
-    ' Check index bounds to make sure they are within the array's
-    If AnyTrueQ(ni, ThisWorkbook, "NullQ") Then Exit Function
-    
-    ' Assemble return value based on number of dimensions
-    If NumberOfDimensions(AnArray) = 1 Then
-        ReDim ReturnArray(1 To Length(ni))
-        For c = 1 To Length(ni)
-            Let ReturnArray(c) = AnArray(NormalizeIndex(AnArray, ni(NormalizeIndex(ni, c))))
-        Next
+    If NullQ(First(ni)) Or NullQ(Last(ni)) Then
+        Let PartIntervalIndices = Null
+    ElseIf First(ni) > Last(ni) Then
+        Let PartIntervalIndices = Null
+    ElseIf First(ni) = Last(ni) Then
+        Let PartIntervalIndices = Array(First(ni))
     Else
-        ReDim ReturnArray(1 To Length(ni), 1 To NumberOfColumns(AnArray))
-        For r = 1 To Length(ni)
-            For c = 1 To NumberOfColumns(AnArray)
-                Let ReturnArray(r, c) = AnArray(ni(NormalizeIndex(ni, r)), _
-                                                NormalizeIndex(AnArray, c))
-            Next
-        Next
+        Let PartIntervalIndices = CreateSequentialArray(CLng(First(ni)), CLng(Last(ni) - First(ni) + 1))
     End If
-    
-    Let PartFirstDimSpecificElements = ReturnArray
 End Function
 
-Private Function PartFirstDimSteppedChunk(AnArray As Variant, IndicesCopy As Variant) As Variant
+' DESCRIPTION
+' This function converts a valid index range specification --as determined by Predicates.PartIndexSteppedSequenceQ--
+' for function Arrays.Part into a sequence of individual indices. Suppose, the index has the form
+' Array(n_1, n_2, step) = Array(1,5,2) for 1D array with LBound = 1. This function returns Array(1, 3, 5).
+' This function performs no typechecking.
+'
+' PARAMETERS
+' 1. AnArray - A dimensioned array
+' 2. Indices - a sequence of indices (with at least one supplied) of the forms below, with each one
+'    referring to a different dimension of the array. At the moment we process only 1D and 2D arrays.
+'    So, Indices can only be one or two of the forms below.
+' 3. TheDimension - The array's dimension relative to which the operations are perform
+'
+' RETURNED VALUE
+' The requested sequence of indices
+Private Function PartSteppedIntervalIndices(AnArray As Variant, TheIndices As Variant, TheDimension As Long) As Variant
     Dim ni As Variant
     Dim FirstPos As Long
+    Dim LastPos As Long
     Dim NumPos As Long
     Dim StepSize As Long
     
-    ' Set default value
-    Let PartFirstDimSteppedChunk = Null
-    
-    Let ni = Most(First(IndicesCopy))
-    Let ni = NormalizeIndexArray(AnArray, ni)
-    
-    ' Check index bounds to make sure they are within the array's
-    If AnyTrueQ(ni, ThisWorkbook, "NullQ") Then Exit Function
-
-    ' Exit with Null if First(ni)>Last(ni)
-    If First(ni) > Last(ni) Then Exit Function
-    
-    ' Exit with Null if the step is nonpositive
-    If Not PositiveWholeNumberQ(Last(First(IndicesCopy))) Then Exit Function
+    Let ni = NormalizeIndexArray(AnArray, Most(TheIndices), TheDimension)
+    Let FirstPos = CLng(First(ni))
+    Let LastPos = CLng(Last(ni))
+    Let StepSize = CLng(Last(TheIndices))
     
     Let FirstPos = CLng(First(ni))
-    Let NumPos = CLng((Last(ni) - First(ni) - (Last(ni) - First(ni)) Mod Last(First(IndicesCopy))) / Last(First(IndicesCopy)) + 1)
-    Let StepSize = CLng(Last(First(IndicesCopy)))
+    Let NumPos = CLng((LastPos - FirstPos - (LastPos - FirstPos) Mod StepSize) / StepSize + 1)
                                    
-    Let PartFirstDimSteppedChunk = Part(AnArray, Array(CreateSequentialArray(FirstPos, NumPos, StepSize)))
+    Let PartSteppedIntervalIndices = CreateSequentialArray(FirstPos, NumPos, StepSize)
 End Function
-
 
 ' DESCRIPTION
 ' Returns the row numbered RowNumber in 2D matrix aMatrix as a 1D matrix if it satisfies Predicates.TableQ.
@@ -1149,100 +1136,104 @@ Public Function Pack2DArray(TheRowsAs1DArrays As Variant, Optional PackAsColumns
     Let Pack2DArray = Results
 End Function
 
-' If n is an integer:
-' A negative n is interpreted as counting starting with 1 from the right of the 1D array or the bottom
-' of the 2D array respectively.  Returns the first n elements of a 1D array or n rows from a 2D array
-' Empty arrays returns an empty array (e.g. EmptyArray())
-' If AnArray is not an array, function returns Null
-' If AnArray has more than 2 dimensions, returns Null
+' DESCRIPTION
+' Returns the subset of the 1D or 2D array specified by the indices.  Most common uses are:
 '
-' If n is an array of integers:
-' Returns the elements or rows index by each element of n
+' a. Take(m, n) - with n>0 returns the first n elements or rows of m
+' b. Take(m, -n) - with n>0 returns the last n elements or rows of m
 '
-' Examples:
-' 1. Take(Array(1,2,3,4), 2) returns Array(1,2)
-' 2. Take(Array(1,2,3,4), Array(2)) returns 2
+' PARAMETERS
+' 1. AnArray - A dimensioned array
+' 2. Indices - a sequence of indices (with at least one supplied) of the forms below, with each one
+'    referring to a different dimension of the array. At the moment we process only 1D and 2D arrays.
+'    So, Indices can only be one or two of the forms below.
 '
-' A similar thing happens to 2D arrays, but the elements are then the rows of the matrix.
-Public Function Take(AnArray As Variant, N As Variant) As Variant
-    Dim c As Long
-    Dim r As Long
-    Dim ResultArray() As Variant
-    Dim var As Variant
-    Dim RenormalizedIndices() As Long
+' Indices can take any of the following forms:
+' 1. n - Get elements 1 through
+' 2. -n - Elements from the end of the array indexed by -1 to -n from right to left
+' 2. [{n_1, n_2}] - Elements n_1 through n_2
+'
+' RETURNED VALUE
+' The requested slice or element of the array.
+Public Function Take(AnArray As Variant, ParamArray Indices() As Variant) As Variant
+    Dim IndicesCopy As Variant
+    
+    ' We use our function to convert the ParamArray to a regular array
+    Let IndicesCopy = CopyParamArray(Indices)
 
-    If Not DimensionedQ(AnArray) Then
+    ' Exit with Null if AnArray is neither an atomic array nor an atomic table
+    If Not (AtomicArrayQ(AnArray) Or AtomicTableQ(AnArray)) Then
+        Let Take = Null
+        Exit Function
+    End If
+
+    ' Exit with Null if not even a single index was passed
+    If Not DimensionedQ(IndicesCopy) Then
         Let Take = Null
         Exit Function
     End If
     
+    ' Exit if more indices were passed than the number of dimensions in AnArray
+    If NumberOfDimensions(AnArray) < Length(IndicesCopy) Then
+        Let Take = Null
+        Exit Function
+    End If
+    
+    ' Exit with Null if any of the indices fails TakeIndexQ
+    If Not TakeIndexArrayQ(IndicesCopy) Then
+        Let Take = Null
+        Exit Function
+    End If
+    
+    ' Exit with Null if AnArray is empty because any index would be out of bounds
     If EmptyArrayQ(AnArray) Then
         Let Take = Null
         Exit Function
     End If
     
-    ' Exit with argument unchanged if the array has fewer or more than 2 dimensions
-    If NumberOfDimensions(AnArray) > 2 Then
-        Let Take = Null
-        Exit Function
-    End If
-
-    ' Exit with argument unchanged if either N is not an integer or an array of integers
-    If Not (WholeNumberQ(N) Or WholeNumberArrayQ(N)) Or EmptyArrayQ(N) Then
-        Let Take = Null
-        
-        Exit Function
-    End If
-    
-    ' Proceed with N as an integer index
-    If WholeNumberQ(N) Then
-        If N = 0 Then
-            Let Take = EmptyArray()
-        ElseIf NumberOfDimensions(AnArray) = 1 And N > 0 Then
-            Let Take = GetSubArray(AnArray, LBound(AnArray), CLng(N) - (1 - LBound(AnArray, 1)))
-        ElseIf NumberOfDimensions(AnArray) = 1 And N < 0 Then
-            Let Take = GetSubArray(AnArray, Application.Max(UBound(AnArray) + N + 1, LBound(AnArray)), UBound(AnArray))
-        ElseIf NumberOfDimensions(AnArray) = 2 And N > 0 Then
-            Let Take = GetSubMatrix(AnArray, LBound(AnArray, 1), Application.Min(LBound(AnArray, 1) + N - 1, UBound(AnArray, 1)), LBound(AnArray, 2), UBound(AnArray, 2))
-        ElseIf NumberOfDimensions(AnArray) = 2 And N < 0 Then
-            Let Take = GetSubMatrix(AnArray, Application.Max(UBound(AnArray, 1) + N + 1, LBound(AnArray, 1)), UBound(AnArray, 1), LBound(AnArray, 2), UBound(AnArray, 2))
-        End If
-        
-        Exit Function
-    End If
-    
-    ' Proceed with N as an array of integer indices
-    ' Turn all indices in N into their positive equivalents
-    Let RenormalizedIndices = ToLongs(NormalizeArrayIndices(AnArray:=AnArray, _
-                                                            TheIndices:=ToLongs(N), _
-                                                            NormalizeTo1Q:=True))
-    
-    ' Proceed if AnArray is 1D
-    If NumberOfDimensions(AnArray) = 1 Then
-        ReDim ResultArray(LBound(N, 1) To UBound(N, 1))
-        
-        For c = LBound(RenormalizedIndices, 1) To UBound(RenormalizedIndices, 1)
-            Let ResultArray(c) = AnArray(RenormalizedIndices(c) - IIf(N(c) <= 0, 0, (1 - LBound(AnArray, 1))))
-        Next
-        
-        Let Take = ResultArray
-        
-        Exit Function
-    End If
-
-    ' Proceed here if AnArray is 2D
-    ' Pre-allocate a matrix big enough to hold all the requested elements
-    ReDim ResultArray(1 To GetArrayLength(N))
-    
-    For r = 1 To GetArrayLength(N)
-        If N(r) < 0 Then
-            Let ResultArray(r) = GetElement(AnArray, GetElement(N, r - (1 - LBound(N, 1))))
+    ' Collect the chosen array's slice depending on its number of dimensions
+    If Length(IndicesCopy) = 1 Then
+        ' Process case on a single whole number given as index
+        If PositiveWholeNumberQ(First(IndicesCopy)) Then
+            Let Take = Part(AnArray, Array(1, First(IndicesCopy)))
+        ElseIf NegativeWholeNumberQ(First(IndicesCopy)) Then
+            Let Take = Part(AnArray, Array(First(IndicesCopy), -1))
+        ElseIf WholeNumberArrayQ(First(IndicesCopy)) Then
+            Let Take = Part(AnArray, First(IndicesCopy))
         Else
-            Let ResultArray(r) = GetElement(AnArray, GetElement(N, r - (1 - LBound(N, 1))) - (1 - LBound(AnArray, 1)))
+            Let Take = Null
         End If
-    Next
-    
-    Let Take = Pack2DArray(ResultArray)
+    Else
+        ' Process first dimensional index
+        If PositiveWholeNumberQ(First(IndicesCopy)) Then
+            Let First(IndicesCopy) = Array(1, First(IndicesCopy))
+        ElseIf NegativeWholeNumberQ(First(IndicesCopy)) Then
+            Let First(IndicesCopy) = Array(First(IndicesCopy), -1)
+        ElseIf WholeNumberArrayQ(First(IndicesCopy)) Then
+            Let First(IndicesCopy) = First(IndicesCopy)
+        Else
+            Let First(IndicesCopy) = Null
+        End If
+        
+        ' Process last dimensional index
+        If PositiveWholeNumberQ(Last(IndicesCopy)) Then
+            Let Last(IndicesCopy) = Array(1, Last(IndicesCopy))
+        ElseIf NegativeWholeNumberQ(Last(IndicesCopy)) Then
+            Let Last(IndicesCopy) = Array(Last(IndicesCopy), -1)
+        ElseIf WholeNumberArrayQ(Last(IndicesCopy)) Then
+            Let Last(IndicesCopy) = Last(IndicesCopy)
+        Else
+            Let Last(IndicesCopy) = Null
+        End If
+        
+        ' Exit with null if either index set is null
+        If NullQ(First(IndicesCopy)) Or NullQ(Last(IndicesCopy)) Then
+            Let Take = Null
+        Else
+            ' Call Part with the given dimensional index sets
+            Let Take = Part(AnArray, First(IndicesCopy), Last(IndicesCopy))
+        End If
+    End If
 End Function
 
 ' This function is the exact opposite of Take.  It removes what take would return
@@ -2037,7 +2028,7 @@ End Function
 ' corner. It then returns a reference to the underlying range. Dimensions are preserved.  This means that an m x n array is dumped into
 ' an m x n range.
 '
-' This function is a helper for ArrayFormulas.DumpInSheet()
+' This function is a helper for Arrays.DumpInSheet()
 Private Function DumpInSheetHelper(AnArray As Variant, TopLeftCorner As Range, Optional PreserveColumnTextFormats As Boolean = False) As Range
     Dim c As Integer
     Dim NumberOfRows As Long
@@ -4295,36 +4286,6 @@ Public Function Riffle(A1DArray As Variant, Arg2 As Variant, Optional StepInterv
     ' Case Riffle(Array(e1, e2, ...), elt, Array(imin, imax, n))
     Let s = 1
     '***HERE1for r =
-End Function
-
-' Returns the nth element of an array, using the array's indexing conventions.  It returns
-' Null if the arguments are inconsistent:
-' 1. AnArray is not an array
-' 2. AnArray is empty
-' 3. AnArray is not dimensioned
-' 4. AnArray has number of dimesions other than 1 or 2
-' 5. TheColumnIndex is given but is not a whole number
-Public Function GetElement(AnArray As Variant, TheIndex As Long) As Variant
-    Dim NormalizedIndex As Long
-       
-    If Not DimensionedQ(AnArray) Then
-        Let GetElement = Null
-        Exit Function
-    End If
-        
-    If EmptyArrayQ(AnArray) Then
-        Let GetElement = Null
-        Exit Function
-    End If
-    
-    If NumberOfDimensions(AnArray) = 1 Then
-        Let GetElement = AnArray(NormalizeArrayIndex(AnArray, TheIndex))
-    ElseIf NumberOfDimensions(AnArray) = 2 Then
-        Let GetElement = GetRow(AnArray, NormalizeArrayIndex(AnArray, TheIndex) + 1 - LBound(AnArray, 1))
-    Else
-        Let GetElement = Null
-        Exit Function
-    End If
 End Function
 
 

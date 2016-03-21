@@ -988,13 +988,14 @@ Public Sub TestPredicatesFreeQ()
     Debug.Print "FreeQ(Array(1,2,#1/1/2001#), #1/1/2001#) is " & FreeQ(Array(1, 2, #1/1/2001#), #1/1/2001#)
 End Sub
 
-Public Sub TestArrayFormulasPart()
+Public Sub TestArraysPart()
     Dim i As Integer
+    Dim j As Integer
     Dim m As Variant
     
     ' 1D Tests
     Debug.Print "Cycling through elements of Array(1, ..., 6)"
-    For i = 1 To 6: Debug.Print Part(Array(1, 2, 3, 4, 5, 6), i): Next
+    For i = 1 To 6: PrintArray Part(Array(1, 2, 3, 4, 5, 6), i): Next
     Debug.Print
     Debug.Print "Cycling through segments Array(1, i)"
     For i = 1 To 6: PrintArray Part(Array(1, 2, 3, 4, 5, 6), Array(1, i)): Next
@@ -1002,7 +1003,7 @@ Public Sub TestArrayFormulasPart()
     Debug.Print "Cycling through segments Array(i, -1)"
     For i = 1 To 6: PrintArray Part(Array(1, 2, 3, 4, 5, 6), Array(i, -1)): Next
     Debug.Print
-    Debug.Print "Cycling through segments Array(i, -1)"
+    Debug.Print "Cycling through segments Array(-6, i)"
     For i = 1 To 6: PrintArray Part(Array(1, 2, 3, 4, 5, 6), Array(-6, i)): Next
     Debug.Print
     Debug.Print "Get elts 3, 5, 1 from Array(1, 2, 3, 4, 5, 6)"
@@ -1017,10 +1018,20 @@ Public Sub TestArrayFormulasPart()
     Debug.Print "Get stepped segment Array(3, 5, 6)"
     PrintArray Part(Array(1, 2, 3, 4, 5, 6), Array(3, 5, 6))
     
-    ' 2D Test
-    Let m = [{1,2,3; 4,5,6; 7,8,9; 10,11,12; 13,14,15; 16,17,18; 19,20,21; 22,23,24; 25,26,27}]
+    ' 2D Test with one dimensional index set
+    Let m = ConstantArray(Empty, 7, 8)
+    For i = 1 To NumberOfRows(m)
+        For j = 1 To NumberOfColumns(m)
+            If j > 1 Then
+                Let m(i, j) = 10 ^ (j - 1) * i + m(i, j - 1)
+            Else
+                Let m(i, j) = i
+            End If
+        Next
+    Next
     Debug.Print "Cycling through elements of:"
     PrintArray m
+    Debug.Print
     Debug.Print "Getting individual rows 1 through 6"
     For i = 1 To 6: PrintArray Part(m, i): Next
     Debug.Print
@@ -1030,7 +1041,7 @@ Public Sub TestArrayFormulasPart()
     Debug.Print "Cycling through segments Array(i, -1)"
     For i = 1 To 6: PrintArray Part(m, Array(i, -1)): Debug.Print: Next
     Debug.Print
-    Debug.Print "Cycling through segments Array(i, -1)"
+    Debug.Print "Cycling through segments Array(-6, i)"
     For i = 1 To 6: PrintArray Part(m, Array(-6, i)): Debug.Print: Next
     Debug.Print
     Debug.Print "Get elts 3, 5, 1"
@@ -1044,10 +1055,147 @@ Public Sub TestArrayFormulasPart()
     Debug.Print
     Debug.Print "Get stepped segment Array(3, 5, 6)"
     PrintArray Part(m, Array(3, 5, 6))
+    Debug.Print
     Debug.Print "Get segment Array(-4,-2))"
     PrintArray Part(m, Array(-4, -2))
+    Debug.Print
     Debug.Print "Get segment Array(Array(-4,-2))"
     PrintArray Part(m, Array(Array(-4, -2)))
+    
+    ' 2D Test with two dimensional index sets
+    Let m = ConstantArray(Empty, 7, 8)
+    For i = 1 To NumberOfRows(m)
+        For j = 1 To NumberOfColumns(m)
+            If j > 1 Then
+                Let m(i, j) = 10 ^ (j - 1) * i + m(i, j - 1)
+            Else
+                Let m(i, j) = i
+            End If
+        Next
+    Next
+    Debug.Print "Cycling through elements of:"
+    PrintArray m
+    Debug.Print
+    Debug.Print "Getting individual columns 1 through 6"
+    For i = 1 To 6: PrintArray Part(m, Array(1, -1), i): Debug.Print: Next
+    Debug.Print
+    Debug.Print "Cycling through segments Array(1, -1), Array(1, i)"
+    For i = 1 To 6: PrintArray Part(m, Array(1, -1), Array(1, i)): Debug.Print: Next
+    Debug.Print
+    Debug.Print "Cycling through segments Array(1, -1), Array(i, -1)"
+    For i = 1 To 6: PrintArray Part(m, Array(1, -1), Array(i, -1)): Debug.Print: Next
+    Debug.Print
+    Debug.Print "Cycling through segments Array(1, -1), Array(-6, i)"
+    For i = 1 To 6: PrintArray Part(m, Array(1, -1), Array(-6, i)): Debug.Print: Next
+    Debug.Print
+    Debug.Print "Get Array(1, -1) with elts 3, 5, 1"
+    PrintArray Part(m, Array(1, -1), Array(Array(3, 5, 1)))
+    Debug.Print
+    Debug.Print "Get stepped segment Array(1, -1), Array(3, 5, 1)"
+    PrintArray Part(m, Array(1, -1), Array(3, 5, 1))
+    Debug.Print
+    Debug.Print "Get stepped segment Array(1, -1),Array(3, 5, 2)"
+    PrintArray Part(m, Array(1, -1), Array(3, 5, 2))
+    Debug.Print
+    Debug.Print "Get stepped segment Array(1, -1), Array(3, 5, 6)"
+    PrintArray Part(m, Array(1, -1), Array(3, 5, 6))
+    Debug.Print
+    Debug.Print "Get segment Array(1, -1), Array(-4,-2))"
+    PrintArray Part(m, Array(1, -1), Array(-4, -2))
+    Debug.Print
+    Debug.Print "Get segment Array(1, -1), Array(Array(-4,-2))"
+    PrintArray Part(m, Array(1, -1), Array(Array(-4, -2)))
+    Debug.Print
+    Debug.Print "Getting a rectangular submatrix Array(Array(3,4)), Array(Array(5,6,7))"
+    PrintArray Part(m, Array(Array(3, 4)), Array(Array(5, 6, 7)))
+End Sub
+
+' This tests Arrays.Take
+Public Sub TestTake()
+    Dim a() As Integer
+    Dim r As Long
+    Dim c As Long
+    
+    ReDim a(1 To 7)
+    For r = 1 To 7
+        Let a(r) = r
+    Next
+    
+    Debug.Print
+    Debug.Print "Set a equal to "
+    PrintArray a
+    Debug.Print "LBound(a,1), UBound(a,1) = " & LBound(a, 1), UBound(a, 1)
+    
+    Debug.Print
+    For r = -10 To 10
+        Debug.Print "Testing Take(a, " & r; ")"
+        PrintArray Take(a, r)
+    Next
+    
+    ReDim a(0 To 6)
+    For r = 0 To 6
+        Let a(r) = r
+    Next
+    
+    Debug.Print
+    Debug.Print "Set a equal to "
+    PrintArray a
+    Debug.Print "LBound(a,1), UBound(a,1) = " & LBound(a, 1), UBound(a, 1)
+    
+    Debug.Print
+    For r = -10 To 10
+        Debug.Print "Testing Take(a, " & r & ")"
+        PrintArray Take(a, r)
+    Next
+
+    ReDim a(1 To 9, 1 To 3)
+    For r = 1 To 9
+        For c = 1 To 3
+            Let a(r, c) = r
+        Next
+    Next
+    Debug.Print "Set a to:"
+    PrintArray a
+    Debug.Print
+    Debug.Print "Bounds LBound(a,1), UBound(a,1), LBound(a,2), UBound(a,2): ", LBound(a, 1), UBound(a, 1), LBound(a, 2), UBound(a, 2)
+    Debug.Print
+    
+    For r = -10 To 10
+        Debug.Print "Testing Take(a," & r & ")"
+        PrintArray Take(a, r)
+        Debug.Print
+    Next
+    
+    Debug.Print "Testing Take(EmptyArray(),1)"
+    PrintArray Take(EmptyArray(), 1)
+    Debug.Print
+     
+    Debug.Print "Testing Take(a,Array(-2,-4,-5))"
+    PrintArray Take(a, Array(-2, -4, -5))
+    Debug.Print
+    
+    Debug.Print "Testing Take(a,EmptyArray())"
+    PrintArray Take(a, EmptyArray())
+    Debug.Print
+    
+    ReDim a(0 To 8, 0 To 3)
+    For r = 0 To 8
+        For c = 0 To 3
+            Let a(r, c) = r
+        Next
+    Next
+    
+    Debug.Print "Set a to:"
+    PrintArray a
+    Debug.Print
+    Debug.Print "Bounds LBound(a,1), UBound(a,1), LBound(a,2), UBound(a,2): ", LBound(a, 1), UBound(a, 1), LBound(a, 2), UBound(a, 2)
+    Debug.Print
+    
+    For r = -10 To 10
+        Debug.Print "Testing Take(a," & r & ")"
+        PrintArray Take(a, r)
+        Debug.Print
+    Next
 End Sub
 
 Public Sub TestFileNameJoin()

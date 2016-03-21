@@ -1456,3 +1456,32 @@ Public Function PartIndexSpecificElementsQ(TheIndex As Variant) As Boolean
         Let PartIndexSpecificElementsQ = NonzeroWholeNumberArrayQ(First(TheIndex))
     End If
 End Function
+
+' DESCRIPTION
+' Boolean function returning True if its parameter any of the following forms:
+'
+' PARAMETERS
+' 1. TheIndex - Any Excel expression with of the following forms:
+'
+'        1. n - with n nonzero
+'        2. [{n_1, n_2}] - with n_i nonzero
+'
+' RETURNED VALUE
+' Returns True or False depending on whether or not the given parameter has one of the acceptable forms
+Public Function TakeIndexQ(TheIndex As Variant) As Boolean
+    Let TakeIndexQ = NonzeroWholeNumberQ(TheIndex) Or (NonzeroWholeNumberArrayQ(TheIndex) And Length(TheIndex) = 2)
+End Function
+
+' DESCRIPTION
+' Boolean function returning True if the given parameter is a dimensioned, 1D array
+' all of whose elements satisfy TakeIndexQ.
+'
+' PARAMETERS
+' 1. arg - any Excel value or reference
+'
+' RETURNED VALUE
+' Returns True or False depending on whether or not all the elements in the 1D, dimensioned
+' array arg satisfy TakeIndexQ
+Public Function TakeIndexArrayQ(arg As Variant) As Boolean
+    Let TakeIndexArrayQ = AllTrueQ(arg, ThisWorkbook, "TakeIndexQ")
+End Function
