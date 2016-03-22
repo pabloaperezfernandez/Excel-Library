@@ -1370,7 +1370,7 @@ End Function
 ' 3. ParameterCheckQ - (optional) When explicitly set to False, no parameter checks are done
 '
 ' RETURNED VALUE
-' Returns the stacked 2D array resulting from stacking the two given arrays.
+' Returns the array that results from appending an element to the an array
 Public Function Append(AnArray As Variant, _
                        AnElt As Variant, _
                        Optional ParameterCheckQ As Boolean = True) As Variant
@@ -1387,13 +1387,9 @@ Public Function Append(AnArray As Variant, _
     If ParameterCheckQ Then
         ' Exit if AnArray is not dimensioned
         If Not DimensionedQ(AnArray) Then Exit Function
-        
-        ' Exit if AnArray is not atomic
-        If Not (AtomicArrayQ(AnArray) Or AtomicArrayQ(AnArray)) Then Exit Function
-    
+            
         ' Exit with Null if AnArray is a 2D array and AnElt does not have the same number of columns
-        If AnArrayNumberOfDims = 2 And _
-           GetNumberOfColumns(AnArray) <> GetNumberOfColumns(AnElt) Then Exit Function
+        If AnArrayNumberOfDims = 2 And GetNumberOfColumns(AnArray) <> GetNumberOfColumns(AnElt) Then Exit Function
         
         ' Exit with AnElt if AnArray is empty
         If EmptyArrayQ(AnArray) Then
@@ -1428,51 +1424,71 @@ Public Function Append(AnArray As Variant, _
     Let Append = StackArrays(AnArray, AnElt, ParameterCheckQ)
 End Function
 
-' Appends a new element to the given array. Handles arrays of dimension 1 and 2
-' Returns Null if AnArray is not an array or it has more than two dims,
-' or dim(AnArray) = 2 and AnArray and AnElt don't have the same number of columns.
-' If AnElt is Null, the function returns AnArray unevaluated.
+' DESCRIPTION
+' Prepends an element to the given 1D or 2D array.  To be prepended to a 2D array, the element must
+' must be 1D or 2D array with the same number of columns.  The function returns Null in all other
+' cases.
 '
-' This works differently from simply using StackArrays(AnArray, AnElt)
-' This one can give you something that is not a matrix.  StackArrays ALWAYS returns
-' a matrix
-Public Function Prepend(AnArray As Variant, AnElt As Variant) As Variant
-    Dim NewEmptyArray() As Variant
+' PARAMETERS
+' 1. AnArray - A 1D or 2D array to which AnElt should be appended
+' 2. AnElt - a 1D or 2D array to append to AnArray
+' 3. ParameterCheckQ - (optional) When explicitly set to False, no parameter checks are done
+'
+' RETURNED VALUE
+' Returns the array resylt from prepending an element to an array.
+Public Function Prepend(AnArray As Variant, _
+                        AnElt As Variant, _
+                        Optional ParameterCheckQ As Boolean = True) As Variant
+    Dim ReturnArray() As Variant
     Dim AnArrayNumberOfDims As Integer
-    Dim i As Long
+    Dim c As Long
     
     Let AnArrayNumberOfDims = NumberOfDimensions(AnArray)
-    
-    If Not IsArray(AnArray) Or AnArrayNumberOfDims > 2 Or _
-       (AnArrayNumberOfDims = 2 And GetNumberOfColumns(AnArray) <> GetNumberOfColumns(AnElt)) Then
-        Let Prepend = Null
-    
-        Exit Function
-    End If
-    
-    If IsNull(AnElt) Then
-        Let Prepend = AnArray
-        Exit Function
+
+    ' Check parameter consitency if ParameterCheckQ is True
+    If ParameterCheckQ Then
+        ' Exit if AnArray is not dimensioned
+        If Not DimensionedQ(AnArray) Then Exit Function
+            
+        ' Exit with Null if AnArray is a 2D array and AnElt does not have the same number of columns
+        If AnArrayNumberOfDims = 2 And GetNumberOfColumns(AnArray) <> GetNumberOfColumns(AnElt) Then Exit Function
+        
+        ' Exit with AnElt if AnArray is empty
+        If EmptyArrayQ(AnArray) Then
+            Let Prepend = AnElt
+            Exit Function
+        End If
+        
+        ' Exit with AnArray if AnElt is empty
+        If EmptyArrayQ(AnElt) Then
+            Let Prepend = AnArray
+            Exit Function
+        End If
+        
+        ' Exit with Null if AnElt is Null
+        If NullQ(AnElt) Then Exit Function
     End If
     
     ' If AnArray is 1D, then put the new element (whatever it may be) as the last element of a
     ' 1D array 1 longer than the original one.
     If NumberOfDimensions(AnArray) = 1 Then
-        ReDim NewArray(LBound(AnArray) To UBound(AnArray) + 1)
+        ReDim ReturnArray(1 To Length(AnArray) + 1)
         
-        For i = LBound(AnArray) + 1 To UBound(AnArray) + 1
-            Let NewArray(i) = AnArray(i - 1)
-        Next i
+        ' Prepend the element to the return array
+        Let ReturnArray(1) = AnElt
         
-        Let NewArray(LBound(AnArray)) = AnElt
+        ' Copy the array to prepend to
+        For c = 1 To Length(AnArray)
+            Let ReturnArray(c + 1) = AnArray(LBound(AnArray) + c - 1)
+        Next c
         
-        Let Prepend = NewArray
+        ' Set the function to return the appended array
+        Let Prepend = ReturnArray
         
         Exit Function
     End If
     
-    ' If AnArray has two dims and the same number of columns as AnElt, then stack AnElt as the bottom
-    ' of AnArray
+    ' AnArray and AnElt have the same number of columns.  Stack them in the right order to prepend
     Let Prepend = StackArrays(AnElt, AnArray)
 End Function
 
@@ -1996,8 +2012,8 @@ Public Function IntersectionOfSets(Set1 As Variant, Set2 As Variant) As Variant
     Set IntersectionDict = New Dictionary
     
     ' Convert each set to a 1D array
-    Let First1DSet = Stack2DArrayAs1DArray(Set1)
-    Let Second1DSet = Stack2DArrayAs1DArray(Set2)
+    Let First1DSet = Flatten(Set1)
+    Let Second1DSet = Flatten(Set2)
     
     ' Load a dictionary with the elements of the first set
     For i = LBound(First1DSet) To UBound(First1DSet)
@@ -2068,41 +2084,6 @@ Public Function ComplementOfSets(A As Variant, B As Variant) As Variant
     Else
         Let ComplementOfSets = ComplementDict.Keys
     End If
-End Function
-
-' This function takes a 1D or 2D array (NOT a range) and turns it into a 1D array with the same list of
-' elements. It returns a 1D array.  Row 2 is appended to row 1.  Row 3 is then appended to that, etc.
-Public Function Stack2DArrayAs1DArray(aMatrix As Variant) As Variant
-    Dim TheResults() As Variant
-    Dim var As Variant
-    Dim j As Long
-
-    If EmptyArrayQ(aMatrix) Or Not IsArray(aMatrix) Or NumberOfDimensions(aMatrix) > 2 Then
-        Let Stack2DArrayAs1DArray = EmptyArray()
-        Exit Function
-    ElseIf NumberOfDimensions(aMatrix) = 0 Then
-        Let Stack2DArrayAs1DArray = aMatrix
-        Exit Function
-    End If
-    
-    If NumberOfDimensions(aMatrix) = 1 Then
-        ReDim TheResults(GetArrayLength(aMatrix))
-    Else
-        ReDim TheResults(GetNumberOfRows(aMatrix) * GetNumberOfColumns(aMatrix))
-    End If
-    
-    Let j = 1
-    For Each var In aMatrix
-        Let TheResults(j) = var
-        Let j = j + 1
-    Next
-    
-    Let Stack2DArrayAs1DArray = TheResults
-End Function
-
-' Alias for Stack2DArrayAs1DArray
-Public Function StackArrayAs1DArray(aMatrix As Variant) As Variant
-    Let StackArrayAs1DArray = Stack2DArrayAs1DArray(aMatrix)
 End Function
 
 ' This function dumps an array (1D or 2D) into worksheet TempComputation and then returns a reference to

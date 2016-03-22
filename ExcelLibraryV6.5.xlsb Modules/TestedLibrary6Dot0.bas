@@ -1391,6 +1391,38 @@ Public Sub TestArraysAppend()
     Debug.Print "The result has length " & GetArrayLength(Append(A, B))
 End Sub
 
+Public Sub TestArraysPrepend()
+    Dim A As Variant
+    Dim B As Variant
+    
+    Debug.Print "Testing Prepend(Array(1,2,3), 4)"
+    PrintArray Prepend(Array(1, 2, 3), 4)
+    Debug.Print
+    
+    Let A = Prepend(Array(1, 2, 3), Array(1, 4))
+    Debug.Print "Testing Prepend(Array(1,2,3), array(1,4))"
+    Debug.Print "Use watch on variable a"
+    Debug.Print
+    
+    Let A = [{1,2,3; 4,5,6}]
+    Let B = Array(7, 8, 9)
+    Debug.Print "Testing Prepend(a, b) on a = [{1,2,3; 4,5,6}] and b = Array(7, 8, 9)"
+    PrintArray Prepend(A, B)
+    Debug.Print
+
+    Let A = Array(7, 8, 9)
+    Let B = [{1,2,3; 4,5,6}]
+    Debug.Print "Testing Prepend(a, b) on a = Array(7, 8, 9) and b = [{1,2,3; 4,5,6}]"
+    Debug.Print "Use a watch to see the output. Cannot be printed."
+    Call Prepend(A, B)
+    Debug.Print
+    
+    Let A = [{7,8,9; 10,11,12}]
+    Let B = [{1,2,3; 4,5,6}]
+    Debug.Print "Testing Prepend(a, b) on a = [{7,8,9; 10,11,12}] and b = [{1,2,3; 4,5,6}]"
+    PrintArray Prepend(A, B)
+End Sub
+
 Public Sub TestFileNameJoin()
     Dim AnArray As Variant
     
