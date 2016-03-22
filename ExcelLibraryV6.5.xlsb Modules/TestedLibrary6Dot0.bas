@@ -99,27 +99,27 @@ Public Sub TestPredicatesNoneTrueQ()
 End Sub
 
 Public Sub TestPredicatesDimensionedQ()
-    Dim a() As Variant
-    Dim b(1 To 2) As Variant
+    Dim A() As Variant
+    Dim B(1 To 2) As Variant
     Dim c As Integer
     Dim wbk As Workbook
     
     Debug.Print "EmptyArray() is dimensioned is " & DimensionedQ(EmptyArray())
-    Debug.Print "a() is dimensioned is " & DimensionedQ(a)
-    Debug.Print "b(1 To 2) is dimensioned is " & DimensionedQ(b)
+    Debug.Print "a() is dimensioned is " & DimensionedQ(A)
+    Debug.Print "b(1 To 2) is dimensioned is " & DimensionedQ(B)
     Debug.Print "c is an integer is dimensioned is " & DimensionedQ(c)
     Debug.Print "wbk is dimensioned is " & DimensionedQ(wbk)
 End Sub
 
 Public Sub TestPredicatesEmptyArrayQ()
-    Dim a() As Variant
-    Dim b(1 To 2) As Variant
+    Dim A() As Variant
+    Dim B(1 To 2) As Variant
     Dim c As Integer
     Dim wbk As Workbook
     
     Debug.Print "EmptyArray() is EmptyArrayQ is " & EmptyArrayQ(EmptyArray())
-    Debug.Print "a() is EmptyArrayQ is " & EmptyArrayQ(a)
-    Debug.Print "b(1 To 2) is EmptyArrayQ is " & EmptyArrayQ(b)
+    Debug.Print "a() is EmptyArrayQ is " & EmptyArrayQ(A)
+    Debug.Print "b(1 To 2) is EmptyArrayQ is " & EmptyArrayQ(B)
     Debug.Print "c is an integer is EmptyArrayQ is " & EmptyArrayQ(c)
     Debug.Print "wbk is EmptyArrayQ is " & EmptyArrayQ(wbk)
 End Sub
@@ -824,20 +824,20 @@ End Sub
 
 Public Sub TestInterpretableAsColumnArrayQ()
     Dim v As Variant
-    Dim a() As Variant
-    Dim b() As Variant
+    Dim A() As Variant
+    Dim B() As Variant
     
     Let v = [{1, 2, 3; 4,5,6; 7,8,9}]
     Debug.Print "Testing: [{1, 2, 3; 4,5,6; 7,8,9}]"
     Debug.Print InterpretableAsColumnArrayQ(v)
     Debug.Print
 
-    ReDim a(1, 3)
-    Let a(1, 1) = 1
-    Let a(1, 2) = 2
-    Let a(1, 3) = 3
+    ReDim A(1, 3)
+    Let A(1, 1) = 1
+    Let A(1, 2) = 2
+    Let A(1, 3) = 3
     Debug.Print "Testing: [{1, 2, 3}]"
-    Debug.Print InterpretableAsColumnArrayQ(a)
+    Debug.Print InterpretableAsColumnArrayQ(A)
     Debug.Print
 
     Let v = [{1; 2; 3}]
@@ -855,10 +855,10 @@ Public Sub TestInterpretableAsColumnArrayQ()
     Debug.Print InterpretableAsColumnArrayQ(v)
     Debug.Print
 
-    ReDim a(1, 1)
-    Let a(1, 1) = [{1;2;3}]
+    ReDim A(1, 1)
+    Let A(1, 1) = [{1;2;3}]
     Debug.Print "Testing: [{[{1;2;3}]}]"
-    Debug.Print InterpretableAsColumnArrayQ(a)
+    Debug.Print InterpretableAsColumnArrayQ(A)
     Debug.Print
 
     Let v = Array(1, 2, 3)
@@ -881,17 +881,17 @@ Public Sub TestInterpretableAsColumnArrayQ()
     Debug.Print InterpretableAsColumnArrayQ(v)
     Debug.Print
     
-    ReDim a(1 To 1, 1 To 1)
-    Let a(1, 1) = Array(1, 2, 3)
+    ReDim A(1 To 1, 1 To 1)
+    Let A(1, 1) = Array(1, 2, 3)
     Debug.Print "Testing: [{Array(1, 2, 3)}]"
-    Debug.Print InterpretableAsColumnArrayQ(a)
+    Debug.Print InterpretableAsColumnArrayQ(A)
     Debug.Print
     
-    ReDim a(1 To 1, 1 To 1)
-    ReDim b(1 To 1, 1 To 1)
+    ReDim A(1 To 1, 1 To 1)
+    ReDim B(1 To 1, 1 To 1)
     Let v = [{1;2;3}]
-    Let a(1, 1) = v
-    Let b(1, 1) = a
+    Let A(1, 1) = v
+    Let B(1, 1) = A
     Debug.Print "Testing: [{[{[{1; 2; 3}]}]}]"
     Debug.Print InterpretableAsColumnArrayQ(v)
     Debug.Print
@@ -909,7 +909,7 @@ End Sub
 
 Public Sub TestPredicatesInterpretableAsRowArrayQ()
     Dim v As Variant
-    Dim a() As Variant
+    Dim A() As Variant
     
     Let v = [{1, 2, 3; 4,5,6; 7,8,9}]
     Debug.Print "Testing: [{1, 2, 3; 4,5,6; 7,8,9}]"
@@ -921,10 +921,10 @@ Public Sub TestPredicatesInterpretableAsRowArrayQ()
     Debug.Print InterpretableAsRowArrayQ(v)
     Debug.Print
 
-    ReDim a(1 To 1, 1 To 1)
-    Let a(1, 1) = [{1, 2, 3}]
+    ReDim A(1 To 1, 1 To 1)
+    Let A(1, 1) = [{1, 2, 3}]
     Debug.Print "Testing: [{[{1, 2, 3}]}]"
-    Debug.Print InterpretableAsRowArrayQ(a)
+    Debug.Print InterpretableAsRowArrayQ(A)
     Debug.Print
 
     Let v = [{1; 2; 3}]
@@ -952,10 +952,10 @@ Public Sub TestPredicatesInterpretableAsRowArrayQ()
     Debug.Print InterpretableAsRowArrayQ(v)
     Debug.Print
     
-    ReDim a(1 To 1, 1 To 1)
-    Let a(1, 1) = Array(1, 2, 3)
+    ReDim A(1 To 1, 1 To 1)
+    Let A(1, 1) = Array(1, 2, 3)
     Debug.Print "Testing: [{Array(1, 2, 3)}]"
-    Debug.Print InterpretableAsRowArrayQ(a)
+    Debug.Print InterpretableAsRowArrayQ(A)
     Debug.Print
     
     Let v = EmptyArray()
@@ -1111,58 +1111,58 @@ Public Sub TestArraysPart()
 End Sub
 
 ' This tests Arrays.Take
-Public Sub TestTake()
-    Dim a() As Integer
+Public Sub TestArraysTake()
+    Dim A() As Integer
     Dim r As Long
     Dim c As Long
     
-    ReDim a(1 To 7)
+    ReDim A(1 To 7)
     For r = 1 To 7
-        Let a(r) = r
+        Let A(r) = r
     Next
     
     Debug.Print
     Debug.Print "Set a equal to "
-    PrintArray a
-    Debug.Print "LBound(a,1), UBound(a,1) = " & LBound(a, 1), UBound(a, 1)
+    PrintArray A
+    Debug.Print "LBound(a,1), UBound(a,1) = " & LBound(A, 1), UBound(A, 1)
     
     Debug.Print
     For r = -10 To 10
         Debug.Print "Testing Take(a, " & r; ")"
-        PrintArray Take(a, r)
+        PrintArray Take(A, r)
     Next
     
-    ReDim a(0 To 6)
+    ReDim A(0 To 6)
     For r = 0 To 6
-        Let a(r) = r
+        Let A(r) = r
     Next
     
     Debug.Print
     Debug.Print "Set a equal to "
-    PrintArray a
-    Debug.Print "LBound(a,1), UBound(a,1) = " & LBound(a, 1), UBound(a, 1)
+    PrintArray A
+    Debug.Print "LBound(a,1), UBound(a,1) = " & LBound(A, 1), UBound(A, 1)
     
     Debug.Print
     For r = -10 To 10
         Debug.Print "Testing Take(a, " & r & ")"
-        PrintArray Take(a, r)
+        PrintArray Take(A, r)
     Next
 
-    ReDim a(1 To 9, 1 To 3)
+    ReDim A(1 To 9, 1 To 3)
     For r = 1 To 9
         For c = 1 To 3
-            Let a(r, c) = r
+            Let A(r, c) = r
         Next
     Next
     Debug.Print "Set a to:"
-    PrintArray a
+    PrintArray A
     Debug.Print
-    Debug.Print "Bounds LBound(a,1), UBound(a,1), LBound(a,2), UBound(a,2): ", LBound(a, 1), UBound(a, 1), LBound(a, 2), UBound(a, 2)
+    Debug.Print "Bounds LBound(a,1), UBound(a,1), LBound(a,2), UBound(a,2): ", LBound(A, 1), UBound(A, 1), LBound(A, 2), UBound(A, 2)
     Debug.Print
     
     For r = -10 To 10
         Debug.Print "Testing Take(a," & r & ")"
-        PrintArray Take(a, r)
+        PrintArray Take(A, r)
         Debug.Print
     Next
     
@@ -1171,68 +1171,68 @@ Public Sub TestTake()
     Debug.Print
      
     Debug.Print "Testing Take(a,Array(-2,-4,-5))"
-    PrintArray Take(a, Array(-2, -4, -5))
+    PrintArray Take(A, Array(-2, -4, -5))
     Debug.Print
     
     Debug.Print "Testing Take(a,EmptyArray())"
-    PrintArray Take(a, EmptyArray())
+    PrintArray Take(A, EmptyArray())
     Debug.Print
     
-    ReDim a(0 To 8, 0 To 3)
+    ReDim A(0 To 8, 0 To 3)
     For r = 0 To 8
         For c = 0 To 3
-            Let a(r, c) = r
+            Let A(r, c) = r
         Next
     Next
     
     Debug.Print "Set a to:"
-    PrintArray a
+    PrintArray A
     Debug.Print
-    Debug.Print "Bounds LBound(a,1), UBound(a,1), LBound(a,2), UBound(a,2): ", LBound(a, 1), UBound(a, 1), LBound(a, 2), UBound(a, 2)
+    Debug.Print "Bounds LBound(a,1), UBound(a,1), LBound(a,2), UBound(a,2): ", LBound(A, 1), UBound(A, 1), LBound(A, 2), UBound(A, 2)
     Debug.Print
     
     For r = -10 To 10
         Debug.Print "Testing Take(a," & r & ")"
-        PrintArray Take(a, r)
+        PrintArray Take(A, r)
         Debug.Print
     Next
 End Sub
 
-Public Sub TestGetRow()
+Public Sub TestArraysGetRow()
     Dim m As Variant
-    Dim a(0 To 2, 0 To 2) As Integer
-    Dim b(1 To 3, 1 To 3) As Integer
+    Dim A(0 To 2, 0 To 2) As Integer
+    Dim B(1 To 3, 1 To 3) As Integer
     Dim i As Long
     Dim j As Long
     
     For i = 0 To 2
         For j = 0 To 2
-            Let a(i, j) = i + j * 3
+            Let A(i, j) = i + j * 3
         Next j
     Next i
     
     Debug.Print "The Array is:"
-    PrintArray a
+    PrintArray A
     Debug.Print "Rows 1, 2, and 3 are:"
     
     For i = 1 To 3
-        PrintArray GetRow(a, i)
+        PrintArray GetRow(A, i)
         Debug.Print
     Next
     
     For i = 1 To 3
         For j = 1 To 3
-            Let b(i, j) = i + j * 3
+            Let B(i, j) = i + j * 3
         Next j
     Next i
     
     Debug.Print "The Array is:"
-    PrintArray b
+    PrintArray B
     Debug.Print
     Debug.Print "Rows 1, 2, and 3 are:"
     
     For i = 1 To 3
-        PrintArray GetRow(b, i)
+        PrintArray GetRow(B, i)
         Debug.Print
     Next
     
@@ -1292,7 +1292,7 @@ Public Sub TestGetRow()
     Debug.Print
 End Sub
 
-Public Sub TestGetColumn()
+Public Sub TestArraysGetColumn()
     Dim m As Variant
     Dim c As Integer
     
@@ -1329,6 +1329,66 @@ Public Sub TestGetColumn()
     Debug.Print "Testing  EmptyArray()"
     PrintArray GetColumn(m, 1)
     Debug.Print
+End Sub
+
+Public Sub TestArraysStackArrays()
+    Dim A As Variant
+    
+    Debug.Print "Testing StackArrays(Array(1, 2, 3), Array(4, 5, 6)):"
+    PrintArray StackArrays(Array(1, 2, 3), Array(4, 5, 6))
+    Debug.Print
+    
+    Debug.Print "Testing StackArrays([{1,2,3,4; 5,6,7,8}], Array(9,10,11,12)):"
+    PrintArray StackArrays([{1,2,3,4; 5,6,7,8}], Array(9, 10, 11, 12))
+    Debug.Print
+    
+    Debug.Print "Testing StackArrays(Array(9,10,11,12), [{1,2,3,4; 5,6,7,8}]):"
+    PrintArray StackArrays(Array(9, 10, 11, 12), [{1,2,3,4; 5,6,7,8}])
+    Debug.Print
+    
+    Debug.Print "Testing StackArrays([{1,2,3,4; 5,6,7,8}], [{10,20,30,40; 50,60,70,80}]):"
+    PrintArray StackArrays([{1,2,3,4; 5,6,7,8}], [{10,20,30,40; 50,60,70,80}])
+    Debug.Print
+
+    Debug.Print "Testing StackArrays([{1,""02"", 3 ,4; 5, ""06"",7,8}], [{10,""020"",30,40; 50,""060"",70,80}]):"
+    Let A = StackArrays([{1,"02", 3 ,4; 5,"06",7,8}], [{10,"020",30,40; 50,"060",70,80}])
+    PrintArray A
+    Debug.Print "The dimensions of the stacked array are #rows = " & GetNumberOfRows(A) & ", #cols = " & GetNumberOfColumns(A)
+    Debug.Print "Look at worksheet TempComputation to see if formats were preserved."
+    Call ToTemp(A, True)
+End Sub
+
+Public Sub TestArraysAppend()
+    Dim A As Variant
+    Dim B As Variant
+    
+    Debug.Print "Testing Append(Array(1,2,3), 4)"
+    PrintArray Append(Array(1, 2, 3), 4)
+    Debug.Print
+    
+    Let A = Append(Array(1, 2, 3), Array(1, 4))
+    Debug.Print "Testing Append(Array(1,2,3), array(1,4))"
+    Debug.Print "Use watch on variable a"
+    Debug.Print
+    
+    Let A = [{1,2,3; 4,5,6}]
+    Let B = Array(7, 8, 9)
+    Debug.Print "Testing Append(a, b) on a = [{1,2,3; 4,5,6}] and b = Array(7, 8, 9)"
+    PrintArray Append(A, B)
+    Debug.Print
+
+    Let A = [{7,8,9; 10,11,12}]
+    Let B = [{1,2,3; 4,5,6}]
+    Debug.Print "Testing Append(a, b) on a = [{7,8,9; 10,11,12}] and b = [{1,2,3; 4,5,6}]"
+    PrintArray Append(A, B)
+    Debug.Print
+    
+    Let A = Array(1, 2, 3)
+    Let B = Null
+    Debug.Print "Let a = Array(1, 2, 3)"
+    Debug.Print "Let b = Null"
+    PrintArray Append(A, B)
+    Debug.Print "The result has length " & GetArrayLength(Append(A, B))
 End Sub
 
 Public Sub TestFileNameJoin()

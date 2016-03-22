@@ -112,7 +112,15 @@ End Function
 ' RETURNED VALUE
 ' True when arg has one of the types detailed above. Returns False otherwise
 Public Function AtomicQ(arg As Variant) As Boolean
-    Let AtomicQ = AnyTrueQ(Through(GetAtomicTypePredicateNames(), ThisWorkbook, arg))
+    Dim var As Variant
+    
+    Let AtomicQ = True
+    
+    For Each var In GetAtomicTypePredicateNames()
+        If Run(var, arg) Then Exit Function
+    Next
+    
+    Let AtomicQ = False
 End Function
 
 ' DESCRIPTION
@@ -1087,12 +1095,12 @@ End Function
 ' RETURNED VALUE
 ' Returns True or False depending on whether or not its argument could be interpreted as a row
 ' vector.
-Public Function InterpretableAsRowArrayQ(a As Variant) As Boolean
+Public Function InterpretableAsRowArrayQ(A As Variant) As Boolean
     Dim nd As Integer
     Dim i As Long
     
     Let InterpretableAsRowArrayQ = False
-    Let nd = NumberOfDimensions(a)
+    Let nd = NumberOfDimensions(A)
     
     ' If a has more than two or fewer than one dimension, then exit with False.
     If nd > 2 Or nd < 1 Then
@@ -1102,13 +1110,13 @@ Public Function InterpretableAsRowArrayQ(a As Variant) As Boolean
     ' Process arg is it has one dimensions
     If nd = 1 Then
         ' If this is a 1-element, 1D array
-        If LBound(a, 1) = UBound(a, 1) Then
-            If IsArray(a) Then Let InterpretableAsRowArrayQ = InterpretableAsRowArrayQ(First(a))
+        If LBound(A, 1) = UBound(A, 1) Then
+            If IsArray(A) Then Let InterpretableAsRowArrayQ = InterpretableAsRowArrayQ(First(A))
             Exit Function
         ' If this is a multi-element 1D array
         Else
-            For i = LBound(a, 1) To UBound(a, 1)
-                If Not AtomicQ(a(i)) Then Exit Function
+            For i = LBound(A, 1) To UBound(A, 1)
+                If Not AtomicQ(A(i)) Then Exit Function
             Next i
         End If
         
@@ -1118,16 +1126,16 @@ Public Function InterpretableAsRowArrayQ(a As Variant) As Boolean
     
     ' If we get here the array is two dimensional
     ' This is the 2D, single-element case
-    If UBound(a, 1) = LBound(a, 1) And UBound(a, 2) = LBound(a, 2) Then
-        Let InterpretableAsRowArrayQ = InterpretableAsRowArrayQ(a(LBound(a, 1), LBound(a, 2)))
+    If UBound(A, 1) = LBound(A, 1) And UBound(A, 2) = LBound(A, 2) Then
+        Let InterpretableAsRowArrayQ = InterpretableAsRowArrayQ(A(LBound(A, 1), LBound(A, 2)))
         Exit Function
     ' This is the case when we have a matrix that cannot be interpreted as a row
-    ElseIf UBound(a, 1) > LBound(a, 1) And UBound(a, 2) > LBound(a, 2) Then
+    ElseIf UBound(A, 1) > LBound(A, 1) And UBound(A, 2) > LBound(A, 2) Then
         Exit Function
     ' This is the case when there is just one row
-    ElseIf (UBound(a, 1) = LBound(a, 1)) And (UBound(a, 2) > LBound(a, 2)) Then
-        For i = LBound(a, 2) To UBound(a, 2)
-            If Not AtomicQ(a(LBound(a, 1), i)) Then
+    ElseIf (UBound(A, 1) = LBound(A, 1)) And (UBound(A, 2) > LBound(A, 2)) Then
+        For i = LBound(A, 2) To UBound(A, 2)
+            If Not AtomicQ(A(LBound(A, 1), i)) Then
                 Exit Function
             End If
         Next i
@@ -1154,45 +1162,45 @@ End Function
 ' RETURNED VALUE
 ' Returns True or False depending on whether or not its argument could be interpreted as a column
 ' vector.
-Public Function InterpretableAsColumnArrayQ(a As Variant) As Boolean
+Public Function InterpretableAsColumnArrayQ(A As Variant) As Boolean
     Dim nd As Integer
     Dim i As Long
     
-    If EmptyArrayQ(a) Then
+    If EmptyArrayQ(A) Then
         Let InterpretableAsColumnArrayQ = True
         Exit Function
     End If
     
     Let InterpretableAsColumnArrayQ = False
-    Let nd = NumberOfDimensions(a)
+    Let nd = NumberOfDimensions(A)
     
     If nd < 1 Or nd > 2 Then
         Exit Function
     End If
     
     If nd = 1 Then
-        If LBound(a) = UBound(a) Then
-            If Not Not AtomicQ(First(a)) Then
+        If LBound(A) = UBound(A) Then
+            If Not Not AtomicQ(First(A)) Then
                 Let InterpretableAsColumnArrayQ = True
             Else
-                Let InterpretableAsColumnArrayQ = InterpretableAsColumnArrayQ(a(LBound(a, 1)))
+                Let InterpretableAsColumnArrayQ = InterpretableAsColumnArrayQ(A(LBound(A, 1)))
             End If
         End If
         
         Exit Function
     End If
     
-    If (UBound(a, 1) > LBound(a, 1)) And (UBound(a, 2) > LBound(a, 2)) Then
+    If (UBound(A, 1) > LBound(A, 1)) And (UBound(A, 2) > LBound(A, 2)) Then
         Exit Function
-    ElseIf (UBound(a, 1) > LBound(a, 1)) And (UBound(a, 2) = LBound(a, 2)) Then
-        For i = LBound(a, 1) To UBound(a, 1)
-            If IsArray(a(i, UBound(a, 2))) Then Exit Function
+    ElseIf (UBound(A, 1) > LBound(A, 1)) And (UBound(A, 2) = LBound(A, 2)) Then
+        For i = LBound(A, 1) To UBound(A, 1)
+            If IsArray(A(i, UBound(A, 2))) Then Exit Function
         Next i
     
         Let InterpretableAsColumnArrayQ = True
-    ElseIf (UBound(a, 1) = LBound(a, 1)) And (UBound(a, 2) = LBound(a, 2)) Then
-        If Not AtomicQ(a(LBound(a, 1), LBound(a, 2))) Then
-            Let InterpretableAsColumnArrayQ = InterpretableAsColumnArrayQ(a(LBound(a, 1), LBound(a, 2)))
+    ElseIf (UBound(A, 1) = LBound(A, 1)) And (UBound(A, 2) = LBound(A, 2)) Then
+        If Not AtomicQ(A(LBound(A, 1), LBound(A, 2))) Then
+            Let InterpretableAsColumnArrayQ = InterpretableAsColumnArrayQ(A(LBound(A, 1), LBound(A, 2)))
         Else
             Let InterpretableAsColumnArrayQ = True
         End If

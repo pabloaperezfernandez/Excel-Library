@@ -189,13 +189,14 @@ Public Function NumberOfColumns(AnArray As Variant) As Long
 End Function
 
 ' DESCRIPTION
-' Returns the first element in the given array.  Returns Null if the array is empty or
-' there is a problem with it.  2D arrays are treated as an array of arrays, with each
-' row being one of the elements in the array.  In other words, this function would return
-' the same thing for [{1,2; 3,4}] and Array(Array(1,2), Array(3,4)).
+' Returns the first element in the given array.  Returns Null if the array is empty,
+' there is a problem with it, or it has more than two dimensions.  2D arrays are treated
+' as an array of arrays, with each row being one of the elements in the array.  In other
+' words, this function would return the same thing for [{1,2; 3,4}] and
+' Array(Array(1,2), Array(3,4)).
 '
 ' PARAMETERS
-' 1. arg - any value or object reference
+' 1. arg - a 1D or 2D array
 '
 ' RETURNED VALUE
 ' First element in the given array
@@ -211,18 +212,19 @@ Public Function First(AnArray As Variant) As Variant
     ElseIf NumberOfDimensions(AnArray) = 2 Then
         Let First = Flatten(GetRow(AnArray, 1))
     Else
-        Let First = AnArray
+        Let First = Null
     End If
 End Function
 
 ' DESCRIPTION
-' Returns the last element in the given array.  Returns Null if the array is empty or
-' there is a problem with it.  2D arrays are treated as an array of arrays, with each
-' row being one of the elements in the array.  In other words, this function would return
-' the same thing for [{1,2; 3,4}] and Array(Array(1,2), Array(3,4)).
+' Returns the last element in the given array.  Returns Null if the array is empty,
+' there is a problem with it, or it has more than two dimensions.  2D arrays are treated
+' as an array of arrays, with each row being one of the elements in the array.  In other
+' words, this function would return the same thing for [{1,2; 3,4}] and
+' Array(Array(1,2), Array(3,4)).
 '
 ' PARAMETERS
-' 1. arg - any value or object reference
+' 1. arg - a 1D or 2D array
 '
 ' RETURNED VALUE
 ' Last element in the given array
@@ -238,7 +240,7 @@ Public Function Last(AnArray As Variant) As Variant
     ElseIf NumberOfDimensions(AnArray) = 2 Then
         Let Last = Flatten(GetRow(AnArray, GetNumberOfRows(AnArray)))
     Else
-        Let Last = AnArray
+        Let Last = Nul
     End If
 End Function
 
@@ -334,25 +336,25 @@ End Function
 '
 ' RETURNED VALUE
 ' A 1D array all the values in the leaves of the tree represented by the original, nested array.
-Public Function Flatten(a As Variant) As Variant
+Public Function Flatten(A As Variant) As Variant
     Dim var As Variant
     Dim var2 As Variant
     Dim TempVariant As Variant
     Dim ResultsDict As Dictionary
     
-    If AtomicQ(a) Then
-        Let Flatten = a
+    If AtomicQ(A) Then
+        Let Flatten = A
         Exit Function
     End If
     
-    If Not IsArray(a) Then
+    If Not IsArray(A) Then
         Let Flatten = Null
         Exit Function
     End If
 
     Set ResultsDict = New Dictionary
     
-    For Each var In a
+    For Each var In A
         If AtomicQ(var) Then
             Call ResultsDict.Add(Key:=ResultsDict.Count, Item:=var)
         ElseIf IsArray(var) Then
@@ -979,7 +981,9 @@ End Function
 '
 ' RETURNED VALUE
 ' Returns as a 1D array the row numbered RowNumber from the given 2D table
-Public Function GetRow(aMatrix As Variant, RowNumber As Long, Optional ParameterCheckQ As Boolean = True) As Variant
+Public Function GetRow(aMatrix As Variant, _
+                       RowNumber As Long, _
+                       Optional ParameterCheckQ As Boolean = True) As Variant
     Dim c As Long
     Dim ResultArray() As Variant
     Dim NormalizedIndex As Variant
@@ -1038,7 +1042,9 @@ End Function
 '
 ' RETURNED VALUE
 ' Returns as a 1D array the column numbered ColumnNumber from the given 2D table
-Public Function GetColumn(aMatrix As Variant, ColumnNumber As Long, Optional ParameterCheckQ As Boolean = True) As Variant
+Public Function GetColumn(aMatrix As Variant, _
+                          ColumnNumber As Long, _
+                          Optional ParameterCheckQ As Boolean = True) As Variant
     Dim r As Long
     Dim ResultArray() As Variant
     Dim NormalizedIndex As Variant
@@ -1236,71 +1242,238 @@ Public Function GetSubMatrix(aMatrix As Variant, _
     Let GetSubMatrix = ReturnMatrix
 End Function
 
-' Stacks two arrays (may be 1 or 2-dimensional) on top of each other, provided they
-' have the same number of columns. 1D arrays are allowed and interpreted as 1-row,
-' 2D arrays. If either a or b is not an array, have dimensions > 2, or do not have
-' the same number of columns, then this function returns an empty array (e.g. EmptyArray())
-' The resulting arrays are indexed starting with 1
-Public Function Stack2DArrays(ByVal a As Variant, ByVal b As Variant) As Variant
+' DESCRIPTION
+' Stacks two 1D or 2D arrays on top of each other.  1D arrays are allowed and interpreted
+' as single-row 2D arrays.  The two arrays must have the same number of columns or the function
+' returns Null.  If either is empty, the function returns the other array.  The resulting 2D
+' array has lbounds = 1.
+'
+' PARAMETERS
+' 1. A - a 1D or 2D array
+' 2. B - a 1D or 2D array
+' 3. ParameterCheckQ - (optional) When explicitly set to False, no parameter checks are done
+'
+' RETURNED VALUE
+' Returns the stacked 2D array resulting from stacking the two given arrays.
+Public Function StackArrays(A As Variant, _
+                            B As Variant, _
+                            Optional ParameterCheckQ As Boolean = True) As Variant
     Dim r As Long
     Dim c As Long
-    Dim aprime As Variant
-    Dim bprime As Variant
-    Dim TheResult() As Variant
+    Dim DimsA As Long
+    Dim DimsB As Long
+    Dim NumColsA As Long
+    Dim NumRowsA As Long
+    Dim NumColsB As Long
+    Dim NumRowsB As Long
+    Dim ReturnArray As Variant
     
-    If EmptyArrayQ(a) Or EmptyArrayQ(b) Or GetNumberOfColumns(a) <> GetNumberOfColumns(b) Then
-        Let Stack2DArrays = EmptyArray()
-        Exit Function
+    ' Set default return value
+    Let StackArrays = Null
+    
+    ' Check parameter consistency if ParameterCheckQ is True
+    If ParameterCheckQ Then
+        If Not (DimensionedQ(A) Or DimensionedQ(B)) Then Exit Function
+        
+        If Not (AtomicArrayQ(A) Or AtomicTableQ(A)) Or _
+           Not (AtomicArrayQ(A) Or AtomicTableQ(A)) Then Exit Function
+        
+        If GetNumberOfColumns(A) <> GetNumberOfColumns(B) Then Exit Function
+        
+        If EmptyArrayQ(A) Then
+            Let StackArrays = B
+            Exit Function
+        End If
+        
+        If EmptyArrayQ(B) Then
+            Let StackArrays = A
+            Exit Function
+        End If
     End If
+
+    ' Get dimensions of a and b
+    Let DimsA = NumberOfDimensions(A)
+    Let DimsB = NumberOfDimensions(B)
+    Let NumColsA = NumberOfColumns(A)
+    Let NumColsB = NumberOfColumns(B)
+    Let NumRowsA = NumberOfRows(A)
+    Let NumRowsB = NumberOfRows(B)
     
-    ' If we have to 1D arrays of the same length, the we stack a on top of b
-    If NumberOfDimensions(a) = 1 And NumberOfDimensions(b) = 1 Then
-        ReDim TheResult(1 To 2, 1 To GetNumberOfColumns(a))
+    ' Stack two 1D arrays
+    If DimsA = 1 And DimsB = 1 Then
+        ' Pre-allocate big enough 2D array
+        ReDim ReturnArray(1 To 2, 1 To NumColsA)
         
-        For c = 1 To GetNumberOfColumns(a)
-            Let TheResult(1, c) = a(IIf(LBound(a) = 0, c - 1, c))
-            Let TheResult(2, c) = b(IIf(LBound(b) = 0, c - 1, c))
+        ' Add A's lone row and B's lone row in rows 1 and 2 respectively of the stacked array
+        For c = 1 To NumColsA
+            Let ReturnArray(1, c) = A(c + LBound(A) - 1)
+            Let ReturnArray(2, c) = B(c + LBound(A) - 1)
         Next c
-    ElseIf NumberOfDimensions(a) = 1 And NumberOfDimensions(b) > 1 Then
-        ReDim TheResult(1 To GetNumberOfRows(b) + 1, 1 To GetNumberOfColumns(b))
+    ' Stack 1D array A on top of 2D array B
+    ElseIf DimsA = 1 And DimsB > 1 Then
+        ' Pre-allocate big enough 2D array
+        ReDim ReturnArray(1 To NumRowsB + 1, 1 To NumColsB)
         
-        For c = 1 To GetNumberOfColumns(a)
-            Let TheResult(1, c) = a(IIf(LBound(a) = 0, c - 1, c))
+        ' Set A's lone row as the first row of the stacked array
+        For c = 1 To NumColsA
+            Let ReturnArray(1, c) = A(c + LBound(A) - 1)
         Next c
         
-        For r = 1 To GetNumberOfRows(b)
-            For c = 1 To GetNumberOfColumns(b)
-                Let TheResult(1 + r, c) = b(IIf(LBound(b, 1) = 0, r - 1, r), IIf(LBound(b) = 0, c - 1, c))
+        For r = 1 To NumRowsB
+            For c = 1 To NumColsB
+                Let ReturnArray(1 + r, c) = B(r + LBound(B, 1) - 1, c + LBound(B, 2) - 1)
             Next c
         Next r
-    ElseIf NumberOfDimensions(a) > 1 And NumberOfDimensions(b) = 1 Then
-        ReDim TheResult(1 To GetNumberOfRows(a) + 1, 1 To GetNumberOfColumns(a))
+    ' Stack 2D array A on top of 1D array B
+    ElseIf DimsA > 1 And DimsB = 1 Then
+        ' Pre-allocate big enough 2D array
+        ReDim ReturnArray(1 To NumRowsA + 1, 1 To NumColsA)
         
-        For r = 1 To GetNumberOfRows(a) + 1
-            For c = 1 To GetNumberOfColumns(a)
-                If r < GetNumberOfRows(a) + 1 Then
-                    Let TheResult(r, c) = a(IIf(LBound(a, 1) = 0, r - 1, r), IIf(LBound(a, 2) = 0, c - 1, c))
+        For r = 1 To NumRowsA + 1
+            For c = 1 To NumColsA
+                If r < NumRowsA + 1 Then
+                    Let ReturnArray(r, c) = A(r + LBound(A, 1) - 1, c + LBound(A, 2) - 1)
                 Else
-                    Let TheResult(GetNumberOfRows(a) + 1, c) = b(IIf(LBound(b) = 0, c - 1, c))
+                    Let ReturnArray(r, c) = B(c + LBound(B) - 1)
                 End If
             Next c
         Next r
+    ' Stack 2D array A on top of 2D array B
     Else
-        ReDim TheResult(1 To GetNumberOfRows(a) + GetNumberOfRows(b), 1 To GetNumberOfColumns(b))
-        For r = 1 To GetNumberOfRows(a)
-            For c = 1 To GetNumberOfColumns(a)
-                Let TheResult(r, c) = a(IIf(LBound(a, 1) = 0, r - 1, r), IIf(LBound(a, 2) = 0, c - 1, c))
+        ' Pre-allocate big enough 2D array
+        ReDim ReturnArray(1 To NumRowsA + NumRowsB, 1 To NumColsB)
+        For r = 1 To NumRowsA
+            For c = 1 To NumColsA
+                Let ReturnArray(r, c) = A(r + LBound(A, 1) - 1, c + LBound(A, 1) - 1)
             Next c
         Next r
     
-        For r = 1 To GetNumberOfRows(b)
-            For c = 1 To GetNumberOfColumns(b)
-                Let TheResult(GetNumberOfRows(a) + r, c) = b(IIf(LBound(b, 1) = 0, r - 1, r), IIf(LBound(b, 2) = 0, c - 1, c))
+        For r = 1 To NumRowsB
+            For c = 1 To NumColsB
+                Let ReturnArray(NumRowsA + r, c) = B(r + LBound(B, 1) - 1, c + LBound(B, 1) - 1)
             Next c
         Next r
     End If
     
-    Let Stack2DArrays = TheResult
+    ' Return the stacked arrays
+    Let StackArrays = ReturnArray
+End Function
+
+' DESCRIPTION
+' Appends an element to the given 1D or 2D array.  To be appended to a 2D array, the element must
+' must be 1D or 2D array with the same number of columns.  The function returns Null in all other
+' cases.
+'
+' PARAMETERS
+' 1. AnArray - A 1D or 2D array to which AnElt should be appended
+' 2. AnElt - a 1D or 2D array to append to AnArray
+' 3. ParameterCheckQ - (optional) When explicitly set to False, no parameter checks are done
+'
+' RETURNED VALUE
+' Returns the stacked 2D array resulting from stacking the two given arrays.
+Public Function Append(AnArray As Variant, _
+                       AnElt As Variant, _
+                       Optional ParameterCheckQ As Boolean = True) As Variant
+    Dim NewArray As Variant
+    Dim AnArrayNumberOfDims As Integer
+    
+    ' Set default return value
+    Let Append = Null
+    
+    ' Get the number of dimensions of AnArray
+    Let AnArrayNumberOfDims = NumberOfDimensions(AnArray)
+    
+    ' Check parameter consitency if ParameterCheckQ is True
+    If ParameterCheckQ Then
+        ' Exit if AnArray is not dimensioned
+        If Not DimensionedQ(AnArray) Then Exit Function
+        
+        ' Exit if AnArray is not atomic
+        If Not (AtomicArrayQ(AnArray) Or AtomicArrayQ(AnArray)) Then Exit Function
+    
+        ' Exit with Null if AnArray is a 2D array and AnElt does not have the same number of columns
+        If AnArrayNumberOfDims = 2 And _
+           GetNumberOfColumns(AnArray) <> GetNumberOfColumns(AnElt) Then Exit Function
+        
+        ' Exit with AnElt if AnArray is empty
+        If EmptyArrayQ(AnArray) Then
+            Let Append = AnElt
+            Exit Function
+        End If
+        
+        ' Exit with AnArray if AnElt is empty
+        If EmptyArrayQ(AnElt) Then
+            Let Append = AnArray
+            Exit Function
+        End If
+        
+        ' Exit with Null if AnElt is Null
+        If NullQ(AnElt) Then Exit Function
+    End If
+    
+    ' If AnArray is 1D, then put the new element (whatever it may be) as the last element of a
+    ' 1D array 1 longer than the original one.
+    If NumberOfDimensions(AnArray) = 1 Then
+        Let NewArray = AnArray
+        ReDim Preserve NewArray(LBound(AnArray) To UBound(AnArray) + 1)
+        Let NewArray(UBound(NewArray)) = AnElt
+        
+        Let Append = NewArray
+        
+        Exit Function
+    End If
+    
+    ' If AnArray has two dims and the same number of columns as AnElt, then stack AnElt as the bottom
+    ' of AnArray
+    Let Append = StackArrays(AnArray, AnElt, ParameterCheckQ)
+End Function
+
+' Appends a new element to the given array. Handles arrays of dimension 1 and 2
+' Returns Null if AnArray is not an array or it has more than two dims,
+' or dim(AnArray) = 2 and AnArray and AnElt don't have the same number of columns.
+' If AnElt is Null, the function returns AnArray unevaluated.
+'
+' This works differently from simply using StackArrays(AnArray, AnElt)
+' This one can give you something that is not a matrix.  StackArrays ALWAYS returns
+' a matrix
+Public Function Prepend(AnArray As Variant, AnElt As Variant) As Variant
+    Dim NewEmptyArray() As Variant
+    Dim AnArrayNumberOfDims As Integer
+    Dim i As Long
+    
+    Let AnArrayNumberOfDims = NumberOfDimensions(AnArray)
+    
+    If Not IsArray(AnArray) Or AnArrayNumberOfDims > 2 Or _
+       (AnArrayNumberOfDims = 2 And GetNumberOfColumns(AnArray) <> GetNumberOfColumns(AnElt)) Then
+        Let Prepend = Null
+    
+        Exit Function
+    End If
+    
+    If IsNull(AnElt) Then
+        Let Prepend = AnArray
+        Exit Function
+    End If
+    
+    ' If AnArray is 1D, then put the new element (whatever it may be) as the last element of a
+    ' 1D array 1 longer than the original one.
+    If NumberOfDimensions(AnArray) = 1 Then
+        ReDim NewArray(LBound(AnArray) To UBound(AnArray) + 1)
+        
+        For i = LBound(AnArray) + 1 To UBound(AnArray) + 1
+            Let NewArray(i) = AnArray(i - 1)
+        Next i
+        
+        Let NewArray(LBound(AnArray)) = AnElt
+        
+        Let Prepend = NewArray
+        
+        Exit Function
+    End If
+    
+    ' If AnArray has two dims and the same number of columns as AnElt, then stack AnElt as the bottom
+    ' of AnArray
+    Let Prepend = StackArrays(AnElt, AnArray)
 End Function
 
 ' DESCRIPTION
@@ -1412,13 +1585,13 @@ Public Function Insert(AnArray As Variant, TheElt As Variant, ThePos As Long) As
         If NumberOfDimensions(AnArray) = 1 Then
             Let Insert = Prepend(AnArray, TheElt)
         Else
-            Let Insert = Stack2DArrays(TheElt, AnArray)
+            Let Insert = StackArrays(TheElt, AnArray)
         End If
     ElseIf ThePos = UBound(AnArray, 1) + 1 Then
         If NumberOfDimensions(AnArray) = 1 Then
             Let Insert = Append(AnArray, TheElt)
         Else
-            Let Insert = Stack2DArrays(AnArray, TheElt)
+            Let Insert = StackArrays(AnArray, TheElt)
         End If
     ElseIf ThePos > LBound(AnArray, 1) And ThePos <= UBound(AnArray, 1) Then
         Let FirstPart = Take(AnArray, ThePos - 1)
@@ -1428,8 +1601,8 @@ Public Function Insert(AnArray As Variant, TheElt As Variant, ThePos As Long) As
             Let FirstPart = Append(FirstPart, TheElt)
             Let Insert = ConcatenateArrays(FirstPart, LastPart)
         Else
-            Let FirstPart = Stack2DArrays(FirstPart, TheElt)
-            Let Insert = Stack2DArrays(FirstPart, LastPart)
+            Let FirstPart = StackArrays(FirstPart, TheElt)
+            Let Insert = StackArrays(FirstPart, LastPart)
         End If
     Else
         Let Insert = AnArray
@@ -1719,97 +1892,6 @@ Public Function ReverseVertically(MyArray As Variant) As Variant
     Let ReverseVertically = TmpSheet.Range("A1").CurrentRegion.Value2
 End Function
 
-' Appends a new element to the given array handles 1D and 2D arrays. Returns Null
-' if the parameters are inconsistent. In the case of AnArray being a 2D array, AnElt
-' must be a 1D array with the same number of colummns as AnArray for Append to make sense.
-'
-' If AnArray is a 1D or 2D array and AnElt is Null, the funtion returns AnArray unchanged.
-'
-' This works differently from simply using Stack2DArrays(AnArray, AnElt) since it can return
-' something that is not a matrix.  Stack2DArrays ALWAYS returns a matrix
-Public Function Append(AnArray As Variant, AnElt As Variant) As Variant
-    Dim NewArray As Variant
-    Dim AnArrayNumberOfDims As Integer
-    
-    Let AnArrayNumberOfDims = NumberOfDimensions(AnArray)
-    
-    If Not IsArray(AnArray) Or AnArrayNumberOfDims > 2 Or _
-       (AnArrayNumberOfDims = 2 And GetNumberOfColumns(AnArray) <> GetNumberOfColumns(AnElt)) Then
-        Let Append = Null
-    
-        Exit Function
-    End If
-    
-    If IsNull(AnElt) Then
-        Let Append = AnArray
-        Exit Function
-    End If
-    
-    ' If AnArray is 1D, then put the new element (whatever it may be) as the last element of a
-    ' 1D array 1 longer than the original one.
-    If NumberOfDimensions(AnArray) = 1 Then
-        Let NewArray = AnArray
-        ReDim Preserve NewArray(LBound(AnArray) To UBound(AnArray) + 1)
-        Let NewArray(UBound(NewArray)) = AnElt
-        
-        Let Append = NewArray
-        
-        Exit Function
-    End If
-    
-    ' If AnArray has two dims and the same number of columns as AnElt, then stack AnElt as the bottom
-    ' of AnArray
-    Let Append = Stack2DArrays(AnArray, AnElt)
-End Function
-
-' Appends a new element to the given array. Handles arrays of dimension 1 and 2
-' Returns Null if AnArray is not an array or it has more than two dims,
-' or dim(AnArray) = 2 and AnArray and AnElt don't have the same number of columns.
-' If AnElt is Null, the function returns AnArray unevaluated.
-'
-' This works differently from simply using Stack2DArrays(AnArray, AnElt)
-' This one can give you something that is not a matrix.  Stack2DArrays ALWAYS returns
-' a matrix
-Public Function Prepend(AnArray As Variant, AnElt As Variant) As Variant
-    Dim NewEmptyArray() As Variant
-    Dim AnArrayNumberOfDims As Integer
-    Dim i As Long
-    
-    Let AnArrayNumberOfDims = NumberOfDimensions(AnArray)
-    
-    If Not IsArray(AnArray) Or AnArrayNumberOfDims > 2 Or _
-       (AnArrayNumberOfDims = 2 And GetNumberOfColumns(AnArray) <> GetNumberOfColumns(AnElt)) Then
-        Let Prepend = Null
-    
-        Exit Function
-    End If
-    
-    If IsNull(AnElt) Then
-        Let Prepend = AnArray
-        Exit Function
-    End If
-    
-    ' If AnArray is 1D, then put the new element (whatever it may be) as the last element of a
-    ' 1D array 1 longer than the original one.
-    If NumberOfDimensions(AnArray) = 1 Then
-        ReDim NewArray(LBound(AnArray) To UBound(AnArray) + 1)
-        
-        For i = LBound(AnArray) + 1 To UBound(AnArray) + 1
-            Let NewArray(i) = AnArray(i - 1)
-        Next i
-        
-        Let NewArray(LBound(AnArray)) = AnElt
-        
-        Let Prepend = NewArray
-        
-        Exit Function
-    End If
-    
-    ' If AnArray has two dims and the same number of columns as AnElt, then stack AnElt as the bottom
-    ' of AnArray
-    Let Prepend = Stack2DArrays(AnElt, AnArray)
-End Function
-
 ' aMatrix is a 1D or 2D array of values (not a range).
 ' Returns a 1-dimensional array with the unique subset of elements.
 ' If aMatrix has more than two dimensions, the function returns Null
@@ -1936,23 +2018,23 @@ End Function
 ' This function returns the complement of set B in A
 ' Both A and B are required to be 1D arrays
 ' If the complement is empty, this function returns an empty array (e.g. EmptyArray())
-Public Function ComplementOfSets(a As Variant, b As Variant) As Variant
+Public Function ComplementOfSets(A As Variant, B As Variant) As Variant
     Dim BDict As Dictionary
     Dim ComplementDict As Dictionary
     Dim obj As Variant
     
     ' If a is an empty array, exit returning an empty array
-    If EmptyArrayQ(a) Or IsEmpty(a) Then
+    If EmptyArrayQ(A) Or IsEmpty(A) Then
         Let ComplementOfSets = EmptyArray()
         Exit Function
     End If
     
-    If EmptyArrayQ(b) Or IsEmpty(b) Then
-        Let ComplementOfSets = a
+    If EmptyArrayQ(B) Or IsEmpty(B) Then
+        Let ComplementOfSets = A
         Exit Function
     End If
     
-    If NumberOfDimensions(a) < 1 Or NumberOfDimensions(b) < 1 Then
+    If NumberOfDimensions(A) < 1 Or NumberOfDimensions(B) < 1 Then
         Let ComplementOfSets = EmptyArray()
         
         Exit Function
@@ -1963,8 +2045,8 @@ Public Function ComplementOfSets(a As Variant, b As Variant) As Variant
     Set ComplementDict = New Dictionary
     
     ' Initialize ADict to get unique subset of ADict
-    If GetArrayLength(b) > 0 Then
-        For Each obj In b
+    If GetArrayLength(B) > 0 Then
+        For Each obj In B
             If Not BDict.Exists(Key:=obj) Then
                 Call BDict.Add(Key:=obj, Item:=obj)
             End If
@@ -1972,8 +2054,8 @@ Public Function ComplementOfSets(a As Variant, b As Variant) As Variant
     End If
     
     ' Populate ComplementDict
-    If GetArrayLength(a) > 0 Then
-        For Each obj In a
+    If GetArrayLength(A) > 0 Then
+        For Each obj In A
             If Not BDict.Exists(Key:=obj) And Not ComplementDict.Exists(Key:=obj) Then
                 Call ComplementDict.Add(Key:=obj, Item:=obj)
             End If
@@ -3075,11 +3157,11 @@ End Function
 ' A and B must have the same dimensions (e.g. 1 or 2D)
 ' If dim(A)<>dim(B) or dim(A)>2 or dim(B)>2 or dim(A)<1 or dim(B)<1 then
 ' this function returns EmptyArray()
-Public Function ConcatenateArrays(a As Variant, b As Variant) As Variant
-    If NumberOfDimensions(a) = 1 And NumberOfDimensions(b) = 1 Then
-        Let ConcatenateArrays = ConvertTo1DArray(GetRow(TransposeMatrix(Stack2DArrays(TransposeMatrix(a), TransposeMatrix(b))), 1))
+Public Function ConcatenateArrays(A As Variant, B As Variant) As Variant
+    If NumberOfDimensions(A) = 1 And NumberOfDimensions(B) = 1 Then
+        Let ConcatenateArrays = ConvertTo1DArray(GetRow(TransposeMatrix(StackArrays(TransposeMatrix(A), TransposeMatrix(B))), 1))
     Else
-        Let ConcatenateArrays = TransposeMatrix(Stack2DArrays(TransposeMatrix(a), TransposeMatrix(b)))
+        Let ConcatenateArrays = TransposeMatrix(StackArrays(TransposeMatrix(A), TransposeMatrix(B)))
     End If
 End Function
 

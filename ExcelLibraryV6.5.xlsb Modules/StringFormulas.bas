@@ -60,7 +60,7 @@ Public Function StringJoin(StringOrStringArray1 As Variant, Optional StringOrStr
     Dim IndexOffset As Integer
     
     ' Exit with Null if (StringOrStringArray1 fails String1DArrayQ and StringQ)
-    If Not (String1DArrayQ(StringOrStringArray1) Or String1DArrayQ(StringOrStringArray2)) Then
+    If Not (StringArrayQ(StringOrStringArray1) Or StringArrayQ(StringOrStringArray2)) Then
         Let StringJoin = Null
         Exit Function
     End If

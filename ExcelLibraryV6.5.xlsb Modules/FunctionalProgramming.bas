@@ -3,182 +3,294 @@ Option Explicit
 Option Base 1
 
 ' DESCRIPTION
-' Boolean function returning True if its argument is an array that has been dimensioned.
-' Returns False otherwise.  In other words, it returns False if its arg is neither an
-' an array nor dimensioned.
+' Applies a sequence of functions to an element, returning an array holding the result of applying
+' each of the functions to the element. This function returns Null if the function array fails
+' Predicates.StringArrayQ.  This function returns an empty array if the array of function names is empty.
+' This function returns Null if AnElement is not atomic.
 '
 ' PARAMETERS
-' 1. arg - any value or object reference
+' 1. AFunctionNameArray - An array of function names
+' 2. CallingWorkbook - A reference to the workbook where the functions in AFunctionNameArray are located
+' 3. AnElement - Any atomic value to which each of the functions will be applied
+' 4. ParameterCheckQ (optional) - If this explicitly set to False, no parameter consistency checks are
+'    perform.
 '
 ' RETURNED VALUE
-' True when arg is a dimensioned array. False otherwise.
-Public Function Through(AFunctionNameArray As Variant, CallingWorkbook As Workbook, AnElement As Variant) As Variant
-    Dim Result1DArray() As Variant
-    Dim i As Long
-
-    ' Exit with Null if AFunctionNameArray is undimensioned or not 1D
-    If NumberOfDimensions(AFunctionNameArray) <> 1 Then
-        Let Through = Null
-        Exit Function
-    End If
-    
-    ' Exit the empty array if AFunctionNameArray satisfies EmptyArrayQ
-    If EmptyArrayQ(AFunctionNameArray) Then
-        Let Through = EmptyArray()
-        Exit Function
-    End If
-    
-    ' Exit with Null if any of the elements of AFunctionNameArray fails StringQ
-    For i = LBound(AFunctionNameArray, 1) To UBound(AFunctionNameArray, 1)
-        If Not StringQ(AFunctionNameArray(i)) Then
-            Let Through = Null
-            Exit Function
-        End If
-    Next
-    
-    ' Pre-allocate array to hold results
-    ReDim Result1DArray(LBound(AFunctionNameArray) To UBound(AFunctionNameArray))
-    
-    ' Compute values from applying each function to AnElement
-    For i = LBound(AFunctionNameArray) To UBound(AFunctionNameArray)
-        Let Result1DArray(i) = Run("'" & CallingWorkbook.Name & "'!" & AFunctionNameArray(i), AnElement)
-    Next i
-    
-    ' Return results array
-    Let Through = Result1DArray
-End Function
-
-' This function returns an array of the same length as A1DArray with the result of apply
-' the function with name AFunctionName to each element of A1Array
-'
-' The function being mapped over the array must be an array of variants.  If it is not,
-' one has to pass the optional TheDataType
-Public Function ArrayMap(AFunctionName As String, CallingWorkbook As Workbook, A1DArray As Variant) As Variant
-    Dim Result1DArray() As Variant
+' An array with the results of applying a sequence of the functions to an element.
+Public Function Through(AFunctionNameArray As Variant, _
+                        CallingWorkbook As Workbook, _
+                        AnElement As Variant, _
+                        Optional ParameterCheckQ As Boolean = True) As Variant
+    Dim ReturnArray() As Variant
     Dim c As Long
     
-    ' Exit with Null if A1DArray is not a dimensioned, 1D array
-    If NumberOfDimensions(A1DArray) <> 1 Then
-        Let ArrayMap = Null
+    ' Set default return value
+    Let Through = Null
+    
+    ' Check parameters for consistency only if ParameterCheckQ is True
+    If ParameterCheckQ Then
+        ' Exit with Null if AFunctionNameArray is undimensioned or not 1D
+        If Not StringArrayQ(AFunctionNameArray) Then Exit Function
         
-        Exit Function
+        ' Exit the empty array if AFunctionNameArray satisfies EmptyArrayQ
+        If EmptyArrayQ(AFunctionNameArray) Then
+            Let Through = EmptyArray()
+            
+            Exit Function
+        End If
+        
+        ' Exit with Null if AnElement is not atomic
+        If Not AtomicQ(AnElement) Then Exit Function
     End If
+    
+    ' Pre-allocate array to hold results
+    ReDim ReturnArray(1 To Length(AFunctionNameArray))
+    
+    ' Compute values from applying each function to AnElement
+    For c = 1 To Length(AFunctionNameArray)
+        Let ReturnArray(c) = Run("'" & CallingWorkbook.Name & "'!" & AFunctionNameArray(c + LBound(AFunctionNameArray) - 1), _
+                                 AnElement)
+    Next
+    
+    ' Return results array
+    Let Through = ReturnArray
+End Function
 
-    ' Exit with the empty array if A1DArray is empty
-    If EmptyArrayQ(A1DArray) Then
-        Let ArrayMap = EmptyArray()
-        
-        Exit Function
+' DESCRIPTION
+' Applies a function to an array of atomic elements, returning an array with the results.
+' This function returns Null if the array of elements is not atomic. This function returns an
+' empty array if the array of elements is empty.
+'
+' PARAMETERS
+' 1. AFunctionName - The name of the function to apply to each of the elements in the array
+' 2. CallingWorkbook - A reference to the workbook where the function is located
+' 3. A1DArray - An array of atomic elements
+' 4. ParameterCheckQ (optional) - If this explicitly set to False, no parameter consistency checks are
+'    perform.
+'
+' RETURNED VALUE
+' An array with the results of applying a sequence of the functions to an element.
+Public Function ArrayMap(AFunctionName As String, _
+                         CallingWorkbook As Workbook, _
+                         A1DArray As Variant, _
+                         Optional ParameterCheckQ As Boolean = True) As Variant
+    Dim ReturnArray As Variant
+    Dim c As Long
+    
+    ' Set default return value
+    Let ArrayMap = Null
+    
+    ' Check parameters for consistency only if ParameterCheckQ is True
+    If ParameterCheckQ Then
+        ' Exit with Null if A1DArray is not a dimensioned, 1D array
+        If Not AtomicArrayQ(A1DArray) Then Exit Function
+    
+        ' Exit with the empty array if A1DArray is empty
+        If EmptyArrayQ(A1DArray) Then
+            Let ArrayMap = EmptyArray
+            
+            Exit Function
+        End If
     End If
     
     ' Pre-allocate results array
-    ReDim Result1DArray(LBound(A1DArray, 1) To UBound(A1DArray, 1))
+    ReDim ReturnArray(1 To Length(A1DArray))
     
     ' Compute the values from mapping the function over the array
-    For c = LBound(A1DArray) To UBound(A1DArray)
-        Let Result1DArray(c) = Run("'" & CallingWorkbook.Name & "'!" & AFunctionName, A1DArray(c))
+    For c = 1 To Length(A1DArray)
+        Let ReturnArray(c) = Run("'" & CallingWorkbook.Name & "'!" & AFunctionName, _
+                                 A1DArray(c + LBound(A1DArray) - 1))
     Next c
 
     ' Return the array holding the mapped results
-    Let ArrayMap = Result1DArray
+    Let ArrayMap = ReturnArray
 End Function
 
+' DESCRIPTION
+' Returns an array with the elements in the given array returning True when applying the
+' given function. This function returns Null if the array of elements is not atomic. It
+' returns an empty array if the array of elements is empty.
+'
+' PARAMETERS
+' 1. A1DArray - An array of atomic elements
+' 2. CallingWorkbook - A reference to the workbook where the function is located
+' 3. AFunctionName - The name of the function to apply to each of the elements in the array
+' 4. ParameterCheckQ (optional) - If this explicitly set to False, no parameter consistency checks are
+'    perform.
+'
+' RETURNED VALUE
+' An array with the results of applying a sequence of the functions to an element.
+Public Function ArraySelect(A1DArray As Variant, _
+                            CallingWorkbook, _
+                            AFunctionName As String, _
+                            Optional ParameterCheckQ As Boolean = True) As Variant
+    Dim ReturnArray As Variant
+    Dim var As Variant
+    Dim c As Long
+    
+    ' Set default return value
+    Let ArraySelect = Null
+    
+    ' Check parameters for consistency only if ParameterCheckQ is True
+    If ParameterCheckQ Then
+        ' Exit with Null if A1DArray is not a dimensioned, 1D array
+        If Not AtomicArrayQ(A1DArray) Then Exit Function
+    
+        ' Exit with the empty array if A1DArray is empty
+        If EmptyArrayQ(A1DArray) Then
+            Let ArrayMap = EmptyArray
+            
+            Exit Function
+        End If
+    End If
+    
+    ' Pre-allocated array to return at most all of the elements in the array
+    ReDim ReturnArray(1 To Length(A1DArray))
+    
+    ' Cycle through the array, adding to the return array those elements yielding True
+    Let c = 0
+    For Each var In A1DArray
+        If Run("'" & CallingWorkbook.Name & "'!" & AFunctionName, var) Then
+            Let c = c + 1
+            Let ReturnArray(c) = var
+        End If
+    Next
+    
+    If c = 0 Then
+        Let ArraySelect = EmptyArray
+    Else
+        ' Throw away the unused slots in ReturnArray
+        ReDim Preserve ReturnArray(1 To c)
+        Let ArraySelect = ReturnArray
+    End If
+End Function
+
+' DESCRIPTION
 ' Returns the result of performing a Mathematica-like MapThread.  It returns an array with the same
 ' length as any of the array elements of parameter ArrayOfEqualLength1DArrays after the sequential
-' application of the function with name AFunctionName to the arrays resulting from packing ith element
-' of each of the elements in ArrayOfEqualLength1DArrays.
+' application of the function with name AFunctionName to the arrays resulting from packing the ith
+' element of each of the arrays in ArrayOfEqualLength1DArrays.
 '
-' If the parameters are compatible with expectations, the function returns Nothing
+' If the parameters are compatible with expectations, the function returns Null
 '
-' Example: ArrayMapThread("StringJoin", array(array(1,2,3), array(10,20,30))) returns
+' Example: ArrayMapThread("StringJoin", ThisWorkbook, array(1,2,3), array(10,20,30)) returns
 '          ("110", "220", "330")
+'
+' PARAMETERS
+' 1. AFunctionName - Name of the function to apply
+' 2. CallingWorkbook - A reference to the workbook where the function is located
+' 3. ArrayOfEqualLength1DArrays - A sequence of equal-length, atomic arrays
+'
+' RETURNED VALUE
+' An array with the results of applying the given function to the threading of the parameter arrays
 Public Function ArrayMapThread(AFunctionName As String, _
                                CallingWorkbook As Workbook, _
-                               ArrayOfEqualLength1DArrays As Variant) As Variant
+                               ParamArray ArrayOfEqualLength1DArrays() As Variant) As Variant
     Dim var As Variant
+    Dim N As Long
     Dim r As Long
     Dim c As Long
-    Dim ParamsArray() As Variant
-    Dim Result1DArray() As Variant
-
-    ' Input consistency checks
+    Dim ArrayNumber As Long
+    Dim ElementNumber As Long
+    Dim ParamsArray As Variant
+    Dim CallArray As Variant
+    Dim ReturnArray As Variant
     
-    ' Exit with Nothing if ArrayOfEqualLength1DArrays
-    If Not IsArray(ArrayOfEqualLength1DArrays) Then
-        Set ArrayMapThread = Null
+    ' Set default return value
+    Let ArrayMapThread = Null
+    
+    ' Make a copy of array of parameters so we may apply other functions to it
+    Let ParamsArray = CopyParamArray(ArrayOfEqualLength1DArrays)
+    
+    ' Exit with Null if ParamsArray is not dimensioned
+    If Not DimensionedQ(ParamsArray) Then Exit Function
+    
+    ' Exit with Null if ParamsArray is empty
+    If EmptyArrayQ(ParamsArray) Then
+        Let ArrayMapThread = EmptyArray
         Exit Function
     End If
     
-    ' Exit with Nothing if any one of the elts in ArrayOfEqualLength1DArrays is not an array
-    For Each var In ArrayOfEqualLength1DArrays
-        If Not IsArray(var) Then
-            Set ArrayMapThread = Null
-            Exit Function
-        End If
+    ' Get the length of the first parameter array
+    Let N = Length(First(ParamsArray))
+    
+    ' Exit with Null if the arrays don't all have the same length or are atomic
+    For Each var In ParamsArray
+        If Length(var) <> N Or Not AtomicArrayQ(var) Then Exit Function
     Next
     
-    ' Exit with Nothing if elts of ArrayOfEqualLength1DArrays are not of equal length
-    For Each var In ArrayOfEqualLength1DArrays
-        If GetArrayLength(var) <> GetArrayLength(First(ArrayOfEqualLength1DArrays)) Then
-            Set ArrayMapThread = Null
-            Exit Function
-        End If
+    ' Pre-allocate array to hold results and each function call's array
+    ReDim ReturnArray(1 To N)
+    ReDim CallArray(1 To Length(ParamsArray))
+
+    ' Loop over the array elements to compute results to return
+    For r = 1 To N
+        ' Assemble array of value for this function call
+        For c = 1 To Length(ParamsArray)
+            Let ArrayNumber = c + LBound(ParamsArray) - 1
+            Let ElementNumber = r + LBound(ParamsArray(ArrayNumber)) - 1
+            Let CallArray(c) = ParamsArray(ArrayNumber)(ElementNumber)
+        Next
+        
+        Let ReturnArray(r) = Run("'" & CallingWorkbook.Name & "'!" & AFunctionName, CallArray)
     Next
     
-    ' Exit if ArrayOfEqualLength1DArrays is an empty array
-    If EmptyArrayQ(ArrayOfEqualLength1DArrays) Then
-        Set ArrayMapThread = Null
-        Exit Function
-    End If
-    
-    ' Exit with Nothing if any of the elements of ArrayOfEqualLength1DArrays is an empty array
-    If EmptyArrayQ(First(ArrayOfEqualLength1DArrays)) Then
-        Set ArrayMapThread = Null
-        Exit Function
-    End If
-    
-    ' If the code gets here, inputs are consistent
-    ReDim ParamsArray(LBound(ArrayOfEqualLength1DArrays) To UBound(ArrayOfEqualLength1DArrays))
-    ReDim Result1DArray(LBound(First(ArrayOfEqualLength1DArrays)) To UBound(First(ArrayOfEqualLength1DArrays)))
-
-    For r = LBound(First(ArrayOfEqualLength1DArrays)) To UBound(First(ArrayOfEqualLength1DArrays))
-        For c = LBound(ArrayOfEqualLength1DArrays) To UBound(ArrayOfEqualLength1DArrays)
-            Let ParamsArray(c) = ArrayOfEqualLength1DArrays(c)(r)
-        Next c
-        
-        Let Result1DArray(r) = Run("'" & CallingWorkbook.Name & "'!" & AFunctionName, ParamsArray)
-    Next r
-    
-    Let ArrayMapThread = Result1DArray
+    ' Return the array used
+    Let ArrayMapThread = ReturnArray
 End Function
 
-' This function returns the sub-array of A1DArray defined by those elements for which the funciton yields
-' AFunctionName is the string name of a boolean function.  This function must be able to act of each element of
-' A1DArray.
-Public Function ArraySelect(A1DArray As Variant, TheWorkbook, AFunctionName As String) As Variant
-    Dim Result1DArray As Dictionary
-    Dim i As Long
-        
-    If NumberOfDimensions(A1DArray) <> 1 Then
-        Let ArraySelect = EmptyArray()
-        
-        Exit Function
-    End If
+' DESCRIPTION
+' Returns the result of performing a Mathematica-like MapThread.  It returns an array with the same
+' length as any of the array elements of parameter ArrayOfEqualLength1DArrays after the sequential
+' application of the function with name AFunctionName to the arrays resulting from packing the ith
+' element of each of the arrays in ArrayOfEqualLength1DArrays.
+'
+' This function performs no parameter consistency checks.
+'
+' Example: ArrayMapThread("StringJoin", ThisWorkbook, array(1,2,3), array(10,20,30)) returns
+'          ("110", "220", "330")
+'
+' PARAMETERS
+' 1. AFunctionName - Name of the function to apply
+' 2. CallingWorkbook - A reference to the workbook where the function is located
+' 3. ArrayOfEqualLength1DArrays - A sequence of equal-length, atomic arrays
+'
+' RETURNED VALUE
+' An array with the results of applying the given function to the threading of the parameter arrays
+Public Function ArrayMapThreadNoParamCheck(AFunctionName As String, _
+                                           CallingWorkbook As Workbook, _
+                                           ParamArray ArrayOfEqualLength1DArrays() As Variant) As Variant
+    Dim N As Long
+    Dim r As Long
+    Dim c As Long
+    Dim ArrayNumber As Long
+    Dim ElementNumber As Long
+    Dim ParamsArray As Variant
+    Dim CallArray As Variant
+    Dim ReturnArray As Variant
     
-    Set Result1DArray = New Dictionary
+    ' Make a copy of array of parameters so we may apply other functions to it
+    Let ParamsArray = CopyParamArray(ArrayOfEqualLength1DArrays)
     
-    For i = LBound(A1DArray) To UBound(A1DArray)
-        If Run("'" & TheWorkbook.Name & "'!" & AFunctionName, A1DArray(i)) Then
-            Call Result1DArray.Add(Key:=i, Item:=A1DArray(i))
-        End If
-    Next i
+    ' Get the length of the first parameter array
+    Let N = Length(First(ParamsArray))
     
-    If Result1DArray.Count = 0 Then
-        Let ArraySelect = EmptyArray()
-    ElseIf Result1DArray.Count = 1 Then
-        Let ArraySelect = Array(Result1DArray.Item(Key:=LBound(A1DArray)))
-    Else
-        Let ArraySelect = Result1DArray.Items
-    End If
-End Function
+    ' Pre-allocate array to hold results and each function call's array
+    ReDim ReturnArray(1 To N)
+    ReDim CallArray(1 To Length(ParamsArray))
 
+    ' Loop over the array elements to compute results to return
+    For r = 1 To N
+        ' Assemble array of value for this function call
+        For c = 1 To Length(ParamsArray)
+            Let ArrayNumber = c + LBound(ParamsArray) - 1
+            Let ElementNumber = r + LBound(ParamsArray(ArrayNumber)) - 1
+            Let CallArray(c) = ParamsArray(ArrayNumber)(ElementNumber)
+        Next
+        
+        Let ReturnArray(r) = Run("'" & CallingWorkbook.Name & "'!" & AFunctionName, CallArray)
+    Next
+    
+    ' Return the array used
+    Let ArrayMapThreadNoParamCheck = ReturnArray
+End Function
