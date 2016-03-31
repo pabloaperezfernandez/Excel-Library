@@ -1434,6 +1434,7 @@ Public Sub TestArraysInsert()
         PrintArray Insert(A, "*", i)
     Next
     
+    Debug.Print
     Let A = ConstantArray(Empty, 3, 3)
     For i = 1 To 3: Let A(i, i) = i: Next
     Debug.Print "Testing insertion into 2D array:"

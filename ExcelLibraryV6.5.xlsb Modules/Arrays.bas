@@ -1832,73 +1832,134 @@ Public Function Insert(AnArray As Variant, _
             Let Insert = Insert(ResultArray, TheElement, ShiftedThePositions)
             Exit Function
     End Select
-    If NumberOfDimensions(AnArray) = 1 Then
-    End If
 End Function
 
-' This function is the exact opposite of Take.  It removes what take would return
-Public Function Drop(AnArray As Variant, N As Variant) As Variant
-    Dim DualIndex As Variant
-    Dim RenormalizedIndices As Variant
+' DESCRIPTION
+' Returns the array resulting from dropping the element at the given position.  It may be invoked with
+' any of the following forms:
+'
+' a. Drop(AnArray, n) - With n>0, returns the array resulting from dropping the first n elements of AnArray.
+'    n may range from 1 to Length(AnArray).  If AnArray is a 2D array satisfying Predicates.AtomicTableQ, the
+'    rows are interpreted as the elements.
+' b. Drop(AnArray, -n) - With n>0, returns the array resulting from dropping the last n elements of AnArray.
+'    n may range from 1 to Length(AnArray).  If AnArray is a 2D array satisfying Predicates.AtomicTableQ, the
+'    rows are interpreted as the elements.
+' c. Drop(AnArray, Array(n)) - With n<>0, returns the array resulting from dropping the elements with normalized
+'    index of n.
+' d. Drop(AnArray, Array(n1,n2)) - With n1 and n2<>0 returns the array resulting from dropping the elements between
+'    the normalized elements indices n1 and n2.  The normalized value of n1 must be smaller than or equal to that
+'    of n2.
+' e. Drop(AnArray, Array(n1,n2,step)) - With n1 and n2<>0 returns the array resulting from dropping the elements between
+'    the normalized elements indices n1 and n2 with the given step.  The normalized value of n1 must be smaller than or
+'    equal to that of n2.  step must be a whole number equal to or larger of 1.
+'
+' PARAMETERS
+' 1. AnArray - A dimensioned array
+' 2. ThePositions - One of the forms detailed above
+'
+' RETURNED VALUE
+' The requested slice or element of the array.
+Public Function Drop(AnArray As Variant, ThePositions As Variant) As Variant
     Dim var As Variant
-    Dim c As Long
-
-    ' Exit with argument unchanged if the array has fewer or more than 2 dimensions
-    If NumberOfDimensions(AnArray) = 0 Or NumberOfDimensions(AnArray) > 2 Then
+    Dim i As Long
+    Dim ResultArray As Variant
+    Dim ni As Long
+    Dim n1 As Long
+    Dim n2 As Long
+    Dim TheStep As Long
+    Dim IndicesToDrop As Variant
+    
+    ' Set default return value
+    Let Insert = Null
+    
+    ' Process the case when ThePositions is an empty array
+    If EmptyArrayQ(ThePositions) Then
         Let Drop = AnArray
-
-        Exit Function
-    End If
-
-    ' Exit with argument unchanged if either N is not an integer or an array of integers
-    If Not (IsNumeric(N) Or IsNumericArrayQ(N)) Or EmptyArrayQ(N) Or EmptyArrayQ(AnArray) Then
-        Let Drop = EmptyArray()
-        
         Exit Function
     End If
     
-    If IsNumericArrayQ(N) Then
-        For Each var In N
-            If CLng(var) <> var Then
-                Let Drop = EmptyArray()
+    Select Case NumberOfDimensions(AnArray)
+        ' Process case of insertion in a 1D array
+        Case 1
+            ' Process the case when ThePositions is a non-zero whole number
+            If WholeNumberQ(ThePositions) Then
+                ' Normalize the position
+                Let ni = NormalizeIndex(AnArray, ThePositions, 1, False)
+                
+                If ThePositions >= 0 Then
+                    Let Drop = Take(AnArray, Array(ni + 1, -1))
+                Else
+                    Let Drop = Take(AnArray, Array(1, ni - 1))
+                End If
                 
                 Exit Function
             End If
-        Next
-    End If
-    
-    ' Case of N an integer
-    If NumberOfDimensions(N) = 0 Then
-        If NumberOfDimensions(AnArray) = 1 Then
-            If N > 0 Then
-                Let DualIndex = IIf(N > GetArrayLength(AnArray), EmptyArray(), -(GetArrayLength(AnArray) - N))
-            Else
-                Let DualIndex = IIf(Abs(N) > GetArrayLength(AnArray), EmptyArray(), GetArrayLength(AnArray) + N)
+            
+            If WholeNumberArrayQ(ThePositions) Then
+                Select Case Length(ThePositions)
+                    Case 1
+                        Let ni = NormalizeIndex(AnArray, First(ThePositions))
+                        
+                        If ni = 1 Then
+                            Let Drop = Rest(AnArray)
+                        ElseIf ni = Length(AnArray) Then
+                            Let Drop = Most(AnArray)
+                        Else
+                            Let Drop = ConcatenateArrays(Take(AnArray, ni - 1), Take(AnArray, -(ni - 1)))
+                        End If
+                        
+                        Exit Function
+                    Case 2
+                        Let n1 = NormalizeIndex(AnArray, First(ThePositions))
+                        Let n2 = NormalizeIndex(Anrray, Last(ThePositions))
+                        
+                        If n1 > n2 Then
+                            Let Drop = Null
+                        Else
+                            If n1 = 1 And n2 = Length(AnArray) Then
+                                Let Drop = EmptyArray()
+                            ElseIf n1 = 1 Then
+                                Let Drop = Take(AnArray, Array(n2 + 1, -1))
+                            ElseIf n2 = Length(AnArray) Then
+                                Let Drop = Take(AnArray, Array(1, n1 - 1))
+                            Else
+                                Let Drop = ConcatenateArrays(Take(AnArray, n1 - 1), _
+                                                             Take(AnArray, Array(n2 + 1, -1)))
+                            End If
+                        End If
+                    Case 3
+                        Let TheStep = Last(ThePositions)
+                        
+                        If TheStep <= 0 Then
+                            Let Drop = Null
+                        Else
+                            Let n1 = NormalizeIndex(AnArray, First(ThePositions))
+                            Let n2 = NormalizeIndex(AnArray, First(First(ThePositions)))
+                        
+                            Let IndicesToDrop = EmptyArray()
+                            For i = n1 To n3 Step TheStep
+                                Let IndicesToDrop = Append(IndicesToDrop, n1 + TheStep * (i - 1))
+                            Next
+                            
+                            For i = 1 To Length(IndicesToDrop)
+                                '***HERE
+                            Next
+                            
+                            Let Drop = ResultArray
+                        End If
+                    Case Else
+                        Let Drop = Null
+                End Select
+                
+                Exit Function
             End If
-        Else
-            If N > 0 Then
-                Let DualIndex = IIf(N > GetNumberOfRows(AnArray), EmptyArray(), -(GetNumberOfRows(AnArray) - N))
-            Else
-                Let DualIndex = IIf(Abs(N) > GetNumberOfRows(AnArray), EmptyArray(), GetNumberOfRows(AnArray) + N)
-            End If
-        End If
-    
-        Let Drop = Take(AnArray, DualIndex)
-    
-        Exit Function
-    End If
-    
-    ' Proceed with case of N a 1D array of integers
-    
-    ' Turn all indices in N into their positive equivalents
-    Let c = 1
-    Let RenormalizedIndices = ConstantArray(Empty, GetArrayLength(N))
-    For Each var In N
-        Let RenormalizedIndices(c) = IIf(var < 0, IIf(NumberOfDimensions(AnArray) = 1, GetNumberOfColumns(AnArray), GetNumberOfRows(AnArray)) + var + 1, var)
-        Let c = c + 1
-    Next
-    
-    Let Drop = Take(AnArray, ComplementOfSets(CreateSequentialArray(1, GetArrayLength(AnArray)), RenormalizedIndices))
+            
+            ' If the code gets here, ThePositions has an invalid form.
+            Let Drop = Null
+        ' Process case of droppoing from a 2D array
+        Case 2
+
+    End Select
 End Function
 
 ' This function turns a 1D array of 1D arrays into a 2D array.
