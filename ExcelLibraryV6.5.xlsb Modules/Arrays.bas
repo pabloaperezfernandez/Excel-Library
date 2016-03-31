@@ -240,7 +240,7 @@ Public Function Last(AnArray As Variant) As Variant
     ElseIf NumberOfDimensions(AnArray) = 2 Then
         Let Last = Flatten(GetRow(AnArray, GetNumberOfRows(AnArray)))
     Else
-        Let Last = Nul
+        Let Last = Null
     End If
 End Function
 
@@ -336,19 +336,70 @@ End Function
 '
 ' RETURNED VALUE
 ' A 1D array all the values in the leaves of the tree represented by the original, nested array.
-Public Function Flatten(A As Variant) As Variant
+Public Function Flatten(A As Variant, Optional ParameterCheckQ As Boolean = True) As Variant
     Dim var As Variant
     Dim var2 As Variant
     Dim TempVariant As Variant
-    Dim ResultsDict As Dictionary
+    Dim ResultsArray() As Variant
+    Dim i As Long
+    
+    If ParameterCheckQ Then
+        If Not IsArray(A) Then
+            Let Flatten = Null
+            Exit Function
+        End If
+    End If
     
     If AtomicQ(A) Then
         Let Flatten = A
         Exit Function
     End If
+
+    Let i = 0
+    For Each var In A
+        If AtomicQ(var) Then
+            Let i = i + 1
+            ReDim Preserve ResultsArray(i)
+            Let ResultsArray(i) = var
+        ElseIf IsArray(var) Then
+            Let TempVariant = Flatten(var)
+            
+            If ParameterCheckQ Then
+                If IsNull(TempVariant) Then
+                    Let Flatten = Null
+                    Exit Function
+                End If
+            End If
+        
+            For Each var2 In Flatten(var)
+                Let i = i + 1
+                ReDim Preserve ResultsArray(i)
+                Let ResultsArray(i) = var2
+            Next
+        Else
+            Let Flatten = Null
+            Exit Function
+        End If
+    Next
     
-    If Not IsArray(A) Then
-        Let Flatten = Null
+    Let Flatten = ResultsArray
+End Function
+
+Public Function FlattenOLD(A As Variant, Optional ParameterCheckQ As Boolean = True) As Variant
+    Dim var As Variant
+    Dim var2 As Variant
+    Dim TempVariant As Variant
+    Dim ResultsDict As Dictionary
+    
+    If ParameterCheckQ Then
+        If Not IsArray(A) Then
+            Let Flatten = Null
+            Exit Function
+        End If
+    End If
+    
+    If AtomicQ(A) Then
+        Let Flatten = A
         Exit Function
     End If
 
@@ -360,9 +411,11 @@ Public Function Flatten(A As Variant) As Variant
         ElseIf IsArray(var) Then
             Let TempVariant = Flatten(var)
             
-            If IsNull(TempVariant) Then
-                Let Flatten = Null
-                Exit Function
+            If ParameterCheckQ Then
+                If IsNull(TempVariant) Then
+                    Let Flatten = Null
+                    Exit Function
+                End If
             End If
         
             For Each var2 In Flatten(var)
@@ -396,38 +449,35 @@ Public Function NormalizeIndex(AnArray As Variant, _
                                Optional DimensionIndexRelativeTo As Long = 1, _
                                Optional ParameterCheckQ As Boolean = True) As Variant
     ' This is here for high-speed applications
-    If Not ParameterCheckQ Then
-        Let NormalizeIndex = TheIndex
-        Exit Function
-    End If
-                               
-    ' Exit with Null if AnArray is undimensioned
-    If Not DimensionedQ(AnArray) Then
-        Let NormalizeIndex = Null
-        Exit Function
-    End If
-     
-    ' Exit if AnArray is the empty 1D array
-    If EmptyArrayQ(AnArray) Then
-        Let NormalizeIndex = Null
-        Exit Function
-    End If
+    If ParameterCheckQ Then
+        ' Exit with Null if AnArray is undimensioned
+        If Not DimensionedQ(AnArray) Then
+            Let NormalizeIndex = Null
+            Exit Function
+        End If
+         
+        ' Exit if AnArray is the empty 1D array
+        If EmptyArrayQ(AnArray) Then
+            Let NormalizeIndex = Null
+            Exit Function
+        End If
+            
+        ' Exit with Null if TheIndex is not a positive integer
+        If Not NonzeroWholeNumberQ(TheIndex) Then
+            Let NormalizeIndex = Null
+            Exit Function
+        End If
         
-    ' Exit with Null if TheIndex is not a positive integer
-    If Not NonzeroWholeNumberQ(TheIndex) Then
-        Let NormalizeIndex = Null
-        Exit Function
-    End If
-    
-    ' Exit with Null if TheIndex is outside of acceptable bounds
-    If DimensionIndexRelativeTo > NumberOfDimensions(AnArray) Then
-        Let NormalizeIndex = Null
-        Exit Function
-    End If
-    
-    If Abs(TheIndex) < 1 Or Abs(TheIndex) > UBound(AnArray, DimensionIndexRelativeTo) - LBound(AnArray, DimensionIndexRelativeTo) + 1 Then
-        Let NormalizeIndex = Null
-        Exit Function
+        ' Exit with Null if TheIndex is outside of acceptable bounds
+        If DimensionIndexRelativeTo > NumberOfDimensions(AnArray) Then
+            Let NormalizeIndex = Null
+            Exit Function
+        End If
+        
+        If Abs(TheIndex) < 1 Or Abs(TheIndex) > UBound(AnArray, DimensionIndexRelativeTo) - LBound(AnArray, DimensionIndexRelativeTo) + 1 Then
+            Let NormalizeIndex = Null
+            Exit Function
+        End If
     End If
     
     ' Handles non-negative TheIndex case
@@ -971,6 +1021,77 @@ Public Function Take(AnArray As Variant, ParamArray Indices() As Variant) As Var
 End Function
 
 ' DESCRIPTION
+' A version of Arrays.Part that does no parameter consistency checks.Returns the
+' subset of the 1D or 2D array specified by the indices.  Most common uses are:
+'
+' a. TakeNoParamCheck(m, n) - with n>0 returns the first n elements or rows of m
+' b. TakeNoParamCheck(m, -n) - with n>0 returns the last n elements or rows of m
+'
+' PARAMETERS
+' 1. AnArray - A dimensioned array
+' 2. Indices - a sequence of indices (with at least one supplied) of the forms below, with each one
+'    referring to a different dimension of the array. At the moment we process only 1D and 2D arrays.
+'    So, Indices can only be one or two of the forms below.
+'
+' Indices can take any of the following forms:
+' 1. n - Get elements 1 through
+' 2. -n - Elements from the end of the array indexed by -1 to -n from right to left
+' 2. [{n_1, n_2}] - Elements n_1 through n_2
+'
+' RETURNED VALUE
+' The requested slice or element of the array.
+Public Function TakeNoParamCheck(AnArray As Variant, ParamArray Indices() As Variant) As Variant
+    Dim IndicesCopy As Variant
+    
+    ' We use our function to convert the ParamArray to a regular array
+    Let IndicesCopy = CopyParamArray(Indices)
+
+    ' Collect the chosen array's slice depending on its number of dimensions
+    If Length(IndicesCopy) = 1 Then
+        ' Process case on a single whole number given as index
+        If PositiveWholeNumberQ(First(IndicesCopy)) Then
+            Let TakeNoParamCheck = PartNoParamCheck(AnArray, Array(1, First(IndicesCopy)))
+        ElseIf NegativeWholeNumberQ(First(IndicesCopy)) Then
+            Let TakeNoParamCheck = PartNoParamCheck(AnArray, Array(First(IndicesCopy), -1))
+        ElseIf WholeNumberArrayQ(First(IndicesCopy)) Then
+            Let TakeNoParamCheck = PartNoParamCheck(AnArray, First(IndicesCopy))
+        Else
+            Let TakeNoParamCheck = Null
+        End If
+    Else
+        ' Process first dimensional index
+        If PositiveWholeNumberQ(First(IndicesCopy)) Then
+            Let First(IndicesCopy) = Array(1, First(IndicesCopy))
+        ElseIf NegativeWholeNumberQ(First(IndicesCopy)) Then
+            Let First(IndicesCopy) = Array(First(IndicesCopy), -1)
+        ElseIf WholeNumberArrayQ(First(IndicesCopy)) Then
+            Let First(IndicesCopy) = First(IndicesCopy)
+        Else
+            Let First(IndicesCopy) = Null
+        End If
+        
+        ' Process last dimensional index
+        If PositiveWholeNumberQ(Last(IndicesCopy)) Then
+            Let Last(IndicesCopy) = Array(1, Last(IndicesCopy))
+        ElseIf NegativeWholeNumberQ(Last(IndicesCopy)) Then
+            Let Last(IndicesCopy) = Array(Last(IndicesCopy), -1)
+        ElseIf WholeNumberArrayQ(Last(IndicesCopy)) Then
+            Let Last(IndicesCopy) = Last(IndicesCopy)
+        Else
+            Let Last(IndicesCopy) = Null
+        End If
+        
+        ' Exit with null if either index set is null
+        If NullQ(First(IndicesCopy)) Or NullQ(Last(IndicesCopy)) Then
+            Let TakeNoParamCheck = Null
+        Else
+            ' Call Part with the given dimensional index sets
+            Let TakeNoParamCheck = PartNoParamCheck(AnArray, First(IndicesCopy), Last(IndicesCopy))
+        End If
+    End If
+End Function
+
+' DESCRIPTION
 ' Returns the row with row index RowNumber as a 1D matrix if aMatrix satisfies Predicates.AtomicTableQ.
 ' We use the convention that 1 refers to the first row and -1 to the last.  The function returns Null
 ' if either aMatrix or RowNumber are invalid.
@@ -1344,13 +1465,13 @@ Public Function StackArrays(A As Variant, _
         ReDim ReturnArray(1 To NumRowsA + NumRowsB, 1 To NumColsB)
         For r = 1 To NumRowsA
             For c = 1 To NumColsA
-                Let ReturnArray(r, c) = A(r + LBound(A, 1) - 1, c + LBound(A, 1) - 1)
+                Let ReturnArray(r, c) = A(r + LBound(A, 1) - 1, c + LBound(A, 2) - 1)
             Next c
         Next r
     
         For r = 1 To NumRowsB
             For c = 1 To NumColsB
-                Let ReturnArray(NumRowsA + r, c) = B(r + LBound(B, 1) - 1, c + LBound(B, 1) - 1)
+                Let ReturnArray(NumRowsA + r, c) = B(r + LBound(B, 1) - 1, c + LBound(B, 2) - 1)
             Next c
         Next r
     End If
@@ -1551,129 +1672,168 @@ Public Function PrintArray(TheArray As Variant) As String
     Let PrintArray = ReturnString
 End Function
 
-' This function inserts either an atomic element into a 1D array satisfying RowVectorQ or
-' a row into a 2D array filled exclusively with atomic elements
-' AnArray is returned unevaluated if either AnArray, TheElt, or ThePos is not as expected.
-' To insert in AnArray's first position, set ThePos = LBound(AnArray)
-' To insert in AnArray's last position, set ThePos = UBound(AnArray)+1
-' You should think of acceptable values for ThePos as insert TheElt at ThePos and
-' shifting to the right anything in AnArray at and to the right of ThePos.
-Public Function Insert(AnArray As Variant, TheElt As Variant, ThePos As Long) As Variant
-    Dim FirstPart As Variant
-    Dim LastPart As Variant
-    
-    If Not DimensionedQ(AnArray) Then
-        Let Insert = Null
-        Exit Function
-    End If
-    
-    If IsNull(TheElt) Then
-        Let Insert = Null
-        Exit Function
-    End If
-
-    ' Exit returning AnArray unevaluated if neither AnArray nor ThePos make sense
-    If Not RowVectorQ(AnArray) And Not MatrixQ(AnArray) Or Not IsNumeric(ThePos) Then
-        Let Insert = Null
-        Exit Function
-    End If
-    
-    ' Exit if AnArray is a row vector TheElt is not an atomic expression
-    If RowVectorQ(AnArray) And IsArray(TheElt) Then
-        Let Insert = Null
-        Exit Function
-    End If
-    
-    ' Exit if AnArray is a matrix and TheElt is not a row vector with the same number of columns
-    If MatrixQ(AnArray) And (Not RowVectorQ(TheElt) Or GetNumberOfColumns(AnArray) <> GetArrayLength(TheElt)) Then
-        Let Insert = Null
-        Exit Function
-    End If
-
-    ' Exit if ThePos has unaceptable values
-    If ThePos < LBound(AnArray) Or ThePos > UBound(AnArray) + 1 Then
-        Let Insert = Null
-        Exit Function
-    End If
-    
-    ' Based on ThePos, shift parts of AnArray and insert TheElt
-    If ThePos = LBound(AnArray, 1) Then
-        If NumberOfDimensions(AnArray) = 1 Then
-            Let Insert = Prepend(AnArray, TheElt)
-        Else
-            Let Insert = StackArrays(TheElt, AnArray)
-        End If
-    ElseIf ThePos = UBound(AnArray, 1) + 1 Then
-        If NumberOfDimensions(AnArray) = 1 Then
-            Let Insert = Append(AnArray, TheElt)
-        Else
-            Let Insert = StackArrays(AnArray, TheElt)
-        End If
-    ElseIf ThePos > LBound(AnArray, 1) And ThePos <= UBound(AnArray, 1) Then
-        Let FirstPart = Take(AnArray, ThePos - 1)
-        Let LastPart = Take(AnArray, -(UBound(AnArray, 1) - ThePos + 1))
-        
-        If NumberOfDimensions(AnArray) = 1 Then
-            Let FirstPart = Append(FirstPart, TheElt)
-            Let Insert = ConcatenateArrays(FirstPart, LastPart)
-        Else
-            Let FirstPart = StackArrays(FirstPart, TheElt)
-            Let Insert = StackArrays(FirstPart, LastPart)
-        End If
-    Else
-        Let Insert = AnArray
-    End If
-End Function
-
-' This function turns a 1D array of 1D arrays into a 2D array.
-' Each of the elemements (inner arrays) of the outermost array satisfies
-' RowVectorQ
+' DESCRIPTION
+' Returns the array resulting from inserting the given element at the given position.  It may
+' be invoked with any of the following forms:
 '
-' This is useful to quickly build a matrix from 1D arrays
-' This function assumes that all elements of TheRowsAs1DArrays have the same lbound()
-' arg is allowed to have different lbound from that of its elements
+' a. Insert(AnArray, TheElement, n) - Returns the array obtained from inserting TheElement in position n
+'    of AnArray. n may range from 1 to Length(AnArray).  The list is shifted to the right and TheElement
+'    is inserted in position 1 if n = 1.  If n < Length(AnArray), elements from n to the end of the array
+'    are shifted to the right and TheElement is inserted in position n.  TheElement is appened to the
+'    array if n = Length(AnArray).  If AnArray is a 2D array satisfying Predicates.AtomicTableQ
+' b. Insert(AnArray, TheElement, Array(n_1, n_2)) - Does the same thing as form a, but element is
+'    inserted in position n_1, n_2 of the 2D array AnArray.
+' c. Insert(AnArray, TheElement, Array(Array(n_1), ..., Array(n_k))) -
+' d. Insert(AnArray, TheElement, Array(Array(n_1, n_2), ..., Array(n_2k, n_2k+1)))
 '
-' The 2D array returned is indexed starting at 1
-' If the optional parameter PackAsColumnsQ is set to True, the 1D arrays in TheRowsAs1DArrays become columns.
-Public Function Pack2DArray(TheRowsAs1DArrays As Variant, Optional PackAsColumnsQ As Boolean = False) As Variant
+' PARAMETERS
+' 1. AnArray - A dimensioned array
+' 2. TheElement - a sequence of indices (with at least one supplied) of the forms below, with each one
+'    referring to a different dimension of the array. At the moment we process only 1D and 2D arrays.
+'    So, Indices can only be one or two of the forms below.
+'
+'
+' RETURNED VALUE
+' The requested slice or element of the array.
+Public Function Insert(AnArray As Variant, _
+                       TheElement As Variant, _
+                       ThePositions As Variant, _
+                       Optional ParameterCheckQ As Boolean = True) As Variant
     Dim var As Variant
-    Dim r As Long
-    Dim c As Long
-    Dim Results() As Variant
-    Dim TheLength As Long
+    Dim i As Long
+    Dim ResultArray As Variant
+    Dim ShiftedThePositions As Variant
+    Dim ni As Long
     
-    ' Exit if the argument is not the expected type
-    If NumberOfDimensions(TheRowsAs1DArrays) <> 1 Or EmptyArrayQ(TheRowsAs1DArrays) Then
-        Let Pack2DArray = Null
-        Exit Function
-    End If
+    ' Set default return value
+    Let Insert = Null
     
-    ' Exit if any of the elements in not an atomic array or
-    '  if all the array elements do not the same length
-    Let TheLength = GetArrayLength(First(TheRowsAs1DArrays))
-    For Each var In TheRowsAs1DArrays
-        If Not AtomicArrayQ(var) Or GetArrayLength(var) <> TheLength Then
-            Let Pack2DArray = Null
+    Select Case NumberOfDimensions(AnArray)
+        ' Process case of insertion in a 1D array
+        Case 1
+            ' Process the case when ThePositions is a non-zero whole number
+            If WholeNumberQ(ThePositions) Then
+                ' Normalize the position
+                Let ni = NormalizeIndex(AnArray, ThePositions, 1, False)
+                
+                ' Handle cases of prepend and appending to the array
+                If ni = LBound(AnArray) Then
+                    Let Insert = Prepend(AnArray, TheElement, ParameterCheckQ)
+                    Exit Function
+                ElseIf ni = UBound(AnArray) Then
+                    Let Insert = Append(AnArray, TheElement, ParameterCheckQ)
+                    Exit Function
+                End If
+                
+                ' Compute the array to return for the case of insertion in the middle of the array
+                Let ResultArray = ConcatenateArrays(PartNoParamCheck(AnArray, Array(1, ni - 1)), _
+                                                    Array(TheElement), _
+                                                    ParameterCheckQ)
+                Let ResultArray = ConcatenateArrays(ResultArray, _
+                                                    PartNoParamCheck(AnArray, Array(ni, -1)), _
+                                                    ParameterCheckQ)
+                
+                Let Insert = ResultArray
+                Exit Function
+            End If
+                            
+            ' Process the case when ThePositions is not a non-zero whole integer
+            ' This is the case when we want to insert the same element in multiple
+            ' positions.
+            If EmptyArrayQ(ThePositions) Then
+                Let Insert = AnArray
+                Exit Function
+            End If
+            
+            ' Perform recursion on the first index
+            Let ResultArray = Insert(AnArray, TheElement, First(First(ThePositions)))
+            
+            ' Exit with Null if ResultArray came back as Null
+            If NullQ(ResultArray) Then Exit Function
+            
+            ' Exit with ResultArray if Rest(ThePositions) is empty
+            Let ShiftedThePositions = Rest(ThePositions)
+            If EmptyArrayQ(ShiftedThePositions) Then
+                Let Insert = ResultArray
+                Exit Function
+            End If
+            
+            ' Increment each of the remaining indices since they will be off by one
+            ' after inserting the element at the first index
+            Let i = 1
+            For Each var In ShiftedThePositions
+                Let ShiftedThePositions(LBound(ShiftedThePositions) + i - 1) = Array(First(var) + 1)
+            
+                Let i = i + 1
+            Next
+            
+            ' Recurse of the rest of the indices
+            Let Insert = Insert(ResultArray, TheElement, ShiftedThePositions)
             Exit Function
-        End If
-    Next
-
-    ' Pre-allocate a 2D array filled with Empty
-    ReDim Results(1 To GetArrayLength(TheRowsAs1DArrays), 1 To GetArrayLength(First(TheRowsAs1DArrays)))
-    
-    ' Pack the array
-    For r = LBound(TheRowsAs1DArrays) To UBound(TheRowsAs1DArrays)
-        For c = LBound(First(TheRowsAs1DArrays)) To UBound(First(TheRowsAs1DArrays))
-            Let Results(IIf(LBound(TheRowsAs1DArrays) = 0, 1, 0) + r, IIf(LBound(First(TheRowsAs1DArrays)) = 0, 1, 0) + c) = TheRowsAs1DArrays(r)(c)
-        Next c
-    Next r
-    
-    If PackAsColumnsQ Then
-        Let Pack2DArray = TransposeMatrix(Results)
-        Exit Function
+        ' Process case of insertion in a 2D array
+        Case 2
+            ' Process the case when ThePositions is a non-zero whole number
+            If WholeNumberQ(ThePositions) Then
+                ' Normalize the positions
+                Let ni = NormalizeIndex(AnArray, ThePositions, 1, False)
+                
+                ' Handle cases of prepend and appending to the array
+                If ni = LBound(AnArray) Then
+                    Let Insert = Prepend(AnArray, TheElement, ParameterCheckQ)
+                    Exit Function
+                ElseIf ni = UBound(AnArray) Then
+                    Let Insert = Append(AnArray, TheElement, ParameterCheckQ)
+                    Exit Function
+                End If
+                
+                ' Compute the array to return for the case of insertion in the middle of the array
+                Let ResultArray = StackArrays(TakeNoParamCheck(AnArray, ni - 1), _
+                                              TheElement, _
+                                              ParameterCheckQ)
+                Let ResultArray = StackArrays(ResultArray, _
+                                              TakeNoParamCheck(AnArray, -(Length(AnArray) - ni)), _
+                                              ParameterCheckQ)
+                
+                Let Insert = ResultArray
+                Exit Function
+            End If
+                            
+            ' Process the case when ThePositions is not a non-zero whole integer
+            ' This is the case when we want to insert the same element in multiple
+            ' positions.
+            If EmptyArrayQ(ThePositions) Then
+                Let Insert = AnArray
+                Exit Function
+            End If
+            
+            ' Perform recursion on the first index
+            Let ResultArray = Insert(AnArray, TheElement, First(First(ThePositions)))
+            
+            ' Exit with Null if ResultArray came back as Null
+            If NullQ(ResultArray) Then Exit Function
+            
+            ' Exit with ResultArray if Rest(ThePositions) is empty
+            Let ShiftedThePositions = Rest(ThePositions)
+            If EmptyArrayQ(ShiftedThePositions) Then
+                Let Insert = ResultArray
+                Exit Function
+            End If
+            
+            ' Increment each of the remaining indices since they will be off by one
+            ' after inserting the element at the first index
+            Let i = 1
+            For Each var In ShiftedThePositions
+                Let ShiftedThePositions(LBound(ShiftedThePositions) + i - 1) = Array(First(var) + 1)
+            
+                Let i = i + 1
+            Next
+            
+            ' Recurse of the rest of the indices
+            Let Insert = Insert(ResultArray, TheElement, ShiftedThePositions)
+            Exit Function
+    End Select
+    If NumberOfDimensions(AnArray) = 1 Then
     End If
-    
-    Let Pack2DArray = Results
 End Function
 
 ' This function is the exact opposite of Take.  It removes what take would return
@@ -1739,6 +1899,57 @@ Public Function Drop(AnArray As Variant, N As Variant) As Variant
     Next
     
     Let Drop = Take(AnArray, ComplementOfSets(CreateSequentialArray(1, GetArrayLength(AnArray)), RenormalizedIndices))
+End Function
+
+' This function turns a 1D array of 1D arrays into a 2D array.
+' Each of the elemements (inner arrays) of the outermost array satisfies
+' RowVectorQ
+'
+' This is useful to quickly build a matrix from 1D arrays
+' This function assumes that all elements of TheRowsAs1DArrays have the same lbound()
+' arg is allowed to have different lbound from that of its elements
+'
+' The 2D array returned is indexed starting at 1
+' If the optional parameter PackAsColumnsQ is set to True, the 1D arrays in TheRowsAs1DArrays become columns.
+Public Function Pack2DArray(TheRowsAs1DArrays As Variant, Optional PackAsColumnsQ As Boolean = False) As Variant
+    Dim var As Variant
+    Dim r As Long
+    Dim c As Long
+    Dim Results() As Variant
+    Dim TheLength As Long
+    
+    ' Exit if the argument is not the expected type
+    If NumberOfDimensions(TheRowsAs1DArrays) <> 1 Or EmptyArrayQ(TheRowsAs1DArrays) Then
+        Let Pack2DArray = Null
+        Exit Function
+    End If
+    
+    ' Exit if any of the elements in not an atomic array or
+    '  if all the array elements do not the same length
+    Let TheLength = GetArrayLength(First(TheRowsAs1DArrays))
+    For Each var In TheRowsAs1DArrays
+        If Not AtomicArrayQ(var) Or GetArrayLength(var) <> TheLength Then
+            Let Pack2DArray = Null
+            Exit Function
+        End If
+    Next
+
+    ' Pre-allocate a 2D array filled with Empty
+    ReDim Results(1 To GetArrayLength(TheRowsAs1DArrays), 1 To GetArrayLength(First(TheRowsAs1DArrays)))
+    
+    ' Pack the array
+    For r = LBound(TheRowsAs1DArrays) To UBound(TheRowsAs1DArrays)
+        For c = LBound(First(TheRowsAs1DArrays)) To UBound(First(TheRowsAs1DArrays))
+            Let Results(IIf(LBound(TheRowsAs1DArrays) = 0, 1, 0) + r, IIf(LBound(First(TheRowsAs1DArrays)) = 0, 1, 0) + c) = TheRowsAs1DArrays(r)(c)
+        Next c
+    Next r
+    
+    If PackAsColumnsQ Then
+        Let Pack2DArray = TransposeMatrix(Results)
+        Exit Function
+    End If
+    
+    Let Pack2DArray = Results
 End Function
 
 Public Function Convert1DArrayIntoParentheticalExpression(TheArray As Variant) As String
@@ -3138,11 +3349,46 @@ End Function
 ' A and B must have the same dimensions (e.g. 1 or 2D)
 ' If dim(A)<>dim(B) or dim(A)>2 or dim(B)>2 or dim(A)<1 or dim(B)<1 then
 ' this function returns EmptyArray()
-Public Function ConcatenateArrays(A As Variant, B As Variant) As Variant
+Public Function ConcatenateArrays(A As Variant, _
+                                  B As Variant, _
+                                  Optional ParameterCheckQ As Boolean = True) As Variant
+    Dim i As Long
+    Dim ResultArray As Variant
+    
     If NumberOfDimensions(A) = 1 And NumberOfDimensions(B) = 1 Then
-        Let ConcatenateArrays = ConvertTo1DArray(GetRow(TransposeMatrix(StackArrays(TransposeMatrix(A), TransposeMatrix(B))), 1))
-    Else
-        Let ConcatenateArrays = TransposeMatrix(StackArrays(TransposeMatrix(A), TransposeMatrix(B)))
+        ReDim ResultArray(1 To Length(A) + Length(B))
+        
+        For i = 1 To Length(A)
+            Let ResultArray(i) = A(NormalizeIndex(A, i, 1, ParameterCheckQ))
+        Next
+        
+        For i = 1 To Length(B)
+            Let ResultArray(i + Length(A)) = B(NormalizeIndex(B, i, 1, ParameterCheckQ))
+        Next
+        
+        Let ConcatenateArrays = ResultArray
+        Exit Function
+    End If
+
+    Let ConcatenateArrays = TransposeMatrix(StackArrays(TransposeMatrix(A, False, ParameterCheckQ), _
+                                                        TransposeMatrix(B, False, ParameterCheckQ), _
+                                                        ParameterCheckQ), _
+                                            False, _
+                                            ParameterCheckQ)
+End Function
+
+Public Function ConcatenateArraysOLD(A As Variant, _
+                                  B As Variant, _
+                                  Optional ParameterCheckQ As Boolean = True) As Variant
+
+    Let ConcatenateArrays = TransposeMatrix(StackArrays(TransposeMatrix(A, False, ParameterCheckQ), _
+                                                        TransposeMatrix(B, False, ParameterCheckQ), _
+                                                        ParameterCheckQ), _
+                                            False, _
+                                            ParameterCheckQ)
+    
+    If NumberOfDimensions(A) = 1 And NumberOfDimensions(B) = 1 Then
+        Let ConcatenateArrays = Flatten(ConcatenateArrays, ParameterCheckQ)
     End If
 End Function
 
@@ -3294,19 +3540,23 @@ End Function
 ' This function transposes 1D or 2D arrays
 ' This function uses the built-in transposition function unless the optional parameter
 ' UseBuiltInQ is passed with a value of False.
-Public Function TransposeMatrix(aMatrix As Variant, Optional UseBuiltInQ As Boolean = True) As Variant
+Public Function TransposeMatrix(aMatrix As Variant, _
+                                Optional UseBuiltInQ As Boolean = True, _
+                                Optional ParameterCheckQ As Boolean = True) As Variant
     Dim r As Long
     Dim c As Long
     Dim TheResult() As Variant
     
-    If Not DimensionedQ(aMatrix) Then
-        Let TransposeMatrix = Null
-        Exit Function
-    End If
-    
-    If NumberOfDimensions(aMatrix) = 0 Then
-        Let TransposeMatrix = aMatrix
-        Exit Function
+    If ParameterCheckQ Then
+        If Not DimensionedQ(aMatrix) Then
+            Let TransposeMatrix = Null
+            Exit Function
+        End If
+        
+        If NumberOfDimensions(aMatrix) = 0 Then
+            Let TransposeMatrix = aMatrix
+            Exit Function
+        End If
     End If
     
     If EmptyArrayQ(aMatrix) Then

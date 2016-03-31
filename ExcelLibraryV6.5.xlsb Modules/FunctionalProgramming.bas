@@ -40,7 +40,7 @@ Public Function Through(AFunctionNameArray As Variant, _
         End If
         
         ' Exit with Null if AnElement is not atomic
-        If Not AtomicQ(AnElement) Then Exit Function
+        If Not (AtomicQ(AnElement) Or AtomicArrayQ(AnElement)) Then Exit Function
     End If
     
     ' Pre-allocate array to hold results

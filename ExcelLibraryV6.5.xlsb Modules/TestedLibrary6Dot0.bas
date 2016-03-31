@@ -1423,6 +1423,25 @@ Public Sub TestArraysPrepend()
     PrintArray Prepend(A, B)
 End Sub
 
+Public Sub TestArraysInsert()
+    Dim A As Variant
+    Dim i As Long
+    
+    Let A = CreateSequentialArray(1, 15)
+    
+    Debug.Print "Insert in a = CreateSequentialArray(1, 15) i for 1 to 15"
+    For i = 1 To 15
+        PrintArray Insert(A, "*", i)
+    Next
+    
+    Let A = ConstantArray(Empty, 3, 3)
+    For i = 1 To 3: Let A(i, i) = i: Next
+    Debug.Print "Testing insertion into 2D array:"
+    PrintArray A
+    Debug.Print
+    For i = 1 To 3: Debug.Print "Insert into row " & i: PrintArray Insert(A, Array("*", "*", "*"), i): Next
+End Sub
+
 Public Sub TestFileNameJoin()
     Dim AnArray As Variant
     
