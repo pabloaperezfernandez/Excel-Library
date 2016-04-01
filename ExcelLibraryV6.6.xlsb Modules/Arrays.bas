@@ -359,7 +359,7 @@ Public Function Flatten(A As Variant, Optional ParameterCheckQ As Boolean = True
     For Each var In A
         If AtomicQ(var) Then
             Let i = i + 1
-            ReDim Preserve ResultsArray(i)
+            ReDim Preserve ResultsArray(1 To i)
             Let ResultsArray(i) = var
         ElseIf IsArray(var) Then
             Let TempVariant = Flatten(var)
@@ -373,7 +373,7 @@ Public Function Flatten(A As Variant, Optional ParameterCheckQ As Boolean = True
         
             For Each var2 In Flatten(var)
                 Let i = i + 1
-                ReDim Preserve ResultsArray(i)
+                ReDim Preserve ResultsArray(1 To i)
                 Let ResultsArray(i) = var2
             Next
         Else
@@ -553,155 +553,77 @@ Public Function NormalizeIndexArray(AnArray As Variant, _
 End Function
 
 ' DESCRIPTION
-' Returns a sequential array of N whole numbers starting with StartNumber and with sequential step
-' TheStep.  This function returns Null if N is negative.
+' This function returns a sequence of numbers based on the users specifications.  It has two calling
+' modalities.
+
+' 1. When not passing the optional ToEndNumberQ set to True, the function interprets N as the number
+'    of terms expected in the return sequence.
+'
+' 2. When passing the optional ToEndNumberQ set to True, the function returns a sequence starting
+'    starting with StartNumber and with every other number obtained sequentially from the prior
+'    adding TheStep (set to 1 if not passed) up to an including N.
+'
+' This function returns Null if N is negative when called in modality 1.
 '
 ' PARAMETERS
-' 1. AnArray - A non-Empty 1D array
-' 2. IndexArray - A dimensioned array, each of whose elements is a whole number between 1 and
-'    Length(AnArray) or between -Length(AnArray) and -1
+' 1. StartNumber - First number in the array
+' 2. N - Number of elements in the sequence or the ending number, depending on the calling modality
+' 3. TheStep (optional) - To create a sequence using a sequential step different from 1
+' 4. ToEndNumberQ (optional) - When passed explicitly as True, it activates calling modality 2
 '
 ' RETURNED VALUE
-' Translated indices from lbound = 1 to the array's intrinsic convention
-Public Function CreateSequentialArray(StartNumber As Long, N As Long, Optional TheStep As Long = 1)
-    Dim TheArray As Variant
+' The requested numerical sequence
+Public Function CreateSequentialArray(StartNumber As Variant, _
+                                      N As Variant, _
+                                      Optional TheStep As Variant, _
+                                      Optional ToEndNumberQ As Variant) As Variant
+    Dim TheStepCopy As Variant
+    Dim ReturnArray As Variant
+    Dim CurrentNumber As Variant
     Dim i As Long
     
-    If N < 0 Then
-        Let CreateSequentialArray = Null
-        Exit Function
+    ' Set default return value for errors
+    Let CreateSequentialArray = Null
+    Let ReturnArray = Null
+    
+    ' Set default value for TheStep if missing from function call
+    Let TheStepCopy = IIf(IsMissing(TheStep), 1, TheStep)
+    
+    ' Process calling modality 1
+    If IsMissing(ToEndNumberQ) Then
+        If N < 0 Then Exit Function
+        
+        ReDim ReturnArray(1 To N)
+        For i = StartNumber To StartNumber + N - 1
+            Let ReturnArray(i - StartNumber + 1) = StartNumber + (i - StartNumber) * TheStepCopy
+        Next i
+    ' Process calling modality 2
+    ElseIf ToEndNumberQ = True Then
+        ' Exit with NULL if any of the three parameters is non-numeric
+        If Not NumberArrayQ(Array(StartNumber, N, TheStepCopy)) Then Exit Function
+        
+        ' Set first return value
+        ReDim ReturnArray(1 To 1): Let ReturnArray(1) = StartNumber
+        
+        ' Complete the sequence of numbers
+        Let i = 1
+        Let CurrentNumber = StartNumber + i * TheStepCopy
+        Do While CurrentNumber <= N
+            ReDim Preserve ReturnArray(1 To i + 1)
+            
+            Let ReturnArray(i + 1) = CurrentNumber
+            Let i = i + 1
+            Let CurrentNumber = StartNumber + i * TheStepCopy
+        Loop
     End If
     
-    ReDim TheArray(1 To N)
-    
-    For i = StartNumber To StartNumber + N - 1
-        Let TheArray(i - StartNumber + 1) = StartNumber + (i - StartNumber) * TheStep
-    Next i
-    
-    Let CreateSequentialArray = TheArray
-End Function
-
-' DESCRIPTION
-' This function returns the requested slice of an array.  It works just like Mathematica's Part[].  The returned
-' value depends on the form of parameter Indices.  Works on 1D and 2D arrays.  As opposed to Part[], which can be
-' very slow due to stringent parameter consistency checks, this version of Part[] is extremely fast, but it is up
-' to the programmer to ensure all parameters are consistent.
-'
-' PARAMETERS
-' 1. AnArray - A dimensioned array
-' 2. Indices - a sequence of indices (with at least one supplied) of the forms below, with each one
-'    referring to a different dimension of the array. At the moment we process only 1D and 2D arrays.
-'    So, Indices can only be one or two of the forms below.
-'
-' Indices can take any of the following forms:
-' 1. n - equivalent to Array(n) to get element n
-' 2. [{n_1, n_2}] - Equivalent to Array(n_1, n_2) to get elements n_1 through n_2
-' 3. [{n_1, n_2, step}] - Equivalent to Array(n_1, n_2, step) to get elements n_1 through n_2 every step
-'    elements
-' 4. Array([{n_1, n_2, ..., n_n}]) - Equivalent to Array(Array(n_1, n_2, ..., n_k)) to get elements n_1, n_2,
-'    ..., n_k.
-'
-' It is important to understand that [{...}] is used as a shorthand notation
-' to specify both 1D and proper 2D arrays.  Hence, [{1,2,3}]=Array(1,2,3) but
-' [{[{1,2}],[{3,4}]}] is not equal to Array(Array(1,2), Array(3,4)).  In fact,
-' [{[{1,2}],[{3,4}]}] raises an error.  However Array([{...}], [{...}]) is a valid
-' syntax to specify a 1D array of 1D arrays without having to use the more cumbersome
-' Array(Array(...), ..., Array(...))
-'
-' RETURNED VALUE
-' The requested slice or element of the array.
-Public Function PartNoParamCheck(AnArray As Variant, ParamArray Indices() As Variant) As Variant
-    Dim IndicesCopy1 As Variant
-    Dim IndicesCopy As Variant
-    Dim IndexIndex As Variant
-    Dim AnIndex As Variant
-    Dim ReturnArray() As Variant
-    Dim ni As Variant
-    Dim ir As Long ' for index r
-    Dim ic As Long ' for index c
-    Dim r As Long ' for matrix row
-    Dim c As Long ' for matrix column
-    Dim RowIndices As Variant
-    Dim ColumnIndices As Variant
-    Dim var As Variant
-    
-    ' We use our function to convert the ParamArray to a regular array
-    Let IndicesCopy1 = CopyParamArray(Indices)
-    ReDim IndicesCopy(1 To Length(IndicesCopy1))
-    For r = 1 To Length(IndicesCopy1)
-        Let IndicesCopy(r) = IndicesCopy1(r - 1)
-    Next
-    
-    ' Loop over the dimensions converting each index specification into an array of individual
-    ' element positions
-    For ir = 1 To Length(IndicesCopy)
-        ' Convert from out lbound=1 convention to IndicesCopy's intrinsic convention
-        Let IndexIndex = NormalizeIndex(IndicesCopy, ir, ParameterCheckQ:=False)
-        
-        ' Get the current dimensional index
-        Let AnIndex = IndicesCopy(IndexIndex)
-    
-        If PartIndexSingleElementQ(AnIndex) Then
-            Let IndicesCopy(IndexIndex) = Array(NormalizeIndex(AnArray, AnIndex, ir, ParameterCheckQ:=False))
-        ElseIf PartIndexSequenceOfElementsQ(AnIndex) Then
-            If NormalizeIndex(AnArray, First(AnIndex), ir) = NormalizeIndex(AnArray, Last(AnIndex), ir, ParameterCheckQ:=False) Then
-                Let IndicesCopy(IndexIndex) = Array(NormalizeIndex(AnArray, First(AnIndex), ir, ParameterCheckQ:=False))
-            Else
-                Let IndicesCopy(IndexIndex) = PartIntervalIndices(AnArray, AnIndex, ir, False)
-            End If
-        ElseIf PartIndexSteppedSequenceQ(AnIndex) Then
-            Let IndicesCopy(IndexIndex) = PartSteppedIntervalIndices(AnArray, AnIndex, ir, False)
-        Else
-            Let IndicesCopy(IndexIndex) = NormalizeIndexArray(AnArray, First(AnIndex), ir, ParameterCheckQ:=False)
-        End If
-    Next
-    
-    ' Collect the chosen array's slice depending on its number of dimensions
-    If NumberOfDimensions(AnArray) = 1 Then
-        Let ColumnIndices = First(IndicesCopy)
-    
-        ' Pre-allocate a 1D array since AnArray is one-dimensional
-        ReDim ReturnArray(1 To Length(ColumnIndices))
-        
-        ' Extract the requested elements from AnArray
-        For c = 1 To Length(ColumnIndices)
-            Let ReturnArray(c) = AnArray(ColumnIndices(NormalizeIndex(ColumnIndices, c, ParameterCheckQ:=False)))
-        Next
-    ElseIf NumberOfDimensions(AnArray) = 2 Then
-        ' Get all columns from the requested rows
-        If Length(IndicesCopy) = 1 Then
-            Let RowIndices = First(IndicesCopy)
-        
-            ReDim ReturnArray(1 To Length(RowIndices), 1 To NumberOfColumns(AnArray))
-            For ir = 1 To Length(RowIndices)
-                For c = 1 To NumberOfColumns(AnArray)
-                    Let ReturnArray(ir, c) = AnArray(RowIndices(NormalizeIndex(RowIndices, ir, ParameterCheckQ:=False)), _
-                                                     NormalizeIndex(AnArray, c, 2, ParameterCheckQ:=False))
-                Next
-            Next
-        ' Get all elements requested
-        Else
-            Let RowIndices = First(IndicesCopy)
-            Let ColumnIndices = Last(IndicesCopy)
-        
-            ReDim ReturnArray(1 To Length(RowIndices), 1 To Length(ColumnIndices))
-            For ir = 1 To Length(RowIndices)
-                For ic = 1 To Length(ColumnIndices)
-                    Let ReturnArray(ir, ic) = AnArray(RowIndices(NormalizeIndex(RowIndices, ir, ParameterCheckQ:=False)), _
-                                                      ColumnIndices(NormalizeIndex(ColumnIndices, ic, ParameterCheckQ:=False)))
-                Next
-            Next
-        End If
-    Else
-        Let PartNoParamCheck = Null
-    End If
-    
-    Let PartNoParamCheck = ReturnArray
+    Let CreateSequentialArray = ReturnArray
 End Function
 
 ' DESCRIPTION
 ' This function returns the requested part of an array.  It works just like Mathematica's Part[].  The returned
-' value depends on the form of parameter Indices.  Works on 1D and 2D arrays.
+' value depends on the form of parameter Indices.  Works on 1D and 2D arrays.  Use the function
+' ClassConstructors.Span() wherever you would use Mathematica Span such as All, 1;;2,
 '
 ' PARAMETERS
 ' 1. AnArray - A dimensioned array
@@ -710,12 +632,13 @@ End Function
 '    So, Indices can only be one or two of the forms below.
 '
 ' Indices can take any of the following forms:
-' 1. n - to get element n
-' 2. [{n_1, n_2}] - Equivalent to Array(n_1, n_2) to get elements n_1 through n_2
-' 3. [{n_1, n_2, step}] - Equivalent to Array(n_1, n_2, step) to get elements n_1 through n_2 every step
-'    elements
-' 4. Array([{n_1, n_2, ..., n_n}]) - Equivalent to Array(Array(n_1, n_2, ..., n_k)) to get elements n_1, n_2,
-'    ..., n_k.
+' 1. n - to get element n.  If given a 2D array, n refers to the row number
+' 2. n_1, n_2, ..., n_k - to get element with index (n_1, n_2, ..., n_k)
+' 3. Array() - A dimensioned, non-empty array of indices
+' 4. Array1, Array2 - Two arrays of the type in #3, one for each dimension
+' 5. Span - An instance of class Span, which can be conveniently generated using
+'           ClassConstructors.Span()
+' 6. Span_1, Span_2 - Each Span is an in #3 above, with _1 and _2 applying to dimensions 1 and 2
 '
 ' It is important to understand that [{...}] is used as a shorthand notation
 ' to specify both 1D and proper 2D arrays.  Hence, [{1,2,3}]=Array(1,2,3) but
@@ -727,6 +650,117 @@ End Function
 ' RETURNED VALUE
 ' The requested slice or element of the array.
 Public Function Part(AnArray As Variant, ParamArray Indices() As Variant) As Variant
+    Dim IndicesCopy As Variant
+    Dim IndexIndex As Variant
+    Dim AnIndex As Variant
+    Dim ReturnArray As Variant
+    Dim ni As Variant
+    Dim ir As Long ' for index r
+    Dim ic As Long ' for index c
+    Dim r As Long ' for matrix row
+    Dim c As Long ' for matrix column
+    Dim RowIndices As Variant
+    Dim ColumnIndices As Variant
+    Dim var As Variant
+    
+    ' Set default return value when errors encountered
+    Let Part = Null
+
+    ' Exit with Null if AnArray is not an array
+    If Not DimensionedQ(AnArray) Or EmptyArrayQ(AnArray) Then Exit Function
+    
+    ' Convert ParamArray to a regular array
+    Let IndicesCopy = CopyParamArray(Indices)
+
+    ' Exit if more indices were passed than the number of dimensions in AnArray
+    If NumberOfDimensions(AnArray) < Length(IndicesCopy) Then Exit Function
+    
+    ' Exit with Null if any of the indices fails PartIndexQ
+    If Not PartIndexArrayQ(IndicesCopy) Then Exit Function
+    
+    ' Loop over dimensions converting index specifications into an array of individual
+    ' element positions or arrays of individual element positions
+    For ir = 1 To Length(IndicesCopy)
+        ' Convert from out lbound=1 convention to IndicesCopy's intrinsic convention
+        Let IndexIndex = NormalizeIndex(IndicesCopy, ir)
+        
+        ' Get the current dimensional index
+        Let AnIndex = IndicesCopy(IndexIndex)
+    
+        ' Compute indices sequence for this dimension (e.g. ir) from its specification
+        If NonzeroWholeNumberQ(AnIndex) Then
+            Let IndicesCopy(IndexIndex) = NormalizeIndex(AnArray, AnIndex, ir)
+        ElseIf NonzeroWholeNumberArrayQ(AnIndex) And NonEmptyArrayQ(AnIndex) Then
+            Let IndicesCopy(IndexIndex) = NormalizeIndexArray(AnArray, AnIndex, ir, False)
+        ElseIf SpanQ(AnIndex) Then '***HERE process this correctly
+            Let IndicesCopy(IndexIndex) = NormalizeIndexArray(anaray, AnIndex.Value, ir, False)
+        Else
+            Exit Function
+        End If
+        
+        ' Check for invalid indices and exit if one is found
+        If NullQ(IndicesCopy(IndexIndex)) Then Exit Function
+        
+        If IsArray(IndicesCopy) Then
+            If AnyTrueQ(IndicesCopy(IndexIndex), ThisWorkbook, "NullQ") Then Exit Function
+        End If
+    Next
+    
+    ' Collect the chosen array's slice depending on its number of dimensions
+    Select Case NumberOfDimensions(AnArray)
+        Case 1
+            ' AnArray is a 1D array. So, extract the only indices specification.
+            Let ColumnIndices = First(IndicesCopy)
+        
+            ' A single element was requested
+            If NonzeroWholeNumberQ(ColumnIndices) Then
+                Let ReturnArray = AnArray(ColumnIndices)
+            ' A sequence of elements was requested
+            Else
+                ' Pre-allocate a 1D array since AnArray is one-dimensional
+                ReDim ReturnArray(1 To Length(ColumnIndices))
+                
+                ' Extract the requested elements from AnArray
+                For c = 1 To Length(ColumnIndices)
+                    Let ic = NormalizeIndex(ColumnIndices, c)
+                    Let ReturnArray(c) = AnArray(ColumnIndices(ic))
+                Next
+            End If
+        Case 2
+            ' Part was called to extract complete rows from this 2D array
+            If Length(IndicesCopy) = 1 Then
+                Let RowIndices = First(IndicesCopy)
+            
+                ReDim ReturnArray(1 To Length(RowIndices), 1 To NumberOfColumns(AnArray))
+                For r = 1 To Length(RowIndices)
+                    For c = 1 To NumberOfColumns(AnArray)
+                        Let ir = NormalizeIndex(RowIndices, r)
+                        Let ic = NormalizeIndex(AnArray, c, 2)
+                    
+                        Let ReturnArray(ir, c) = AnArray(RowIndices(ir), ic)
+                    Next
+                Next
+            ' Get all elements requested
+            Else
+                Let RowIndices = First(IndicesCopy)
+                Let ColumnIndices = Last(IndicesCopy)
+            
+                ReDim ReturnArray(1 To Length(RowIndices), 1 To Length(ColumnIndices))
+                For ir = 1 To Length(RowIndices)
+                    For ic = 1 To Length(ColumnIndices)
+                        Let ReturnArray(ir, ic) = AnArray(RowIndices(NormalizeIndex(RowIndices, ir)), _
+                                                          ColumnIndices(NormalizeIndex(ColumnIndices, ic)))
+                    Next
+                Next
+            End If
+        Case Else
+            Exit Function
+    End Select
+    
+    Let Part = ReturnArray
+End Function
+
+Public Function PartOLD(AnArray As Variant, ParamArray Indices() As Variant) As Variant
     Dim IndicesCopy As Variant
     Dim IndexIndex As Variant
     Dim AnIndex As Variant
@@ -851,37 +885,121 @@ Public Function Part(AnArray As Variant, ParamArray Indices() As Variant) As Var
 End Function
 
 ' DESCRIPTION
-' This function converts a valid index range specification --as determined by Predicates.PartIndexSequenceOfElementsQ--
-' for function Arrays.Part into a sequence of individual indices. Suppose, the index has the form
-' Array(n_1, n_2) = Array(1,5) for 1D array with LBound = 1. This function returns Array(1, 2, 3, 4, 5).
-' This function performs no typechecking.
+' This function returns the requested slice of an array.  It works just like Mathematica's Part[].  The returned
+' value depends on the form of parameter Indices.  Works on 1D and 2D arrays.  As opposed to Part[], which can be
+' very slow due to stringent parameter consistency checks, this version of Part[] is extremely fast, but it is up
+' to the programmer to ensure all parameters are consistent.
 '
 ' PARAMETERS
 ' 1. AnArray - A dimensioned array
 ' 2. Indices - a sequence of indices (with at least one supplied) of the forms below, with each one
 '    referring to a different dimension of the array. At the moment we process only 1D and 2D arrays.
 '    So, Indices can only be one or two of the forms below.
-' 3. TheDimension - The array's dimension relative to which the operations are perform
+'
+' Indices can take any of the following forms:
+' 1. n - equivalent to Array(n) to get element n
+' 2. [{n_1, n_2}] - Equivalent to Array(n_1, n_2) to get elements n_1 through n_2
+' 3. [{n_1, n_2, step}] - Equivalent to Array(n_1, n_2, step) to get elements n_1 through n_2 every step
+'    elements
+' 4. Array([{n_1, n_2, ..., n_n}]) - Equivalent to Array(Array(n_1, n_2, ..., n_k)) to get elements n_1, n_2,
+'    ..., n_k.
+'
+' It is important to understand that [{...}] is used as a shorthand notation
+' to specify both 1D and proper 2D arrays.  Hence, [{1,2,3}]=Array(1,2,3) but
+' [{[{1,2}],[{3,4}]}] is not equal to Array(Array(1,2), Array(3,4)).  In fact,
+' [{[{1,2}],[{3,4}]}] raises an error.  However Array([{...}], [{...}]) is a valid
+' syntax to specify a 1D array of 1D arrays without having to use the more cumbersome
+' Array(Array(...), ..., Array(...))
 '
 ' RETURNED VALUE
-' The requested sequence of indices
-Private Function PartIntervalIndices(AnArray As Variant, _
-                                     TheIndices As Variant, _
-                                     Optional TheDimension As Long = 1, _
-                                     Optional ParameterCheckQ As Boolean = True) As Variant
+' The requested slice or element of the array.
+Public Function PartNoParamCheck(AnArray As Variant, ParamArray Indices() As Variant) As Variant
+    Dim IndicesCopy1 As Variant
+    Dim IndicesCopy As Variant
+    Dim IndexIndex As Variant
+    Dim AnIndex As Variant
+    Dim ReturnArray() As Variant
     Dim ni As Variant
+    Dim ir As Long ' for index r
+    Dim ic As Long ' for index c
+    Dim r As Long ' for matrix row
+    Dim c As Long ' for matrix column
+    Dim RowIndices As Variant
+    Dim ColumnIndices As Variant
+    Dim var As Variant
     
-    Let ni = NormalizeIndexArray(AnArray, TheIndices, TheDimension, ParameterCheckQ)
+    ' We use our function to convert the ParamArray to a regular array
+    Let IndicesCopy1 = CopyParamArray(Indices)
+    ReDim IndicesCopy(1 To Length(IndicesCopy1))
+    For r = 1 To Length(IndicesCopy1)
+        Let IndicesCopy(r) = IndicesCopy1(r - 1)
+    Next
     
-    If NullQ(First(ni)) Or NullQ(Last(ni)) Then
-        Let PartIntervalIndices = Null
-    ElseIf First(ni) > Last(ni) Then
-        Let PartIntervalIndices = Null
-    ElseIf First(ni) = Last(ni) Then
-        Let PartIntervalIndices = Array(First(ni))
+    ' Loop over the dimensions converting each index specification into an array of individual
+    ' element positions
+    For ir = 1 To Length(IndicesCopy)
+        ' Convert from out lbound=1 convention to IndicesCopy's intrinsic convention
+        Let IndexIndex = NormalizeIndex(IndicesCopy, ir, ParameterCheckQ:=False)
+        
+        ' Get the current dimensional index
+        Let AnIndex = IndicesCopy(IndexIndex)
+    
+        If PartIndexSingleElementQ(AnIndex) Then
+            Let IndicesCopy(IndexIndex) = Array(NormalizeIndex(AnArray, AnIndex, ir, ParameterCheckQ:=False))
+        ElseIf PartIndexSequenceOfElementsQ(AnIndex) Then
+            If NormalizeIndex(AnArray, First(AnIndex), ir) = NormalizeIndex(AnArray, Last(AnIndex), ir, ParameterCheckQ:=False) Then
+                Let IndicesCopy(IndexIndex) = Array(NormalizeIndex(AnArray, First(AnIndex), ir, ParameterCheckQ:=False))
+            Else
+                Let IndicesCopy(IndexIndex) = PartIntervalIndices(AnArray, AnIndex, ir, False)
+            End If
+        ElseIf PartIndexSteppedSequenceQ(AnIndex) Then
+            Let IndicesCopy(IndexIndex) = PartSteppedIntervalIndices(AnArray, AnIndex, ir, False)
+        Else
+            Let IndicesCopy(IndexIndex) = NormalizeIndexArray(AnArray, First(AnIndex), ir, ParameterCheckQ:=False)
+        End If
+    Next
+    
+    ' Collect the chosen array's slice depending on its number of dimensions
+    If NumberOfDimensions(AnArray) = 1 Then
+        Let ColumnIndices = First(IndicesCopy)
+    
+        ' Pre-allocate a 1D array since AnArray is one-dimensional
+        ReDim ReturnArray(1 To Length(ColumnIndices))
+        
+        ' Extract the requested elements from AnArray
+        For c = 1 To Length(ColumnIndices)
+            Let ReturnArray(c) = AnArray(ColumnIndices(NormalizeIndex(ColumnIndices, c, ParameterCheckQ:=False)))
+        Next
+    ElseIf NumberOfDimensions(AnArray) = 2 Then
+        ' Get all columns from the requested rows
+        If Length(IndicesCopy) = 1 Then
+            Let RowIndices = First(IndicesCopy)
+        
+            ReDim ReturnArray(1 To Length(RowIndices), 1 To NumberOfColumns(AnArray))
+            For ir = 1 To Length(RowIndices)
+                For c = 1 To NumberOfColumns(AnArray)
+                    Let ReturnArray(ir, c) = AnArray(RowIndices(NormalizeIndex(RowIndices, ir, ParameterCheckQ:=False)), _
+                                                     NormalizeIndex(AnArray, c, 2, ParameterCheckQ:=False))
+                Next
+            Next
+        ' Get all elements requested
+        Else
+            Let RowIndices = First(IndicesCopy)
+            Let ColumnIndices = Last(IndicesCopy)
+        
+            ReDim ReturnArray(1 To Length(RowIndices), 1 To Length(ColumnIndices))
+            For ir = 1 To Length(RowIndices)
+                For ic = 1 To Length(ColumnIndices)
+                    Let ReturnArray(ir, ic) = AnArray(RowIndices(NormalizeIndex(RowIndices, ir, ParameterCheckQ:=False)), _
+                                                      ColumnIndices(NormalizeIndex(ColumnIndices, ic, ParameterCheckQ:=False)))
+                Next
+            Next
+        End If
     Else
-        Let PartIntervalIndices = CreateSequentialArray(CLng(First(ni)), CLng(Last(ni) - First(ni) + 1))
+        Let PartNoParamCheck = Null
     End If
+    
+    Let PartNoParamCheck = ReturnArray
 End Function
 
 ' DESCRIPTION
@@ -1514,7 +1632,7 @@ Public Function Append(AnArray As Variant, _
         
         ' Exit with AnElt if AnArray is empty
         If EmptyArrayQ(AnArray) Then
-            Let Append = AnElt
+            Let Append = Array(AnElt)
             Exit Function
         End If
         
@@ -1576,7 +1694,7 @@ Public Function Prepend(AnArray As Variant, _
         
         ' Exit with AnElt if AnArray is empty
         If EmptyArrayQ(AnArray) Then
-            Let Prepend = AnElt
+            Let Prepend = Array(AnElt)
             Exit Function
         End If
         
