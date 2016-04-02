@@ -3,7 +3,7 @@ Option Base 1
 Option Explicit
 
 ' DESCRIPTION
-' This function returns an object whole only member .Value holds the result of running
+' This function returns an instance of class Span .Value holds the result of running
 ' Arrays.CreateSequentialArray.  If the result of running Arrays.CreateSequentialArray
 ' is Null, the .Value is set to Null.
 '
@@ -20,7 +20,7 @@ Option Explicit
 Public Function Span(StartNumber As Variant, _
                      N As Variant, _
                      Optional TheStep As Variant, _
-                     Optional ToEndNumberQ As Boolean = False) As Variant
+                     Optional ToEndNumberQ As Boolean = False) As Span
     Dim obj As New Span
     Dim TheStepCopy As Variant
     
@@ -34,9 +34,6 @@ Public Function Span(StartNumber As Variant, _
         Let obj.Value = CreateSequentialArray(StartNumber, N, TheStepCopy)
     End If
     
-    If IsNull(obj.Value) Then
-        Let Span = Null
-    Else
-        Set Span = obj
-    End If
+    ' Return object
+    Set Span = obj
 End Function
