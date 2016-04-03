@@ -92,11 +92,11 @@ Property Get GetSecurityTimeSeries(TheId As Variant, Optional StartTimePoint As 
     ' If either of start or end time points are unspecified, return the entire time series. Otherwise, return
     ' the security's time series between start and end.
     If IsMissing(StartTimePoint) Or IsMissing(EndTimePoint) Then
-        Let RowIndex = GetDataPoint(TheId, GetTimePoints(1).Value2).row - GetRangeDb(1, 1).Offset(-1, 0).row
+        Let RowIndex = GetDataPoint(TheId, GetTimePoints(1).Value2).Row - GetRangeDb(1, 1).Offset(-1, 0).Row
     
         Set GetSecurityTimeSeries = GetRangeDb.Rows(RowIndex).Cells
     Else
-        Let RowIndex = GetDataPoint(TheId, GetTimePoints(1).Value2).row - GetRangeDb(1, 1).Offset(-1, 0).row
+        Let RowIndex = GetDataPoint(TheId, GetTimePoints(1).Value2).Row - GetRangeDb(1, 1).Offset(-1, 0).Row
     
         Let StartTimePointIndex = _
             GetDataPoint(GetIdentifiers(1).Value2, StartTimePoint).Column - GetRangeDb(1, 1).Offset(0, -1).Column

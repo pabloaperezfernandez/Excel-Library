@@ -467,8 +467,8 @@ Function ComputeQuantileAveragePerformanceTimeSeries(FactorMatrix As Variant, Re
     ReDim Results(1 To NumberOfQuantiles, 1 To NumberOfColumns(FactorMatrix))
     
     For i = 1 To UBound(FactorMatrix, 2)
-        Let ResultsOneWeek = ComputeAveragePerformanceByQuantile(GetColumn(FactorMatrix, i), _
-                                                                 GetColumn(ReturnMatrix, i), _
+        Let ResultsOneWeek = ComputeAveragePerformanceByQuantile(Part(FactorMatrix, Span(1, -1), i), _
+                                                                 Part(ReturnMatrix, Span(1, -1), i), _
                                                                  NumberOfQuantiles)
     
         For j = 1 To NumberOfQuantiles

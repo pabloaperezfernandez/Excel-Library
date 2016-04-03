@@ -214,7 +214,7 @@ Public Function First(AnArray As Variant) As Variant
             Let First = AnArray(LBound(AnArray))
         End If
     ElseIf NumberOfDimensions(AnArray) = 2 Then
-        Let First = Flatten(GetRow(AnArray, 1))
+        Let First = Part(AnArray, 1)
     Else
         Let First = Null
     End If
@@ -242,7 +242,7 @@ Public Function Last(AnArray As Variant) As Variant
             Let Last = AnArray(UBound(AnArray))
         End If
     ElseIf NumberOfDimensions(AnArray) = 2 Then
-        Let Last = Flatten(GetRow(AnArray, GetNumberOfRows(AnArray)))
+        Let Last = Part(AnArray, -1)
     Else
         Let Last = Null
     End If
@@ -261,30 +261,16 @@ End Function
 ' RETURNED VALUE
 ' An array with all but the last element of the array, interpreting 2D arrays as 1D arrays of their rows
 Public Function Most(AnArray As Variant) As Variant
-    If NumberOfDimensions(AnArray) = 1 Then
-        If EmptyArrayQ(AnArray) Then
-            Let Most = EmptyArray()
-        ElseIf UBound(AnArray) = LBound(AnArray) Then
-            Let Most = EmptyArray()
-        Else
-            Let Most = GetSubArray(AnArray, _
-                                   LBound(AnArray), _
-                                   UBound(AnArray) - 1)
-        End If
-    ElseIf NumberOfDimensions(AnArray) = 2 Then
-        If EmptyArrayQ(AnArray) Then
-            Let Most = EmptyArray()
-        ElseIf UBound(AnArray, 1) = LBound(AnArray, 1) Then
-            Let Most = EmptyArray()
-        Else
-            Let Most = GetSubMatrix(AnArray, _
-                                    LBound(AnArray, 1), _
-                                    UBound(AnArray, 1) - 1, _
-                                    LBound(AnArray, 2), _
-                                    UBound(AnArray, 2))
-        End If
+    Let Most = Null
+    
+    If Not DimensionedQ(AnArray) Then Exit Function
+
+    If EmptyArrayQ(AnArray) Then
+        Let Most = EmptyArray()
+    ElseIf UBound(AnArray) = LBound(AnArray) Then
+        Let Most = EmptyArray()
     Else
-        Let Most = Null
+        Let Most = Part(AnArray, Span(1, -2))
     End If
 End Function
 
@@ -301,32 +287,16 @@ End Function
 ' RETURNED VALUE
 ' An array with all but the first element of the array, interpreting 2D arrays as 1D arrays of their rows
 Public Function Rest(AnArray As Variant) As Variant
-    If Not IsArray(AnArray) Then
-        Let Rest = AnArray
-    ElseIf NumberOfDimensions(AnArray) = 1 Then
-        If EmptyArrayQ(AnArray) Then
-            Let Rest = EmptyArray()
-        ElseIf UBound(AnArray) = LBound(AnArray) Then
-            Let Rest = EmptyArray()
-        Else
-            Let Rest = GetSubArray(AnArray, _
-                                   LBound(AnArray) + 1, _
-                                   UBound(AnArray))
-        End If
-    ElseIf NumberOfDimensions(AnArray) = 2 Then
-        If EmptyArrayQ(AnArray) Then
-            Let Rest = EmptyArray()
-        ElseIf UBound(AnArray, 1) = LBound(AnArray, 1) Then
-            Let Rest = EmptyArray()
-        Else
-            Let Rest = GetSubMatrix(AnArray, _
-                                    LBound(AnArray, 1) + 1, _
-                                    UBound(AnArray, 1), _
-                                    LBound(AnArray, 2), _
-                                    UBound(AnArray, 2))
-        End If
+    Let Rest = Null
+    
+    If Not DimensionedQ(AnArray) Then Exit Function
+
+    If EmptyArrayQ(AnArray) Then
+        Let Rest = EmptyArray()
+    ElseIf UBound(AnArray) = LBound(AnArray) Then
+        Let Rest = EmptyArray()
     Else
-        Let Rest = Null
+        Let Rest = Part(AnArray, Span(2, -1))
     End If
 End Function
 
@@ -387,51 +357,6 @@ Public Function Flatten(A As Variant, Optional ParameterCheckQ As Boolean = True
     Next
     
     Let Flatten = ResultsArray
-End Function
-
-Public Function FlattenOLD(A As Variant, Optional ParameterCheckQ As Boolean = True) As Variant
-    Dim var As Variant
-    Dim var2 As Variant
-    Dim TempVariant As Variant
-    Dim ResultsDict As Dictionary
-    
-    If ParameterCheckQ Then
-        If Not IsArray(A) Then
-            Let Flatten = Null
-            Exit Function
-        End If
-    End If
-    
-    If AtomicQ(A) Then
-        Let Flatten = A
-        Exit Function
-    End If
-
-    Set ResultsDict = New Dictionary
-    
-    For Each var In A
-        If AtomicQ(var) Then
-            Call ResultsDict.Add(Key:=ResultsDict.Count, Item:=var)
-        ElseIf IsArray(var) Then
-            Let TempVariant = Flatten(var)
-            
-            If ParameterCheckQ Then
-                If IsNull(TempVariant) Then
-                    Let Flatten = Null
-                    Exit Function
-                End If
-            End If
-        
-            For Each var2 In Flatten(var)
-                Call ResultsDict.Add(Key:=ResultsDict.Count, Item:=var2)
-            Next
-        Else
-            Let Flatten = Null
-            Exit Function
-        End If
-    Next
-    
-    Let Flatten = ResultsDict.Items
 End Function
 
 ' DESCRIPTION
@@ -636,8 +561,8 @@ End Function
 ' RETURNED VALUE
 ' The requested indices sequence
 Public Function CreateSequenceFromSpan(AnArray As Variant, ASpan As Span, Optional TheDimension As Long = 1) As Variant
-    Dim TheStart As Long
-    Dim TheEnd As Long
+    Dim TheStart As Variant
+    Dim TheEnd As Variant
     Dim c As Long
     Dim ReturnArray() As Long
 
@@ -655,6 +580,7 @@ Public Function CreateSequenceFromSpan(AnArray As Variant, ASpan As Span, Option
     Let TheStart = NormalizeIndex(AnArray, ASpan.TheStart, TheDimension)
     Let TheEnd = NormalizeIndex(AnArray, ASpan.TheEnd, TheDimension)
     
+    If IsNull(TheStart) Or IsNull(TheEnd) Then Exit Function
     If TheStart > TheEnd Or ASpan.TheStep <= 0 Then Exit Function
     
     ' Complete the sequence of numbers
@@ -844,147 +770,14 @@ Public Function Part(AnArray As Variant, ParamArray Indices() As Variant) As Var
 End Function
 
 ' DESCRIPTION
-' This function converts a valid index range specification --as determined by Predicates.PartIndexSteppedSequenceQ--
-' for function Arrays.Part into a sequence of individual indices. Suppose, the index has the form
-' Array(n_1, n_2, step) = Array(1,5,2) for 1D array with LBound = 1. This function returns Array(1, 3, 5).
-' This function performs no typechecking.
-'
-' PARAMETERS
-' 1. AnArray - A dimensioned array
-' 2. Indices - a sequence of indices (with at least one supplied) of the forms below, with each one
-'    referring to a different dimension of the array. At the moment we process only 1D and 2D arrays.
-'    So, Indices can only be one or two of the forms below.
-' 3. TheDimension - The array's dimension relative to which the operations are perform
-'
-' RETURNED VALUE
-' The requested sequence of indices
-Private Function PartSteppedIntervalIndices(AnArray As Variant, _
-                                            TheIndices As Variant, _
-                                            TheDimension As Long, _
-                                            Optional ParameterCheckQ As Boolean = True) As Variant
-    Dim ni As Variant
-    Dim FirstPos As Long
-    Dim LastPos As Long
-    Dim NumPos As Long
-    Dim StepSize As Long
-    
-    Let ni = NormalizeIndexArray(AnArray, Most(TheIndices), TheDimension, ParameterCheckQ)
-    Let FirstPos = CLng(First(ni))
-    Let LastPos = CLng(Last(ni))
-    Let StepSize = CLng(Last(TheIndices))
-    
-    Let FirstPos = CLng(First(ni))
-    Let NumPos = CLng((LastPos - FirstPos - (LastPos - FirstPos) Mod StepSize) / StepSize + 1)
-                                   
-    Let PartSteppedIntervalIndices = CreateSequentialArray(FirstPos, NumPos, StepSize)
-End Function
-
-' DESCRIPTION
 ' Returns the subset of the 1D or 2D array specified by the indices.  Most common uses are:
 '
 ' a. Take(m, n) - with n>0 returns the first n elements or rows of m
 ' b. Take(m, -n) - with n>0 returns the last n elements or rows of m
 '
-' PARAMETERS
-' 1. AnArray - A dimensioned array
-' 2. Indices - a sequence of indices (with at least one supplied) of the forms below, with each one
-'    referring to a different dimension of the array. At the moment we process only 1D and 2D arrays.
-'    So, Indices can only be one or two of the forms below.
-'
-' Indices can take any of the following forms:
-' 1. n - Get elements 1 through
-' 2. -n - Elements from the end of the array indexed by -1 to -n from right to left
-' 2. [{n_1, n_2}] - Elements n_1 through n_2
-'
-' RETURNED VALUE
-' The requested slice or element of the array.
-Public Function Take(AnArray As Variant, ParamArray Indices() As Variant) As Variant
-    Dim IndicesCopy As Variant
-    
-    ' We use our function to convert the ParamArray to a regular array
-    Let IndicesCopy = CopyParamArray(Indices)
-
-    ' Exit with Null if AnArray is neither an atomic array nor an atomic table
-    If Not (AtomicArrayQ(AnArray) Or AtomicTableQ(AnArray)) Then
-        Let Take = Null
-        Exit Function
-    End If
-
-    ' Exit with Null if not even a single index was passed
-    If Not DimensionedQ(IndicesCopy) Then
-        Let Take = Null
-        Exit Function
-    End If
-    
-    ' Exit if more indices were passed than the number of dimensions in AnArray
-    If NumberOfDimensions(AnArray) < Length(IndicesCopy) Then
-        Let Take = Null
-        Exit Function
-    End If
-    
-    ' Exit with Null if any of the indices fails TakeIndexQ
-    If Not TakeIndexArrayQ(IndicesCopy) Then
-        Let Take = Null
-        Exit Function
-    End If
-    
-    ' Exit with Null if AnArray is empty because any index would be out of bounds
-    If EmptyArrayQ(AnArray) Then
-        Let Take = Null
-        Exit Function
-    End If
-    
-    ' Collect the chosen array's slice depending on its number of dimensions
-    If Length(IndicesCopy) = 1 Then
-        ' Process case on a single whole number given as index
-        If PositiveWholeNumberQ(First(IndicesCopy)) Then
-            Let Take = Part(AnArray, Array(1, First(IndicesCopy)))
-        ElseIf NegativeWholeNumberQ(First(IndicesCopy)) Then
-            Let Take = Part(AnArray, Array(First(IndicesCopy), -1))
-        ElseIf WholeNumberArrayQ(First(IndicesCopy)) Then
-            Let Take = Part(AnArray, First(IndicesCopy))
-        Else
-            Let Take = Null
-        End If
-    Else
-        ' Process first dimensional index
-        If PositiveWholeNumberQ(First(IndicesCopy)) Then
-            Let First(IndicesCopy) = Array(1, First(IndicesCopy))
-        ElseIf NegativeWholeNumberQ(First(IndicesCopy)) Then
-            Let First(IndicesCopy) = Array(First(IndicesCopy), -1)
-        ElseIf WholeNumberArrayQ(First(IndicesCopy)) Then
-            Let First(IndicesCopy) = First(IndicesCopy)
-        Else
-            Let First(IndicesCopy) = Null
-        End If
-        
-        ' Process last dimensional index
-        If PositiveWholeNumberQ(Last(IndicesCopy)) Then
-            Let Last(IndicesCopy) = Array(1, Last(IndicesCopy))
-        ElseIf NegativeWholeNumberQ(Last(IndicesCopy)) Then
-            Let Last(IndicesCopy) = Array(Last(IndicesCopy), -1)
-        ElseIf WholeNumberArrayQ(Last(IndicesCopy)) Then
-            Let Last(IndicesCopy) = Last(IndicesCopy)
-        Else
-            Let Last(IndicesCopy) = Null
-        End If
-        
-        ' Exit with null if either index set is null
-        If NullQ(First(IndicesCopy)) Or NullQ(Last(IndicesCopy)) Then
-            Let Take = Null
-        Else
-            ' Call Part with the given dimensional index sets
-            Let Take = Part(AnArray, First(IndicesCopy), Last(IndicesCopy))
-        End If
-    End If
-End Function
-
-' DESCRIPTION
-' A version of Arrays.Part that does no parameter consistency checks.Returns the
-' subset of the 1D or 2D array specified by the indices.  Most common uses are:
-'
-' a. TakeNoParamCheck(m, n) - with n>0 returns the first n elements or rows of m
-' b. TakeNoParamCheck(m, -n) - with n>0 returns the last n elements or rows of m
+' A big difference with Arrays.Part() is that it always returns a set instead of single
+' elements as in the case of Part(AnArray, n) or Part(AnArray, n, m), which return single
+' elements when n and m are whole numbers.
 '
 ' PARAMETERS
 ' 1. AnArray - A dimensioned array
@@ -995,331 +788,35 @@ End Function
 ' Indices can take any of the following forms:
 ' 1. n - Get elements 1 through
 ' 2. -n - Elements from the end of the array indexed by -1 to -n from right to left
-' 2. [{n_1, n_2}] - Elements n_1 through n_2
+' 3. [{n}] - Element n only.  Works just like Part(AnArray, n)
+' 4. [{n_1, n_2}] - Elements n_1 through n_2
+' 5. [{n_1, n_2, TheStep}] - Elements n_1 through n_2 every TheStep elements. Identical to
+'    Part(AnArray, Span(n_1, n_2, TheStep)
 '
 ' RETURNED VALUE
 ' The requested slice or element of the array.
-Public Function TakeNoParamCheck(AnArray As Variant, ParamArray Indices() As Variant) As Variant
-    Dim IndicesCopy As Variant
+Public Function Take(AnArray As Variant, Indices As Variant) As Variant
+    Let Take = Null
     
-    ' We use our function to convert the ParamArray to a regular array
-    Let IndicesCopy = CopyParamArray(Indices)
-
-    ' Collect the chosen array's slice depending on its number of dimensions
-    If Length(IndicesCopy) = 1 Then
-        ' Process case on a single whole number given as index
-        If PositiveWholeNumberQ(First(IndicesCopy)) Then
-            Let TakeNoParamCheck = Part(AnArray, Array(1, First(IndicesCopy)))
-        ElseIf NegativeWholeNumberQ(First(IndicesCopy)) Then
-            Let TakeNoParamCheck = Part(AnArray, Array(First(IndicesCopy), -1))
-        ElseIf WholeNumberArrayQ(First(IndicesCopy)) Then
-            Let TakeNoParamCheck = Part(AnArray, First(IndicesCopy))
+    If Not DimensionedQ(AnArray) Then Exit Function
+    
+    If Not (NonzeroWholeNumberQ(Indices) Or NonzeroWholeNumberArrayQ(Indices)) Then Exit Function
+    
+    If WholeNumberArrayQ(Indices) And (Length(Indices) < 1 Or Length(Indices) > 3) Then Exit Function
+    
+    If WholeNumberQ(Indices) Then
+        If Indices > 1 Then
+            Let Take = Part(AnArray, Span(1, CLng(Indices)))
         Else
-            Let TakeNoParamCheck = Null
+            Let Take = Part(AnArray, Span(CLng(Indices), -1))
         End If
+    ElseIf WholeNumberArrayQ(Indices) And Length(Indices) = 1 Then
+        Let Take = Part(AnArray, First(Indices))
+    ElseIf WholeNumberArrayQ(Indices) And Length(Indices) = 2 Then
+        Let Take = Part(AnArray, Span(CLng(First(Indices)), CLng(Last(Indices))))
     Else
-        ' Process first dimensional index
-        If PositiveWholeNumberQ(First(IndicesCopy)) Then
-            Let First(IndicesCopy) = Array(1, First(IndicesCopy))
-        ElseIf NegativeWholeNumberQ(First(IndicesCopy)) Then
-            Let First(IndicesCopy) = Array(First(IndicesCopy), -1)
-        ElseIf WholeNumberArrayQ(First(IndicesCopy)) Then
-            Let First(IndicesCopy) = First(IndicesCopy)
-        Else
-            Let First(IndicesCopy) = Null
-        End If
-        
-        ' Process last dimensional index
-        If PositiveWholeNumberQ(Last(IndicesCopy)) Then
-            Let Last(IndicesCopy) = Array(1, Last(IndicesCopy))
-        ElseIf NegativeWholeNumberQ(Last(IndicesCopy)) Then
-            Let Last(IndicesCopy) = Array(Last(IndicesCopy), -1)
-        ElseIf WholeNumberArrayQ(Last(IndicesCopy)) Then
-            Let Last(IndicesCopy) = Last(IndicesCopy)
-        Else
-            Let Last(IndicesCopy) = Null
-        End If
-        
-        ' Exit with null if either index set is null
-        If NullQ(First(IndicesCopy)) Or NullQ(Last(IndicesCopy)) Then
-            Let TakeNoParamCheck = Null
-        Else
-            ' Call Part with the given dimensional index sets
-            Let TakeNoParamCheck = Part(AnArray, First(IndicesCopy), Last(IndicesCopy))
-        End If
+        Let Take = Part(AnArray, Span(CLng(First(Indices)), CLng(Part(Indices, 2)), CLng(Last(Indices))))
     End If
-End Function
-
-' DESCRIPTION
-' Returns the row with row index RowNumber as a 1D matrix if aMatrix satisfies Predicates.AtomicTableQ.
-' We use the convention that 1 refers to the first row and -1 to the last.  The function returns Null
-' if either aMatrix or RowNumber are invalid.
-'
-' PARAMETERS
-' 1. aMatrix - any value or object reference
-' 2. RowNumber - a non-zero integer smaller than or equal to the number of rows in aMatrix
-'
-' RETURNED VALUE
-' Returns as a 1D array the row numbered RowNumber from the given 2D table
-Public Function GetRow(aMatrix As Variant, _
-                       RowNumber As Long, _
-                       Optional ParameterCheckQ As Boolean = True) As Variant
-    Dim c As Long
-    Dim ResultArray() As Variant
-    Dim NormalizedIndex As Variant
-    
-    ' This is here for high-speed applications
-    If Not ParameterCheckQ Then
-        ' Extract the requested row element by element
-        ReDim ResultArray(1 To NumberOfColumns(aMatrix))
-        For c = 1 To NumberOfColumns(aMatrix)
-            Let ResultArray(c) = aMatrix(RowNumber, c)
-        Next
-        
-        Let GetRow = ResultArray
-        
-        Exit Function
-    End If
-    
-    ' Set default return case
-    Let GetRow = Null
-    
-    ' Exit with Null is aMatrix is a 2D matrix
-    If Not AtomicTableQ(aMatrix) Then Exit Function
-
-    ' Exit with Null if aMatrix is either not dimensioned or null
-    If EmptyArrayQ(aMatrix) Then Exit Function
-    
-    ' Exit with Null if RowNumber is not a nonzero wholenumber
-    If Not NonzeroWholeNumberQ(RowNumber) Then Exit Function
-    
-    ' Exit with Null Abs(RowNumber) > NumberOfRows(aMatrix)
-    If Abs(RowNumber) > NumberOfRows(aMatrix) Then Exit Function
-    
-    ' Simultaneously normalize the index and check it for consistency, exciting
-    ' with Null in case of an error
-    Let NormalizedIndex = NormalizeIndex(aMatrix, RowNumber)
-    
-    If NullQ(NormalizedIndex) Then Exit Function
-    
-    ' Extract the requested row element by element
-    ReDim ResultArray(1 To NumberOfColumns(aMatrix))
-    For c = 1 To NumberOfColumns(aMatrix)
-        Let ResultArray(c) = aMatrix(NormalizedIndex, NormalizeIndex(aMatrix, c, 2))
-    Next
-    
-    Let GetRow = ResultArray
-End Function
-
-' DESCRIPTION
-' Returns the column with column index ColumnNumber as a 1D matrix if aMatrix satisfies Predicates.AtomicTableQ.
-' We use the convention that 1 refers to the first column and -1 to the last.  The function returns Null
-' if either aMatrix or ColumnNumber are invalid.
-'
-' PARAMETERS
-' 1. aMatrix - any value or object reference
-' 2. RowNumber - a non-zero integer smaller than or equal to the number of rows in aMatrix
-'
-' RETURNED VALUE
-' Returns as a 1D array the column numbered ColumnNumber from the given 2D table
-Public Function GetColumn(aMatrix As Variant, _
-                          ColumnNumber As Long, _
-                          Optional ParameterCheckQ As Boolean = True) As Variant
-    Dim r As Long
-    Dim ResultArray() As Variant
-    Dim NormalizedIndex As Variant
-    
-    ' This is here for high-speed applications
-    If Not ParameterCheckQ Then
-        ' Extract the requested row element by element
-        ReDim ResultArray(1 To NumberOfRows(aMatrix))
-        For r = 1 To NumberOfColumns(aMatrix)
-            Let ResultArray(r) = aMatrix(r, ColumnNumber)
-        Next
-        
-        Let GetColumn = ResultArray
-        
-        Exit Function
-    End If
-    
-    ' Set default return case
-    Let GetColumn = Null
-    
-    ' Exit with Null is aMatrix is a 2D matrix
-    If Not AtomicTableQ(aMatrix) Then Exit Function
-
-    ' Exit with Null if aMatrix is either not dimensioned or null
-    If EmptyArrayQ(aMatrix) Then Exit Function
-    
-    ' Exit with Null if RowNumber is not a nonzero wholenumber
-    If Not NonzeroWholeNumberQ(ColumnNumber) Then Exit Function
-    
-    ' Exit with Null Abs(RowNumber) > NumberOfRows(aMatrix)
-    If Abs(ColumnNumber) > NumberOfColumns(aMatrix) Then Exit Function
-    
-    ' Simultaneously normalize the index and check it for consistency, exciting
-    ' with Null in case of an error
-    Let NormalizedIndex = NormalizeIndex(aMatrix, ColumnNumber, 2)
-    
-    If NullQ(NormalizedIndex) Then Exit Function
-    
-    ' Extract the requested row element by element
-    ReDim ResultArray(1 To NumberOfRows(aMatrix))
-    For r = 1 To NumberOfRows(aMatrix)
-        Let ResultArray(r) = aMatrix(NormalizeIndex(aMatrix, r, 1), NormalizedIndex)
-    Next
-    
-    Let GetColumn = ResultArray
-End Function
-
-' DESCRIPTION
-' Gets the sub-array of the given 1D array between StartIndex and EndIndex under the assumption
-' that the array's 1st row has index 1.  If StartIndex or EndIndex are outside of the array's
-' bounds, this function returns Null.  It also returns Null for an undimensioned or empty
-' array or nonarrays
-'
-' PARAMETERS
-' 1. AnArray - Any Excel object or reference
-' 2. StartIndex - First index of requested subarray
-' 3. EndIndex - Last index of requested subarray
-' 4. ParameterCheckQ - (optional) When explicitly set to False, no parameter checks are done
-'
-' RETURNED VALUE
-' Returns the given requested 1D subarray
-Public Function GetSubArray(AnArray As Variant, _
-                            StartIndex As Long, _
-                            EndIndex As Long, _
-                            Optional ParameterCheckQ As Boolean = True) As Variant
-    Dim i As Long
-    Dim ReturnedArray As Variant
-    
-    ' Set default return value
-    Let GetSubArray = Null
-    
-    If ParameterCheckQ Then
-        ' Exit with Null if AnArray is not dimensioned or empty
-        If Not DimensionedQ(AnArray) Then Exit Function
-        
-        ' Exit with Null if AnArray is empty
-        If EmptyArrayQ(AnArray) Then Exit Function
-        
-        ' Exit with Null if AnArray is not atomic
-        If Not AtomicArrayQ(AnArray) Then Exit Function
-        
-        ' Exit with null if StartIndex or EndIndex are outside of the array's bounds
-        If StartIndex < 1 Or StartIndex > Length(AnArray) Then Exit Function
-        If EndIndex < 1 Or EndIndex > Length(AnArray) Then Exit Function
-        
-        ' Exit with Null if StartIndex>EndIndex
-        If StartIndex > EndIndex Then Exit Function
-        
-        ' Exit with Null if this is not a 1D array
-        If NumberOfDimensions(AnArray) <> 1 Then Exit Function
-        
-        ' Exit with Null if AnArray has LBound<>1
-        If LBound(AnArray, 1) <> 1 Then Exit Function
-    End If
-
-    ReDim ReturnedArray(1 To EndIndex - StartIndex + 1)
-    For i = StartIndex To EndIndex
-        Let ReturnedArray(i - StartIndex + 1) = AnArray(i)
-    Next i
-    
-    Let GetSubArray = ReturnedArray
-End Function
-
-' DESCRIPTION
-' Returns the submatrix specified by the given endpoints.  Row and column endpoints are optional,
-' but must come in pairs that are either both missing or both present.  The function returns Null
-' if the given endpoints fall outside of the array's bounds. The function returns Null for all
-' values of aMatrix that are not a dimensioned, non-empty atomic table.  The result is always returned
-' as a 2D array.  No parameter consistency checks are done when ParameterCheckQ is explicitly passed
-' as False.  All indices are assumed to start at 1.  The result is indexed starting with 1.
-'
-' PARAMETERS
-' 1. aMatrix - Any Excel object or reference
-' 2. TopEndPoint - First row of requested submatrix
-' 3. BottomEndPoint - Last row of requested submatrix
-' 4. LeftEndPoint - First column of requested submatrix
-' 5. RightEndPoint - Last column of requested submatrix
-' 4. ParameterCheckQ - (optional) When explicitly set to False, no parameter checks are done
-'
-' RETURNED VALUE
-' Returns the given requested 2D submatrix.
-Public Function GetSubMatrix(aMatrix As Variant, _
-                             Optional TopEndPoint As Variant, _
-                             Optional BottomEndPoint As Variant, _
-                             Optional LeftEndPoint As Variant, _
-                             Optional RightEndPoint As Variant, _
-                             Optional ParameterCheckQ As Boolean = True) As Variant
-    Dim TopEndPoint As Long
-    Dim BottomEndPoint As Long
-    Dim LeftEndPoint As Long
-    Dim RightEndPoint As Long
-    Dim r As Long
-    Dim c As Long
-    Dim ReturnMatrix As Variant
-    
-    ' Set default return value
-    Let ParameterCheckQ = Null
-                             
-    If ParameterCheckQ Then
-        ' Exit with Null if aMatrix is not dimensioned or empty
-        If Not DimensionedQ(aMatrix) Then Exit Function
-        
-        ' Exit with Null if aMatrix is empty
-        If EmptyArrayQ(aMatrix) Then Exit Function
-        
-        ' Exit with Null if aMatrix is not atomic
-        If Not AtomicTableQ(aMatrix) Then Exit Function
-        
-        ' Exit with Null if TopEndPoint/BottomEndPoint or LeftEndPoint/RightEndPoint are not
-        ' present in pairs
-        If (Not IsMissing(TopEndPoint) And IsMissing(BottomEndPoint)) Or _
-           (IsMissing(BottomEndPoint) And Not IsMissing(TopEndPoint)) Or _
-           (IsMissing(LeftEndPoint) And Not IsMissing(RightEndPoint)) Or _
-           (IsMissing(RightEndPoint) And Not IsMissing(LeftEndPoint)) Then Exit Function
-
-        ' Exit with Null if either pair of endpoints are present a<b for the wrong endpoint
-        If Not IsMissing(TopEndPoint) Then
-            If Not PositiveWholeNumberQ(TopEndPoint) Then Exit Function
-            If Not PositiveWholeNumberQ(BottomEndPoint) Then Exit Function
-            If TopEndPoint > BottomEndPoint Then Exit Function
-            If BottomEndPoint > NumberOfRows(aMatrix) Then Exit Function
-        End If
-        
-        If Not IsMissing(LeftEndPoint) Then
-            If Not PositiveWholeNumberQ(LeftEndPoint) Then Exit Function
-            If Not PositiveWholeNumberQ(RightEndPoint) Then Exit Function
-            If LeftEndPoint > RightEndPoint Then Exit Function
-            If RightEndPoint > NumberOfColumns(aMatrix) Then Exit Function
-        End If
-        
-        ' Exit with Null if aMatrix does not have to dimensions but LeftEndPoint is present
-        If NumberOfDimensions(aMatrix) = 1 And Not IsMissing(LeftEndPoint) Then Exit Function
-        
-        ' Exit with Null if aMatrix has either LBound<>1
-        If LBound(aMatrix, 1) <> 1 Or LBound(aMatrix, 2) <> 1 Then Exit Function
-    End If
-    
-    If IsMissing(TopEndPoint) Then
-        Let TopEndPoint = 1
-        Let BottomEndPoint = NumberOfRows(aMatrix)
-    End If
-    
-    If IsMissing(LeftEndPoint) Then
-        Let LeftEndPoint = 1
-        Let RightEndPoint = NumberOfColumns(aMatrix)
-    End If
-    
-    ReDim ReturnMatrix(TopEndPoint To BottomEndPoint, LeftEndPoint To RightEndPoint)
-    For r = 1 To BottomEndPoint - TopEndPoint + 1
-        For c = 1 To RightEndPoint - LeftEndPoint + 1
-            Let ReturnMatrix(r, c) = aMatrix(r + TopEndPoint - 1, c + LeftEndPoint - 1)
-        Next
-    Next
-    
-    Let GetSubMatrix = ReturnMatrix
 End Function
 
 ' DESCRIPTION
@@ -1582,35 +1079,36 @@ End Function
 '
 ' RETURNED VALUE
 ' Returns the given 1D or 2D table as a string and prints it in the debug window.
-Public Function PrintArray(TheArray As Variant) As String
+Public Function PrintArray(TheArray As Variant, Optional SupressOutputQ As Boolean = False) As String
     Dim ReturnString As String
     Dim ARow As Variant
     Dim c As Long
     Dim r As Long
     
-    If Not IsArray(TheArray) Then
+    If IsNull(TheArray) Then
+        If Not SupressOutputQ Then Debug.Print "Null"
+        Let PrintArray = vbNullString
+        Exit Function
+    ElseIf Not IsArray(TheArray) Then
         Let ReturnString = "Not an array"
-        Debug.Print ReturnString
+        If Not SupressOutputQ Then Debug.Print ReturnString
     ElseIf NumberOfDimensions(TheArray) = 0 Then
         Let ReturnString = TheArray
-        Debug.Print ReturnString
+        If Not SupressOutputQ Then Debug.Print ReturnString
     ElseIf NumberOfDimensions(TheArray) = 1 Then
         If EmptyArrayQ(TheArray) Then
             Let ReturnString = "Empty 1D Array"
-            Debug.Print ReturnString
+            If Not SupressOutputQ Then Debug.Print ReturnString
         Else
-            Let ARow = TheArray(LBound(TheArray))
-            Let ReturnString = ReturnString & vbCr & ARow
-        
-            If UBound(TheArray) - LBound(TheArray) >= 1 Then
-                For c = LBound(TheArray) + 1 To UBound(TheArray)
-                    Let ARow = ARow & vbTab & TheArray(c)
+            If UBound(TheArray) >= LBound(TheArray) Then
+                For c = LBound(TheArray) To UBound(TheArray)
+                    Let ARow = ARow & IIf(ARow = vbNullString, vbNullString, vbTab) & TheArray(c)
                 Next c
                 
-                Let ReturnString = ReturnString & vbCr & ARow
+                Let ReturnString = ReturnString & IIf(ReturnString = vbNullString, vbNullString, vbCr) & ARow
             End If
         
-            Debug.Print ARow
+            If Not SupressOutputQ Then Debug.Print ARow
         End If
     Else
         For r = LBound(TheArray, 1) To UBound(TheArray, 1)
@@ -1618,13 +1116,13 @@ Public Function PrintArray(TheArray As Variant) As String
         
             If UBound(TheArray, 2) - LBound(TheArray, 2) >= 1 Then
                 For c = LBound(TheArray, 2) + 1 To UBound(TheArray, 2)
-                    Let ARow = ARow & vbTab & TheArray(r, c)
+                    Let ARow = ARow & IIf(ARow = vbNullString, vbNullString, vbTab) & TheArray(r, c)
                 Next c
                 
-                Let ReturnString = ReturnString & vbCr & ARow
+                Let ReturnString = ReturnString & IIf(ReturnString = vbNullString, vbNullString, vbCr) & ARow
             End If
         
-            Debug.Print ARow
+            If Not SupressOutputQ Then Debug.Print ARow
         Next r
     End If
     
@@ -1928,7 +1426,7 @@ Public Function Drop(AnArray As Variant, ThePositions As Variant) As Variant
             Let Drop = Null
         ' Process case of droppoing from a 2D array
         Case 2
-
+'***HERE
     End Select
 End Function
 
@@ -1942,45 +1440,121 @@ End Function
 '
 ' The 2D array returned is indexed starting at 1
 ' If the optional parameter PackAsColumnsQ is set to True, the 1D arrays in TheRowsAs1DArrays become columns.
-Public Function Pack2DArray(TheRowsAs1DArrays As Variant, Optional PackAsColumnsQ As Boolean = False) As Variant
+Public Function Pack2DArray(TheRowsAs1DArrays As Variant, _
+                            Optional PackAsColumnsQ As Boolean = False, _
+                            Optional ParameterCheckQ As Boolean = True) As Variant
     Dim var As Variant
     Dim r As Long
     Dim c As Long
-    Dim Results() As Variant
-    Dim TheLength As Long
+    Dim RowOffset As Long
+    Dim ColOffset As Long
+    Dim ReturnArray As Variant
+    Dim ElementLength As Long
     
-    ' Exit if the argument is not the expected type
-    If NumberOfDimensions(TheRowsAs1DArrays) <> 1 Or EmptyArrayQ(TheRowsAs1DArrays) Then
-        Let Pack2DArray = Null
+    ' Set default return value
+    Let Pack2DArray = Null
+    
+    ' Exit with Null if A2DArray is undimensioned
+    If Not DimensionedQ(TheRowsAs1DArrays) Then Exit Function
+    
+    ' Exit with the empty array if TheRowsAs1DArrays is the empty array
+    If EmptyArrayQ(TheRowsAs1DArrays) Then
+        Let Pack2DArray = EmptyArray()
         Exit Function
     End If
     
+    ' Exit if the argument is not the expected type
+    If NumberOfDimensions(TheRowsAs1DArrays) <> 1 Then Exit Function
+    
     ' Exit if any of the elements in not an atomic array or
-    '  if all the array elements do not the same length
-    Let TheLength = GetArrayLength(First(TheRowsAs1DArrays))
-    For Each var In TheRowsAs1DArrays
-        If Not AtomicArrayQ(var) Or GetArrayLength(var) <> TheLength Then
-            Let Pack2DArray = Null
-            Exit Function
-        End If
-    Next
+    ' if all the array elements do not the same length
+    If Not IsNull(First(TheRowsAs1DArrays)) Then
+        Let ElementLength = Length(First(TheRowsAs1DArrays))
+    Else
+        Exit Function
+    End If
+    
+    ' Check parameter consitency only ift
+    If Not ParameterCheckQ Then
+        For Each var In TheRowsAs1DArrays
+            If GetArrayLength(var) <> ElementLength Then
+                Let Pack2DArray = Null
+                Exit Function
+            End If
+        Next
+    End If
 
     ' Pre-allocate a 2D array filled with Empty
-    ReDim Results(1 To GetArrayLength(TheRowsAs1DArrays), 1 To GetArrayLength(First(TheRowsAs1DArrays)))
+    ReDim ReturnArray(1 To Length(TheRowsAs1DArrays), 1 To ElementLength)
     
     ' Pack the array
+    Let RowOffset = IIf(LBound(TheRowsAs1DArrays) = 0, 1, 0)
+    Let ColOffset = IIf(LBound(First(TheRowsAs1DArrays)) = 0, 1, 0)
     For r = LBound(TheRowsAs1DArrays) To UBound(TheRowsAs1DArrays)
         For c = LBound(First(TheRowsAs1DArrays)) To UBound(First(TheRowsAs1DArrays))
-            Let Results(IIf(LBound(TheRowsAs1DArrays) = 0, 1, 0) + r, IIf(LBound(First(TheRowsAs1DArrays)) = 0, 1, 0) + c) = TheRowsAs1DArrays(r)(c)
+            Let ReturnArray(RowOffset + r, ColOffset + c) = TheRowsAs1DArrays(r)(c)
         Next c
     Next r
     
     If PackAsColumnsQ Then
-        Let Pack2DArray = TransposeMatrix(Results)
+        Let Pack2DArray = TransposeMatrix(ReturnArray)
         Exit Function
     End If
     
-    Let Pack2DArray = Results
+    Let Pack2DArray = ReturnArray
+End Function
+
+' This function is the inverse of Arrays.Pack2DArray
+Public Function UnPack2DArray(A2DArray As Variant, _
+                              Optional UnPackAsColumnsQ As Boolean = False) As Variant
+    Dim r As Long
+    Dim c As Long
+    Dim rOffset As Long
+    Dim cOffset As Long
+    Dim ReturnArray As Variant
+    Dim ColumnArray As Variant
+    
+    ' Set default return value
+    Let UnPack2DArray = Null
+    
+    ' Exit with Null if A2DArray is undimensioned
+    If Not DimensionedQ(A2DArray) Then Exit Function
+    
+    ' Exit with the empty array if A2DArray is the empty array
+    If EmptyArrayQ(A2DArray) Then
+        Let UnPack2DArray = EmptyArray()
+        Exit Function
+    End If
+    
+    ' Exit if the argument is not the expected type
+    If NumberOfDimensions(A2DArray) <> 2 Then Exit Function
+    
+    ' Pack the array
+    If UnPackAsColumnsQ Then
+        ' Pre-allocate a 2D array filled with Empty
+        ReDim ReturnArray(1 To NumberOfColumns(A2DArray))
+        ReDim ColumnArray(1 To Length(A2DArray))
+        
+        Let rOffset = LBound(A2DArray, 1) - 1
+        Let cOffset = LBound(A2DArray, 2) - 1
+        
+        For c = 1 To NumberOfColumns(A2DArray)
+            For r = 1 To Length(A2DArray)
+                Let ColumnArray(r) = A2DArray(r + rOffset, c + cOffset)
+            Next
+            
+            Let ReturnArray(c) = ColumnArray
+        Next c
+    Else
+        ' Pre-allocate a 2D array filled with Empty
+        ReDim ReturnArray(1 To Length(A2DArray))
+    
+        For r = 1 To Length(A2DArray)
+            Let ReturnArray(r) = Part(A2DArray, r)
+        Next r
+    End If
+    
+    Let UnPack2DArray = ReturnArray
 End Function
 
 Public Function Convert1DArrayIntoParentheticalExpression(TheArray As Variant) As String
@@ -2423,40 +1997,12 @@ Public Function DumpInSheet(AnArray As Variant, _
     End If
 End Function
 
-' Applies the LAG operator to the power N to TheArray. TheArray has to be a 1D or 2D Array containing timeseries data.
-' Timedimension is a parameter indicating whether the timeseries are organised from left to right (horizontal) or from
-' top to bottom (vertical)
-Public Function LAGN(TheArray As Variant, N As Variant, TimeDimension As String)
-    If TimeDimension = "Vertical" Then
-        LAGN = LagNRange(GetSubMatrix(TheArray, , UBound(TheArray, 1) - N), N, TimeDimension).Value2
-    ElseIf TimeDimension = "Horizontal" Then
-        LAGN = LagNRange(GetSubMatrix(TheArray, , , , UBound(TheArray, 2) - N), N, TimeDimension).Value2
-    Else
-        Exit Function
-    End If
-End Function
-
-' Calculates the LN of a 1D or 2D Array
-Public Function LnOfArray(TheArray As Variant) As Variant
-    Dim tmpSht As Worksheet
-    Dim RangeOfTheArray As Range
-
-    Set RangeOfTheArray = ToTemp(TheArray)
-    
-    ' Set reference to the worksheet where TheArray has been dumped in
-    Set tmpSht = RangeOfTheArray.Worksheet
-    
-    RangeOfTheArray.Offset(0, UBound(TheArray, 2) + 1) = Application.Ln(RangeOfTheArray)
-    
-    LnOfArray = RangeOfTheArray.Offset(0, UBound(TheArray, 2) + 1).Value2
-End Function
-
 ' This function performs matrix element-wise division on two 0D, 1D, or 2D arrays.  Clearly, the two arrays
 ' must have the same dimensions.  The result is returned as an array of the same dimensions as those of
 ' the input.  This function throws an error if there is a division by 0
 Public Function ElementwiseAddition(matrix1 As Variant, matrix2 As Variant) As Variant
     Dim TmpSheet As Worksheet
-    Dim numRows As Long
+    Dim NumRows As Long
     Dim numColumns As Long
     Dim r As Long ' for number of rows
     Dim c As Long ' for number of columns
@@ -2527,53 +2073,53 @@ Public Function ElementwiseAddition(matrix1 As Variant, matrix2 As Variant) As V
             Let TheResults(c) = CDbl(matrix1) + CDbl(matrix2(c + cOffset2))
         Next c
     ElseIf IsNumeric(matrix1) And ColumnVectorQ(matrix2) Then
-        Let numRows = GetNumberOfRows(matrix2)
+        Let NumRows = GetNumberOfRows(matrix2)
         
-        ReDim TheResults(1 To numRows, 1 To 1)
+        ReDim TheResults(1 To NumRows, 1 To 1)
 
         ' Compute the r and c offsets due to differences in array starts
         Let rOffset2 = IIf(LBound(matrix2, 1) = 0, 1, 0)
         
-        For r = 1 To numRows
+        For r = 1 To NumRows
             Let TheResults(r, 1) = CDbl(matrix1) + CDbl(matrix2(r + rOffset2, 1))
         Next r
     ElseIf IsNumeric(matrix1) And MatrixQ(matrix2) Then
-        Let numRows = GetNumberOfRows(matrix2)
+        Let NumRows = GetNumberOfRows(matrix2)
         Let numColumns = GetNumberOfColumns(matrix2)
         
-        ReDim TheResults(1 To numRows, 1 To numColumns)
+        ReDim TheResults(1 To NumRows, 1 To numColumns)
     
         ' Compute the r and c offsets due to differences in array starts
         Let rOffset2 = IIf(LBound(matrix2, 1) = 0, 1, 0)
         Let cOffset2 = IIf(LBound(matrix2, 2) = 0, 1, 0)
         
-        For r = 1 To numRows
+        For r = 1 To NumRows
             For c = 1 To numColumns
                 Let TheResults(r, c) = CDbl(matrix1) + CDbl(matrix2(r + rOffset2, c + cOffset2))
             Next c
         Next r
     ElseIf RowVectorQ(matrix1) And MatrixQ(matrix2) Then
         ' If the code gets here, we are adding two 2D matrices of the same size
-        Let numRows = GetNumberOfRows(matrix2)
+        Let NumRows = GetNumberOfRows(matrix2)
         Let numColumns = GetNumberOfColumns(matrix2)
         
-        ReDim TheResults(1 To numRows, 1 To numColumns)
+        ReDim TheResults(1 To NumRows, 1 To numColumns)
     
         ' Compute the r and c offsets due to differences in array starts
         Let rOffset2 = IIf(LBound(matrix2, 1) = 0, 1, 0)
         Let cOffset1 = IIf(LBound(matrix1) = 0, 1, 0)
         Let cOffset2 = IIf(LBound(matrix2, 2) = 0, 1, 0)
         
-        For r = 1 To numRows
+        For r = 1 To NumRows
             For c = 1 To numColumns
                 Let TheResults(r, c) = CDbl(matrix1(c + cOffset1)) + CDbl(matrix2(r + rOffset2, c + cOffset2))
             Next c
         Next r
     ElseIf ColumnVectorQ(matrix1) And MatrixQ(matrix2) Then
-        Let numRows = GetNumberOfRows(matrix2)
+        Let NumRows = GetNumberOfRows(matrix2)
         Let numColumns = GetNumberOfColumns(matrix2)
         
-        ReDim TheResults(1 To numRows, 1 To numColumns)
+        ReDim TheResults(1 To NumRows, 1 To numColumns)
     
         ' Compute the r and c offsets due to differences in array starts
         Let rOffset1 = IIf(LBound(matrix1, 1) = 0, 1, 0)
@@ -2581,7 +2127,7 @@ Public Function ElementwiseAddition(matrix1 As Variant, matrix2 As Variant) As V
         Let cOffset1 = IIf(LBound(matrix1, 2) = 0, 1, 0)
         Let cOffset2 = IIf(LBound(matrix2, 2) = 0, 1, 0)
         
-        For r = 1 To numRows
+        For r = 1 To NumRows
             For c = 1 To numColumns
                 Let TheResults(r, c) = CDbl(matrix1(r + rOffset1, 1 + cOffset1)) + CDbl(matrix2(r + rOffset2, c + cOffset2))
             Next c
@@ -2598,53 +2144,53 @@ Public Function ElementwiseAddition(matrix1 As Variant, matrix2 As Variant) As V
             Let TheResults(c) = CDbl(matrix1(c + cOffset1)) + CDbl(matrix2)
         Next c
     ElseIf ColumnVectorQ(matrix1) And IsNumeric(matrix2) Then
-        Let numRows = GetNumberOfRows(matrix1)
+        Let NumRows = GetNumberOfRows(matrix1)
         
-        ReDim TheResults(1 To numRows, 1 To 1)
+        ReDim TheResults(1 To NumRows, 1 To 1)
 
         ' Compute the r and c offsets due to differences in array starts
         Let rOffset1 = IIf(LBound(matrix1, 1) = 0, 1, 0)
         
-        For r = 1 To numRows
+        For r = 1 To NumRows
             Let TheResults(r, 1) = CDbl(matrix1(r + rOffset1, 1)) + CDbl(matrix2)
         Next r
     ElseIf MatrixQ(matrix1) And IsNumeric(matrix2) Then
-        Let numRows = GetNumberOfRows(matrix1)
+        Let NumRows = GetNumberOfRows(matrix1)
         Let numColumns = GetNumberOfColumns(matrix1)
         
-        ReDim TheResults(1 To numRows, 1 To numColumns)
+        ReDim TheResults(1 To NumRows, 1 To numColumns)
     
         ' Compute the r and c offsets due to differences in array starts
         Let rOffset1 = IIf(LBound(matrix1, 1) = 0, 1, 0)
         Let cOffset1 = IIf(LBound(matrix1, 2) = 0, 1, 0)
         
-        For r = 1 To numRows
+        For r = 1 To NumRows
             For c = 1 To numColumns
                 Let TheResults(r, c) = CDbl(matrix1(r + rOffset1, c + cOffset1)) + CDbl(matrix2)
             Next c
         Next r
     ElseIf MatrixQ(matrix1) And RowVectorQ(matrix2) Then
         ' If the code gets here, we are adding two 2D matrices of the same size
-        Let numRows = GetNumberOfRows(matrix1)
+        Let NumRows = GetNumberOfRows(matrix1)
         Let numColumns = GetNumberOfColumns(matrix1)
         
-        ReDim TheResults(1 To numRows, 1 To numColumns)
+        ReDim TheResults(1 To NumRows, 1 To numColumns)
     
         ' Compute the r and c offsets due to differences in array starts
         Let rOffset1 = IIf(LBound(matrix1, 1) = 0, 1, 0)
         Let cOffset1 = IIf(LBound(matrix1, 2) = 0, 1, 0)
         Let cOffset2 = IIf(LBound(matrix2) = 0, 1, 0)
         
-        For r = 1 To numRows
+        For r = 1 To NumRows
             For c = 1 To numColumns
                 Let TheResults(r, c) = CDbl(matrix1(r + rOffset1, c + cOffset1)) + CDbl(matrix2(c + cOffset2))
             Next c
         Next r
     ElseIf ColumnVectorQ(matrix2) And MatrixQ(matrix1) Then
-        Let numRows = GetNumberOfRows(matrix1)
+        Let NumRows = GetNumberOfRows(matrix1)
         Let numColumns = GetNumberOfColumns(matrix1)
         
-        ReDim TheResults(1 To numRows, 1 To numColumns)
+        ReDim TheResults(1 To NumRows, 1 To numColumns)
     
         ' Compute the r and c offsets due to differences in array starts
         Let rOffset1 = IIf(LBound(matrix1, 1) = 0, 1, 0)
@@ -2652,17 +2198,17 @@ Public Function ElementwiseAddition(matrix1 As Variant, matrix2 As Variant) As V
         Let cOffset1 = IIf(LBound(matrix1, 2) = 0, 1, 0)
         Let cOffset2 = IIf(LBound(matrix2, 2) = 0, 1, 0)
         
-        For r = 1 To numRows
+        For r = 1 To NumRows
             For c = 1 To numColumns
                 Let TheResults(r, c) = CDbl(matrix1(r + rOffset1, c + cOffset1)) + CDbl(matrix2(r + rOffset2, 1 + cOffset2))
             Next c
         Next r
     ElseIf MatrixQ(matrix1) And MatrixQ(matrix2) Then
         ' If the code gets here, we are adding two 2D matrices of the same size
-        Let numRows = GetNumberOfRows(matrix1)
+        Let NumRows = GetNumberOfRows(matrix1)
         Let numColumns = GetNumberOfColumns(matrix1)
         
-        ReDim TheResults(1 To numRows, 1 To numColumns)
+        ReDim TheResults(1 To NumRows, 1 To numColumns)
     
         ' Compute the r and c offsets due to differences in array starts
         Let rOffset1 = IIf(LBound(matrix1, 1) = 0, 1, 0)
@@ -2670,7 +2216,7 @@ Public Function ElementwiseAddition(matrix1 As Variant, matrix2 As Variant) As V
         Let cOffset1 = IIf(LBound(matrix1, 2) = 0, 1, 0)
         Let cOffset2 = IIf(LBound(matrix2, 2) = 0, 1, 0)
         
-        For r = 1 To numRows
+        For r = 1 To NumRows
             For c = 1 To numColumns
                 Let TheResults(r, c) = CDbl(matrix1(r + rOffset1, c + cOffset1)) + CDbl(matrix2(r + rOffset2, c + cOffset2))
             Next c
@@ -2688,7 +2234,7 @@ End Function
 ' the input.  This function throws an error if there is a division by 0
 Public Function ElementwiseMultiplication(matrix1 As Variant, matrix2 As Variant) As Variant
     Dim TmpSheet As Worksheet
-    Dim numRows As Long
+    Dim NumRows As Long
     Dim numColumns As Long
     Dim r As Long ' for number of rows
     Dim c As Long ' for number of columns
@@ -2759,53 +2305,53 @@ Public Function ElementwiseMultiplication(matrix1 As Variant, matrix2 As Variant
             Let TheResults(c) = CDbl(matrix1) * CDbl(matrix2(c + cOffset2))
         Next c
     ElseIf IsNumeric(matrix1) And ColumnVectorQ(matrix2) Then
-        Let numRows = GetNumberOfRows(matrix2)
+        Let NumRows = GetNumberOfRows(matrix2)
         
-        ReDim TheResults(1 To numRows, 1 To 1)
+        ReDim TheResults(1 To NumRows, 1 To 1)
 
         ' Compute the r and c offsets due to differences in array starts
         Let rOffset2 = IIf(LBound(matrix2, 1) = 0, 1, 0)
         
-        For r = 1 To numRows
+        For r = 1 To NumRows
             Let TheResults(r, 1) = CDbl(matrix1) * CDbl(matrix2(r + rOffset2, 1))
         Next r
     ElseIf IsNumeric(matrix1) And MatrixQ(matrix2) Then
-        Let numRows = GetNumberOfRows(matrix2)
+        Let NumRows = GetNumberOfRows(matrix2)
         Let numColumns = GetNumberOfColumns(matrix2)
         
-        ReDim TheResults(1 To numRows, 1 To numColumns)
+        ReDim TheResults(1 To NumRows, 1 To numColumns)
     
         ' Compute the r and c offsets due to differences in array starts
         Let rOffset2 = IIf(LBound(matrix2, 1) = 0, 1, 0)
         Let cOffset2 = IIf(LBound(matrix2, 2) = 0, 1, 0)
         
-        For r = 1 To numRows
+        For r = 1 To NumRows
             For c = 1 To numColumns
                 Let TheResults(r, c) = CDbl(matrix1) * CDbl(matrix2(r + rOffset2, c + cOffset2))
             Next c
         Next r
     ElseIf RowVectorQ(matrix1) And MatrixQ(matrix2) Then
         ' If the code gets here, we are adding two 2D matrices of the same size
-        Let numRows = GetNumberOfRows(matrix2)
+        Let NumRows = GetNumberOfRows(matrix2)
         Let numColumns = GetNumberOfColumns(matrix2)
         
-        ReDim TheResults(1 To numRows, 1 To numColumns)
+        ReDim TheResults(1 To NumRows, 1 To numColumns)
     
         ' Compute the r and c offsets due to differences in array starts
         Let rOffset2 = IIf(LBound(matrix2, 1) = 0, 1, 0)
         Let cOffset1 = IIf(LBound(matrix1) = 0, 1, 0)
         Let cOffset2 = IIf(LBound(matrix2, 2) = 0, 1, 0)
         
-        For r = 1 To numRows
+        For r = 1 To NumRows
             For c = 1 To numColumns
                 Let TheResults(r, c) = CDbl(matrix1(c + cOffset1)) * CDbl(matrix2(r + rOffset2, c + cOffset2))
             Next c
         Next r
     ElseIf ColumnVectorQ(matrix1) And MatrixQ(matrix2) Then
-        Let numRows = GetNumberOfRows(matrix2)
+        Let NumRows = GetNumberOfRows(matrix2)
         Let numColumns = GetNumberOfColumns(matrix2)
         
-        ReDim TheResults(1 To numRows, 1 To numColumns)
+        ReDim TheResults(1 To NumRows, 1 To numColumns)
     
         ' Compute the r and c offsets due to differences in array starts
         Let rOffset1 = IIf(LBound(matrix1, 1) = 0, 1, 0)
@@ -2813,7 +2359,7 @@ Public Function ElementwiseMultiplication(matrix1 As Variant, matrix2 As Variant
         Let cOffset1 = IIf(LBound(matrix1, 2) = 0, 1, 0)
         Let cOffset2 = IIf(LBound(matrix2, 2) = 0, 1, 0)
         
-        For r = 1 To numRows
+        For r = 1 To NumRows
             For c = 1 To numColumns
                 Let TheResults(r, c) = CDbl(matrix1(r + rOffset1, 1 + cOffset1)) * CDbl(matrix2(r + rOffset2, c + cOffset2))
             Next c
@@ -2830,53 +2376,53 @@ Public Function ElementwiseMultiplication(matrix1 As Variant, matrix2 As Variant
             Let TheResults(c) = CDbl(matrix1(c + cOffset1)) * CDbl(matrix2)
         Next c
     ElseIf ColumnVectorQ(matrix1) And IsNumeric(matrix2) Then
-        Let numRows = GetNumberOfRows(matrix1)
+        Let NumRows = GetNumberOfRows(matrix1)
         
-        ReDim TheResults(1 To numRows, 1 To 1)
+        ReDim TheResults(1 To NumRows, 1 To 1)
 
         ' Compute the r and c offsets due to differences in array starts
         Let rOffset1 = IIf(LBound(matrix1, 1) = 0, 1, 0)
         
-        For r = 1 To numRows
+        For r = 1 To NumRows
             Let TheResults(r, 1) = CDbl(matrix1(r + rOffset1, 1)) * CDbl(matrix2)
         Next r
     ElseIf MatrixQ(matrix1) And IsNumeric(matrix2) Then
-        Let numRows = GetNumberOfRows(matrix1)
+        Let NumRows = GetNumberOfRows(matrix1)
         Let numColumns = GetNumberOfColumns(matrix1)
         
-        ReDim TheResults(1 To numRows, 1 To numColumns)
+        ReDim TheResults(1 To NumRows, 1 To numColumns)
     
         ' Compute the r and c offsets due to differences in array starts
         Let rOffset1 = IIf(LBound(matrix1, 1) = 0, 1, 0)
         Let cOffset1 = IIf(LBound(matrix1, 2) = 0, 1, 0)
         
-        For r = 1 To numRows
+        For r = 1 To NumRows
             For c = 1 To numColumns
                 Let TheResults(r, c) = CDbl(matrix1(r + rOffset1, c + cOffset1)) * CDbl(matrix2)
             Next c
         Next r
     ElseIf MatrixQ(matrix1) And RowVectorQ(matrix2) Then
         ' If the code gets here, we are adding two 2D matrices of the same size
-        Let numRows = GetNumberOfRows(matrix1)
+        Let NumRows = GetNumberOfRows(matrix1)
         Let numColumns = GetNumberOfColumns(matrix1)
         
-        ReDim TheResults(1 To numRows, 1 To numColumns)
+        ReDim TheResults(1 To NumRows, 1 To numColumns)
     
         ' Compute the r and c offsets due to differences in array starts
         Let rOffset1 = IIf(LBound(matrix1, 1) = 0, 1, 0)
         Let cOffset1 = IIf(LBound(matrix1, 2) = 0, 1, 0)
         Let cOffset2 = IIf(LBound(matrix2) = 0, 1, 0)
         
-        For r = 1 To numRows
+        For r = 1 To NumRows
             For c = 1 To numColumns
                 Let TheResults(r, c) = CDbl(matrix1(r + rOffset1, c + cOffset1)) * CDbl(matrix2(c + cOffset2))
             Next c
         Next r
     ElseIf ColumnVectorQ(matrix2) And MatrixQ(matrix1) Then
-        Let numRows = GetNumberOfRows(matrix1)
+        Let NumRows = GetNumberOfRows(matrix1)
         Let numColumns = GetNumberOfColumns(matrix1)
         
-        ReDim TheResults(1 To numRows, 1 To numColumns)
+        ReDim TheResults(1 To NumRows, 1 To numColumns)
     
         ' Compute the r and c offsets due to differences in array starts
         Let rOffset1 = IIf(LBound(matrix1, 1) = 0, 1, 0)
@@ -2884,17 +2430,17 @@ Public Function ElementwiseMultiplication(matrix1 As Variant, matrix2 As Variant
         Let cOffset1 = IIf(LBound(matrix1, 2) = 0, 1, 0)
         Let cOffset2 = IIf(LBound(matrix2, 2) = 0, 1, 0)
         
-        For r = 1 To numRows
+        For r = 1 To NumRows
             For c = 1 To numColumns
                 Let TheResults(r, c) = CDbl(matrix1(r + rOffset1, c + cOffset1)) * CDbl(matrix2(r + rOffset2, 1 + cOffset2))
             Next c
         Next r
     ElseIf MatrixQ(matrix1) And MatrixQ(matrix2) Then
         ' If the code gets here, we are adding two 2D matrices of the same size
-        Let numRows = GetNumberOfRows(matrix1)
+        Let NumRows = GetNumberOfRows(matrix1)
         Let numColumns = GetNumberOfColumns(matrix1)
         
-        ReDim TheResults(1 To numRows, 1 To numColumns)
+        ReDim TheResults(1 To NumRows, 1 To numColumns)
     
         ' Compute the r and c offsets due to differences in array starts
         Let rOffset1 = IIf(LBound(matrix1, 1) = 0, 1, 0)
@@ -2902,7 +2448,7 @@ Public Function ElementwiseMultiplication(matrix1 As Variant, matrix2 As Variant
         Let cOffset1 = IIf(LBound(matrix1, 2) = 0, 1, 0)
         Let cOffset2 = IIf(LBound(matrix2, 2) = 0, 1, 0)
         
-        For r = 1 To numRows
+        For r = 1 To NumRows
             For c = 1 To numColumns
                 Let TheResults(r, c) = CDbl(matrix1(r + rOffset1, c + cOffset1)) * CDbl(matrix2(r + rOffset2, c + cOffset2))
             Next c
@@ -2920,7 +2466,7 @@ End Function
 ' the input.  This function throws an error if there is a division by 0
 Public Function ElementWiseDivision(matrix1 As Variant, matrix2 As Variant) As Variant
     Dim TmpSheet As Worksheet
-    Dim numRows As Long
+    Dim NumRows As Long
     Dim numColumns As Long
     Dim r As Long ' for number of rows
     Dim c As Long ' for number of columns
@@ -2991,53 +2537,53 @@ Public Function ElementWiseDivision(matrix1 As Variant, matrix2 As Variant) As V
             Let TheResults(c) = CDbl(matrix1) / CDbl(matrix2(c + cOffset2))
         Next c
     ElseIf IsNumeric(matrix1) And ColumnVectorQ(matrix2) Then
-        Let numRows = GetNumberOfRows(matrix2)
+        Let NumRows = GetNumberOfRows(matrix2)
         
-        ReDim TheResults(1 To numRows, 1 To 1)
+        ReDim TheResults(1 To NumRows, 1 To 1)
 
         ' Compute the r and c offsets due to differences in array starts
         Let rOffset2 = IIf(LBound(matrix2, 1) = 0, 1, 0)
         
-        For r = 1 To numRows
+        For r = 1 To NumRows
             Let TheResults(r, 1) = CDbl(matrix1) / CDbl(matrix2(r + rOffset2, 1))
         Next r
     ElseIf IsNumeric(matrix1) And MatrixQ(matrix2) Then
-        Let numRows = GetNumberOfRows(matrix2)
+        Let NumRows = GetNumberOfRows(matrix2)
         Let numColumns = GetNumberOfColumns(matrix2)
         
-        ReDim TheResults(1 To numRows, 1 To numColumns)
+        ReDim TheResults(1 To NumRows, 1 To numColumns)
     
         ' Compute the r and c offsets due to differences in array starts
         Let rOffset2 = IIf(LBound(matrix2, 1) = 0, 1, 0)
         Let cOffset2 = IIf(LBound(matrix2, 2) = 0, 1, 0)
         
-        For r = 1 To numRows
+        For r = 1 To NumRows
             For c = 1 To numColumns
                 Let TheResults(r, c) = CDbl(matrix1) / CDbl(matrix2(r + rOffset2, c + cOffset2))
             Next c
         Next r
     ElseIf RowVectorQ(matrix1) And MatrixQ(matrix2) Then
         ' If the code gets here, we are adding two 2D matrices of the same size
-        Let numRows = GetNumberOfRows(matrix2)
+        Let NumRows = GetNumberOfRows(matrix2)
         Let numColumns = GetNumberOfColumns(matrix2)
         
-        ReDim TheResults(1 To numRows, 1 To numColumns)
+        ReDim TheResults(1 To NumRows, 1 To numColumns)
     
         ' Compute the r and c offsets due to differences in array starts
         Let rOffset2 = IIf(LBound(matrix2, 1) = 0, 1, 0)
         Let cOffset1 = IIf(LBound(matrix1) = 0, 1, 0)
         Let cOffset2 = IIf(LBound(matrix2, 2) = 0, 1, 0)
         
-        For r = 1 To numRows
+        For r = 1 To NumRows
             For c = 1 To numColumns
                 Let TheResults(r, c) = CDbl(matrix1(c + cOffset1)) / CDbl(matrix2(r + rOffset2, c + cOffset2))
             Next c
         Next r
     ElseIf ColumnVectorQ(matrix1) And MatrixQ(matrix2) Then
-        Let numRows = GetNumberOfRows(matrix2)
+        Let NumRows = GetNumberOfRows(matrix2)
         Let numColumns = GetNumberOfColumns(matrix2)
         
-        ReDim TheResults(1 To numRows, 1 To numColumns)
+        ReDim TheResults(1 To NumRows, 1 To numColumns)
     
         ' Compute the r and c offsets due to differences in array starts
         Let rOffset1 = IIf(LBound(matrix1, 1) = 0, 1, 0)
@@ -3045,7 +2591,7 @@ Public Function ElementWiseDivision(matrix1 As Variant, matrix2 As Variant) As V
         Let cOffset1 = IIf(LBound(matrix1, 2) = 0, 1, 0)
         Let cOffset2 = IIf(LBound(matrix2, 2) = 0, 1, 0)
         
-        For r = 1 To numRows
+        For r = 1 To NumRows
             For c = 1 To numColumns
                 Let TheResults(r, c) = CDbl(matrix1(r + rOffset1, 1 + cOffset1)) / CDbl(matrix2(r + rOffset2, c + cOffset2))
             Next c
@@ -3062,53 +2608,53 @@ Public Function ElementWiseDivision(matrix1 As Variant, matrix2 As Variant) As V
             Let TheResults(c) = CDbl(matrix1(c + cOffset1)) / CDbl(matrix2)
         Next c
     ElseIf ColumnVectorQ(matrix1) And IsNumeric(matrix2) Then
-        Let numRows = GetNumberOfRows(matrix1)
+        Let NumRows = GetNumberOfRows(matrix1)
         
-        ReDim TheResults(1 To numRows, 1 To 1)
+        ReDim TheResults(1 To NumRows, 1 To 1)
 
         ' Compute the r and c offsets due to differences in array starts
         Let rOffset1 = IIf(LBound(matrix1, 1) = 0, 1, 0)
         
-        For r = 1 To numRows
+        For r = 1 To NumRows
             Let TheResults(r, 1) = CDbl(matrix1(r + rOffset1, 1)) / CDbl(matrix2)
         Next r
     ElseIf MatrixQ(matrix1) And IsNumeric(matrix2) Then
-        Let numRows = GetNumberOfRows(matrix1)
+        Let NumRows = GetNumberOfRows(matrix1)
         Let numColumns = GetNumberOfColumns(matrix1)
         
-        ReDim TheResults(1 To numRows, 1 To numColumns)
+        ReDim TheResults(1 To NumRows, 1 To numColumns)
     
         ' Compute the r and c offsets due to differences in array starts
         Let rOffset1 = IIf(LBound(matrix1, 1) = 0, 1, 0)
         Let cOffset1 = IIf(LBound(matrix1, 2) = 0, 1, 0)
         
-        For r = 1 To numRows
+        For r = 1 To NumRows
             For c = 1 To numColumns
                 Let TheResults(r, c) = CDbl(matrix1(r + rOffset1, c + cOffset1)) / CDbl(matrix2)
             Next c
         Next r
     ElseIf MatrixQ(matrix1) And RowVectorQ(matrix2) Then
         ' If the code gets here, we are adding two 2D matrices of the same size
-        Let numRows = GetNumberOfRows(matrix1)
+        Let NumRows = GetNumberOfRows(matrix1)
         Let numColumns = GetNumberOfColumns(matrix1)
         
-        ReDim TheResults(1 To numRows, 1 To numColumns)
+        ReDim TheResults(1 To NumRows, 1 To numColumns)
     
         ' Compute the r and c offsets due to differences in array starts
         Let rOffset1 = IIf(LBound(matrix1, 1) = 0, 1, 0)
         Let cOffset1 = IIf(LBound(matrix1, 2) = 0, 1, 0)
         Let cOffset2 = IIf(LBound(matrix2) = 0, 1, 0)
         
-        For r = 1 To numRows
+        For r = 1 To NumRows
             For c = 1 To numColumns
                 Let TheResults(r, c) = CDbl(matrix1(r + rOffset1, c + cOffset1)) / CDbl(matrix2(c + cOffset2))
             Next c
         Next r
     ElseIf ColumnVectorQ(matrix2) And MatrixQ(matrix1) Then
-        Let numRows = GetNumberOfRows(matrix1)
+        Let NumRows = GetNumberOfRows(matrix1)
         Let numColumns = GetNumberOfColumns(matrix1)
         
-        ReDim TheResults(1 To numRows, 1 To numColumns)
+        ReDim TheResults(1 To NumRows, 1 To numColumns)
     
         ' Compute the r and c offsets due to differences in array starts
         Let rOffset1 = IIf(LBound(matrix1, 1) = 0, 1, 0)
@@ -3116,17 +2662,17 @@ Public Function ElementWiseDivision(matrix1 As Variant, matrix2 As Variant) As V
         Let cOffset1 = IIf(LBound(matrix1, 2) = 0, 1, 0)
         Let cOffset2 = IIf(LBound(matrix2, 2) = 0, 1, 0)
         
-        For r = 1 To numRows
+        For r = 1 To NumRows
             For c = 1 To numColumns
                 Let TheResults(r, c) = CDbl(matrix1(r + rOffset1, c + cOffset1)) / CDbl(matrix2(r + rOffset2, 1 + cOffset2))
             Next c
         Next r
     ElseIf MatrixQ(matrix1) And MatrixQ(matrix2) Then
         ' If the code gets here, we are adding two 2D matrices of the same size
-        Let numRows = GetNumberOfRows(matrix1)
+        Let NumRows = GetNumberOfRows(matrix1)
         Let numColumns = GetNumberOfColumns(matrix1)
         
-        ReDim TheResults(1 To numRows, 1 To numColumns)
+        ReDim TheResults(1 To NumRows, 1 To numColumns)
     
         ' Compute the r and c offsets due to differences in array starts
         Let rOffset1 = IIf(LBound(matrix1, 1) = 0, 1, 0)
@@ -3134,7 +2680,7 @@ Public Function ElementWiseDivision(matrix1 As Variant, matrix2 As Variant) As V
         Let cOffset1 = IIf(LBound(matrix1, 2) = 0, 1, 0)
         Let cOffset2 = IIf(LBound(matrix2, 2) = 0, 1, 0)
         
-        For r = 1 To numRows
+        For r = 1 To NumRows
             For c = 1 To numColumns
                 Let TheResults(r, c) = CDbl(matrix1(r + rOffset1, c + cOffset1)) / CDbl(matrix2(r + rOffset2, c + cOffset2))
             Next c
@@ -3240,7 +2786,7 @@ Public Function Sort1DArray(MyArray As Variant) As Variant
     Call ToTemp(Application.Transpose(ConvertTo1DArray(MyArray)))
     
     ' Find the last row used
-    Let LastRowNumber = TmpSheet.Range("A1").Offset(TmpSheet.Rows.Count - 1, 0).End(xlUp).row
+    Let LastRowNumber = TmpSheet.Range("A1").Offset(TmpSheet.Rows.Count - 1, 0).End(xlUp).Row
 
     ' Set range pointer to the data we just dumped in the temp sheet
     Set TheRange = TmpSheet.Range("A1").Resize(LastRowNumber, 1)
@@ -3542,8 +3088,8 @@ Public Function SwapMatrixColumns(TheMatrix As Variant, FirstColumnIndex As Long
     End If
     
     Call ToTemp(TheMatrix)
-    Let col1 = GetColumn(TheMatrix, FirstColumnIndex)
-    Call DumpInSheet(GetColumn(TheMatrix, SecondColumIndex), TempComputation.Cells(1, FirstColumnIndex))
+    Let col1 = Part(TheMatrix, Span(1, -1), FirstColumnIndex)
+    Call DumpInSheet(Part(TheMatrix, Span(1, -1), SecondColumIndex), TempComputation.Cells(1, FirstColumnIndex))
     Call DumpInSheet(col1, TempComputation.Cells(1, SecondColumIndex))
     
     Let SwapMatrixColumns = TempComputation.Range("A1").CurrentRegion.Value2
@@ -3561,8 +3107,8 @@ Public Function SwapMatrixRows(TheMatrix As Variant, FirstRowIndex As Long, Seco
     End If
 
     Call ToTemp(TheMatrix)
-    Let Row1 = GetRow(TheMatrix, FirstRowIndex)
-    Call DumpInSheet(GetRow(TheMatrix, SecondRowIndex), TempComputation.Cells(FirstRowIndex, 1))
+    Let Row1 = Part(TheMatrix, FirstRowIndex)
+    Call DumpInSheet(Part(TheMatrix, SecondRowIndex), TempComputation.Cells(FirstRowIndex, 1))
     Call DumpInSheet(Row1, TempComputation.Cells(SecondRowIndex, 1))
     
     Let SwapMatrixRows = TempComputation.Range("A1").CurrentRegion.Value2
@@ -3658,7 +3204,7 @@ Public Function TransposeRectangular1DArrayOf1DArrays(AnArray As Variant) As Var
     Let TheMatrix = Pack2DArray(AnArray)
     ReDim TheResult(1 To GetNumberOfColumns(TheMatrix))
     For c = 1 To GetArrayLength(First(AnArray))
-        Let TheResult(c) = ConvertTo1DArray(GetColumn(TheMatrix, c))
+        Let TheResult(c) = Flatten(Part(TheMatrix, Span(1, -1), c))
     Next
     
     Let TransposeRectangular1DArrayOf1DArrays = TheResult
@@ -3982,7 +3528,7 @@ Public Function Convert2DArrayIntoListOfParentheticalExpressions(TheArray As Var
     Dim i As Integer
 
     For i = 1 To GetNumberOfRows(TheArray)
-        Let TheList = TheList & Convert1DArrayIntoParentheticalExpression(GetRow(TheArray, CLng(i)))
+        Let TheList = TheList & Convert1DArrayIntoParentheticalExpression(Part(TheArray, CLng(i)))
         
         If i < GetNumberOfRows(TheArray) Then
             Let TheList = TheList & ", "
@@ -4145,7 +3691,7 @@ Public Function LeftJoin2DArraysOnKeyEquality(a2DArray1 As Variant, _
 
         If Not ResultsDict.Exists(Key:=TheKey) Then
             ' Extract the columns needed from this security's row
-            Let TheItems = Take(GetRow(a2DArray1, r), _
+            Let TheItems = Take(Part(a2DArray1, r), _
                                 Prepend(ColsPosArrayFrom2DArray1, a2DArray1KeyColPos))
             
             ' Pad TheItems with enough slots for the items appended from a2DArray2
@@ -4174,7 +3720,7 @@ Public Function LeftJoin2DArraysOnKeyEquality(a2DArray1 As Variant, _
             
             ' Get the required columns from this row to append to those already in the results
             ' dictionary
-            Let AppendedItems = Take(GetRow(a2DArray2, r), ColsPosArrayFrom2DArray2)
+            Let AppendedItems = Take(Part(a2DArray2, r), ColsPosArrayFrom2DArray2)
             
             Let ResultsDict.Item(Key:=TheKey) = ConcatenateArrays(TheItems, AppendedItems)
         End If
@@ -4190,9 +3736,9 @@ Public Function LeftJoin2DArraysOnKeyEquality(a2DArray1 As Variant, _
     End If
     
     ' Prepend the headers row if the user chose to
-    Let JoinedHeadersRow = ConcatenateArrays(Take(GetRow(a2DArray1, 1), _
+    Let JoinedHeadersRow = ConcatenateArrays(Take(Part(a2DArray1, 1), _
                                                   Prepend(ColsPosArrayFrom2DArray1, a2DArray1KeyColPos)), _
-                                             Take(GetRow(a2DArray2, 1), _
+                                             Take(Part(a2DArray2, 1), _
                                                   ColsPosArrayFrom2DArray2))
     
     ' Prepend headers to return matrix
@@ -4315,7 +3861,7 @@ Public Function InnerJoin2DArraysOnKeyEquality(a2DArray1 As Variant, _
         If Not Array2Dict.Exists(Key:=TheKey) Then
             ' Add the array of values to this security's entry
             Call Array2Dict.Add(Key:=TheKey, _
-                                Item:=Take(GetRow(a2DArray2, r), ColsPosArrayFrom2DArray2))
+                                Item:=Take(Part(a2DArray2, r), ColsPosArrayFrom2DArray2))
         End If
     Next r
 
@@ -4329,7 +3875,7 @@ Public Function InnerJoin2DArraysOnKeyEquality(a2DArray1 As Variant, _
         ' Create the join for this row in array1 if it is found in array2 based on the key.
         If Not ResultsDict.Exists(Key:=TheKey) And Array2Dict.Exists(Key:=TheKey) Then
             ' Extract the columns required from this row in array 1
-            Let TheItems = Take(GetRow(a2DArray1, r), _
+            Let TheItems = Take(Part(a2DArray1, r), _
                                 Prepend(ColsPosArrayFrom2DArray1, a2DArray1KeyColPos))
 
             ' Get the corresponding items from array 2
@@ -4350,9 +3896,9 @@ Public Function InnerJoin2DArraysOnKeyEquality(a2DArray1 As Variant, _
     End If
 
     ' Prepend the headers row if the user chose to
-    Let JoinedHeadersRow = ConcatenateArrays(Take(GetRow(a2DArray1, 1), _
+    Let JoinedHeadersRow = ConcatenateArrays(Take(Part(a2DArray1, 1), _
                                                   Prepend(ColsPosArrayFrom2DArray1, a2DArray1KeyColPos)), _
-                                             Take(GetRow(a2DArray2, 1), _
+                                             Take(Part(a2DArray2, 1), _
                                                   ColsPosArrayFrom2DArray2))
 
     ' Prepend headers to return matrix
@@ -4405,7 +3951,7 @@ Public Function MatrixMultiply(m1 As Variant, m2 As Variant) As Variant
     ReDim TheResult(1 To NumberOfRows(m1), 1 To NumberOfColumns(m2))
     For r = 1 To NumberOfRows(m1)
         For c = 1 To NumberOfColumns(m2)
-            Let TheResult(r, c) = DotProduct(GetRow(m1, r), GetColumn(m2, c))
+            Let TheResult(r, c) = DotProduct(Part(m1, r), Part(m2, Span(1, -1), c))
         Next c
     Next r
     

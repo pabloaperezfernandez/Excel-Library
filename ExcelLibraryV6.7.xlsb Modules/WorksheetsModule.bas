@@ -18,7 +18,7 @@ Public Function LastNonBlankRowIndexInColumnNotEqualTo(aColumnRange As Range, Co
     End If
     
     ' Get the last non-emty cell in the worksheet's column holding the given column range
-    Let LastRowIndex = aColumnRange.Worksheet.Cells(aColumnRange.Worksheet.Rows.Count, aColumnRange.Column).End(xlUp).row
+    Let LastRowIndex = aColumnRange.Worksheet.Cells(aColumnRange.Worksheet.Rows.Count, aColumnRange.Column).End(xlUp).Row
 
     For i = LastRowIndex To 1 Step -1
         If Not IsArray(ComparisonScalars) Then
@@ -91,7 +91,7 @@ Public Function ConsolidateWorksheets(WorksheetsArray() As Worksheet, _
     Let RowCursor = FirstDataRow
     For N = LBound(WorksheetsArray) To UBound(WorksheetsArray)
         ' Compute the last row to consolidate in this worksheet
-        Let LastDataRow = WorksheetsArray(N).Cells(WorksheetsArray(1).Rows.Count, 1).End(xlUp).row
+        Let LastDataRow = WorksheetsArray(N).Cells(WorksheetsArray(1).Rows.Count, 1).End(xlUp).Row
         
         ' Compute the number of rows to consolidate
         Let NumberOfRows = LastDataRow - FirstDataRow + 1

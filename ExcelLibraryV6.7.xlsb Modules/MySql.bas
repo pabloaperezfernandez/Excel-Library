@@ -187,7 +187,7 @@ Public Function InjectMatrixIntoMySql(ValuesMatrix As Variant, _
     ' Insert each chunk
     For i = 1 To NumberOfChunks
         ' Single-quote ValuesMatrix
-        Let QuotedValuesMatrix = GetSubMatrix(ValuesMatrix, 1 + (i - 1) * ChunkSize, i * ChunkSize, 1, GetNumberOfColumns(ValuesMatrix))
+        Let QuotedValuesMatrix = Part(ValuesMatrix, Span(1 + (i - 1) * ChunkSize, i * ChunkSize))
         Let QuotedValuesMatrix = AddSingleQuotesToAllArrayElements(QuotedValuesMatrix)
 
         Call ConnectAndExecuteInsertQuery(QuotedValuesMatrix, _
@@ -205,11 +205,7 @@ Public Function InjectMatrixIntoMySql(ValuesMatrix As Variant, _
     
     ' Insert the remainder after chunking the data set
     If GetNumberOfRows(ValuesMatrix) Mod ChunkSize > 0 Then
-        Let QuotedValuesMatrix = GetSubMatrix(ValuesMatrix, _
-                                              1 + CLng(NumberOfChunks) * ChunkSize, _
-                                              GetNumberOfRows(ValuesMatrix), _
-                                              1, _
-                                              GetNumberOfColumns(ValuesMatrix))
+        Let QuotedValuesMatrix = Part(ValuesMatrix, Span(1 + CLng(NumberOfChunks) * ChunkSize, Length(ValuesMatrix)))
         Let QuotedValuesMatrix = AddSingleQuotesToAllArrayElements(QuotedValuesMatrix)
         
         Call ConnectAndExecuteInsertQuery(QuotedValuesMatrix, _
