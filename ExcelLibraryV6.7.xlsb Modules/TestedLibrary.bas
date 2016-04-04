@@ -1474,6 +1474,14 @@ Public Sub TestArraysInsert()
     For i = 1 To 3: Debug.Print "Insert into row " & i: PrintArray Insert(A, Array("*", "*", "*"), i): Next
 End Sub
 
+Public Sub TestConnectAndSelect()
+    PrintArray ConnectAndSelect("SELECT * FROM `documentation`.`wp_posts`;", "documentation", "localhost", "root", "")
+End Sub
+
+Public Sub TestGetTableHeaders()
+    PrintArray MySql.GetTableHeaders("wp_posts", "documentation", "localhost", "root", "")
+End Sub
+
 Public Sub TestFileNameJoin()
     Dim AnArray As Variant
     

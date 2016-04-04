@@ -61,7 +61,7 @@ Public Function ConsolidateWorksheets(WorksheetsArray() As Worksheet, _
     Dim ConsolidationWorksheet As Worksheet
     Dim SourceRange As Range
     Dim TargetRange As Range
-    Dim N As Long
+    Dim n As Long
     Dim RowCursor As Long
     
     ' Set the first row (where data starts, not headers)
@@ -89,15 +89,15 @@ Public Function ConsolidateWorksheets(WorksheetsArray() As Worksheet, _
     End If
     
     Let RowCursor = FirstDataRow
-    For N = LBound(WorksheetsArray) To UBound(WorksheetsArray)
+    For n = LBound(WorksheetsArray) To UBound(WorksheetsArray)
         ' Compute the last row to consolidate in this worksheet
-        Let LastDataRow = WorksheetsArray(N).Cells(WorksheetsArray(1).Rows.Count, 1).End(xlUp).Row
+        Let LastDataRow = WorksheetsArray(n).Cells(WorksheetsArray(1).Rows.Count, 1).End(xlUp).Row
         
         ' Compute the number of rows to consolidate
         Let NumberOfRows = LastDataRow - FirstDataRow + 1
                         
         ' Set the source range
-        Set SourceRange = WorksheetsArray(N).Cells(FirstDataRow, 1).Resize(NumberOfRows, NumberOfColumns)
+        Set SourceRange = WorksheetsArray(n).Cells(FirstDataRow, 1).Resize(NumberOfRows, NumberOfColumns)
         
         ' Set the target range
         Set TargetRange = ConsolidationWorksheet.Cells(RowCursor, 1).Resize(NumberOfRows, NumberOfColumns)
@@ -108,7 +108,7 @@ Public Function ConsolidateWorksheets(WorksheetsArray() As Worksheet, _
         
         ' Update RowCursor
         Let RowCursor = RowCursor + NumberOfRows
-    Next N
+    Next n
     
     If Not IsMissing(TargetWorksheet) Then
         Call ConsolidationWorksheet.Cells(1, 1).Resize(RowCursor, NumberOfColumns).Copy

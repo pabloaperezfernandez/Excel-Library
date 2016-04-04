@@ -9,16 +9,16 @@ Option Base 1
 ' The data starting in row StartingRow from each workbook is consolidated in the consolidated array.
 Public Function ConsolidateWorkbooks(WorkbooksArray() As Workbook, Optional WorkSheetNamesArray As Variant, Optional StartingRow As Variant) As Variant
     Dim WorksheetsArray() As Worksheet
-    Dim N As Integer
+    Dim n As Integer
     
     ReDim WorksheetsArray(LBound(WorkbooksArray) To UBound(WorkbooksArray))
-    For N = LBound(WorkbooksArray) To UBound(WorkbooksArray)
+    For n = LBound(WorkbooksArray) To UBound(WorkbooksArray)
         If IsMissing(WorkSheetNamesArray) Then
-            Set WorksheetsArray(N) = WorkbooksArray(N).Worksheets(1)
+            Set WorksheetsArray(n) = WorkbooksArray(n).Worksheets(1)
         Else
-            Set WorksheetsArray(N) = WorkbooksArray(N).Worksheets(WorkSheetNamesArray(N))
+            Set WorksheetsArray(n) = WorkbooksArray(n).Worksheets(WorkSheetNamesArray(n))
         End If
-    Next N
+    Next n
 
     ' Return a reference to the consolidation worksheet
     If IsMissing(StartingRow) Then

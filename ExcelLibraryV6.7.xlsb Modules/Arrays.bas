@@ -503,7 +503,7 @@ End Function
 ' RETURNED VALUE
 ' The requested numerical sequence
 Public Function CreateSequentialArray(StartNumber As Variant, _
-                                      N As Variant, _
+                                      n As Variant, _
                                       Optional TheStep As Variant, _
                                       Optional ToEndNumberQ As Variant) As Variant
     Dim TheStepCopy As Variant
@@ -520,16 +520,16 @@ Public Function CreateSequentialArray(StartNumber As Variant, _
     
     ' Process calling modality 1
     If IsMissing(ToEndNumberQ) Then
-        If N < 0 Then Exit Function
+        If n < 0 Then Exit Function
         
-        ReDim ReturnArray(1 To N)
-        For i = StartNumber To StartNumber + N - 1
+        ReDim ReturnArray(1 To n)
+        For i = StartNumber To StartNumber + n - 1
             Let ReturnArray(i - StartNumber + 1) = StartNumber + (i - StartNumber) * TheStepCopy
         Next i
     ' Process calling modality 2
     ElseIf ToEndNumberQ = True Then
         ' Exit with NULL if any of the three parameters is non-numeric
-        If Not NumberArrayQ(Array(StartNumber, N, TheStepCopy)) Then Exit Function
+        If Not NumberArrayQ(Array(StartNumber, n, TheStepCopy)) Then Exit Function
         
         ' Set first return value
         ReDim ReturnArray(1 To 1): Let ReturnArray(1) = StartNumber
@@ -537,7 +537,7 @@ Public Function CreateSequentialArray(StartNumber As Variant, _
         ' Complete the sequence of numbers
         Let i = 1
         Let CurrentNumber = StartNumber + i * TheStepCopy
-        Do While CurrentNumber <= N
+        Do While CurrentNumber <= n
             ReDim Preserve ReturnArray(1 To i + 1)
             
             Let ReturnArray(i + 1) = CurrentNumber
@@ -1430,16 +1430,20 @@ Public Function Drop(AnArray As Variant, ThePositions As Variant) As Variant
     End Select
 End Function
 
-' This function turns a 1D array of 1D arrays into a 2D array.
-' Each of the elemements (inner arrays) of the outermost array satisfies
-' RowVectorQ
+' DESCRIPTION
+' Returns a 2D array whose rows are the elements of the given array.  This function returns Null
+' if the elements of the given array don't all have the same length.  For instance,
+' Array(Array(1,2,3), Array(4,5,6)) is transformed into [{1,2,3; 4,5,6}].  The function may be
+' called with the optional parameter PackAsColumnsQ set to True to send
+' Array(Array(1,2,3), Array(4,5,6)) is transformed into [{1, 4; 2, 5; 3, 6}]
 '
-' This is useful to quickly build a matrix from 1D arrays
-' This function assumes that all elements of TheRowsAs1DArrays have the same lbound()
-' arg is allowed to have different lbound from that of its elements
+' PARAMETERS
+' 1. TheRowsAs1DArrays - A 1D array of equal-length 1D arrays
+' 2. PackAsColumnsQ (optional) - When explicitly passed as True, returns the 2D transpose
+' 3. ParameterCheckQ (optional) - When explicitly passed as True, performs NO parameter consistency checks.
 '
-' The 2D array returned is indexed starting at 1
-' If the optional parameter PackAsColumnsQ is set to True, the 1D arrays in TheRowsAs1DArrays become columns.
+' RETURNED VALUE
+' Returns the 2D arrays returning from setting the given 1D arrays as the rows of a 2D array
 Public Function Pack2DArray(TheRowsAs1DArrays As Variant, _
                             Optional PackAsColumnsQ As Boolean = False, _
                             Optional ParameterCheckQ As Boolean = True) As Variant
@@ -1453,29 +1457,29 @@ Public Function Pack2DArray(TheRowsAs1DArrays As Variant, _
     
     ' Set default return value
     Let Pack2DArray = Null
-    
-    ' Exit with Null if A2DArray is undimensioned
-    If Not DimensionedQ(TheRowsAs1DArrays) Then Exit Function
-    
-    ' Exit with the empty array if TheRowsAs1DArrays is the empty array
-    If EmptyArrayQ(TheRowsAs1DArrays) Then
-        Let Pack2DArray = EmptyArray()
-        Exit Function
-    End If
-    
-    ' Exit if the argument is not the expected type
-    If NumberOfDimensions(TheRowsAs1DArrays) <> 1 Then Exit Function
-    
-    ' Exit if any of the elements in not an atomic array or
-    ' if all the array elements do not the same length
-    If Not IsNull(First(TheRowsAs1DArrays)) Then
-        Let ElementLength = Length(First(TheRowsAs1DArrays))
-    Else
-        Exit Function
-    End If
-    
-    ' Check parameter consitency only ift
+
+    ' Check parameter consitency only if ParameterCheckQ True
     If Not ParameterCheckQ Then
+        ' Exit with Null if A2DArray is undimensioned
+        If Not DimensionedQ(TheRowsAs1DArrays) Then Exit Function
+        
+        ' Exit with the empty array if TheRowsAs1DArrays is the empty array
+        If EmptyArrayQ(TheRowsAs1DArrays) Then
+            Let Pack2DArray = EmptyArray()
+            Exit Function
+        End If
+        
+        ' Exit if the argument is not the expected type
+        If NumberOfDimensions(TheRowsAs1DArrays) <> 1 Then Exit Function
+        
+        ' Exit if any of the elements in not an atomic array or
+        ' if all the array elements do not the same length
+        If Not IsNull(First(TheRowsAs1DArrays)) Then
+            Let ElementLength = Length(First(TheRowsAs1DArrays))
+        Else
+            Exit Function
+        End If
+    
         For Each var In TheRowsAs1DArrays
             If GetArrayLength(var) <> ElementLength Then
                 Let Pack2DArray = Null
@@ -1483,28 +1487,52 @@ Public Function Pack2DArray(TheRowsAs1DArrays As Variant, _
             End If
         Next
     End If
-
-    ' Pre-allocate a 2D array filled with Empty
-    ReDim ReturnArray(1 To Length(TheRowsAs1DArrays), 1 To ElementLength)
     
-    ' Pack the array
+    ' Compute row and column offsets for ReturnArray
     Let RowOffset = IIf(LBound(TheRowsAs1DArrays) = 0, 1, 0)
     Let ColOffset = IIf(LBound(First(TheRowsAs1DArrays)) = 0, 1, 0)
-    For r = LBound(TheRowsAs1DArrays) To UBound(TheRowsAs1DArrays)
-        For c = LBound(First(TheRowsAs1DArrays)) To UBound(First(TheRowsAs1DArrays))
-            Let ReturnArray(RowOffset + r, ColOffset + c) = TheRowsAs1DArrays(r)(c)
-        Next c
-    Next r
-    
+
     If PackAsColumnsQ Then
-        Let Pack2DArray = TransposeMatrix(ReturnArray)
-        Exit Function
+        ' Pre-allocate a 2D array
+        ReDim ReturnArray(1 To Length(First(TheRowsAs1DArrays)), 1 To Length(TheRowsAs1DArrays))
+    
+        For r = LBound(First(TheRowsAs1DArrays)) To UBound(First(TheRowsAs1DArrays))
+            For c = LBound(TheRowsAs1DArrays) To UBound(TheRowsAs1DArrays)
+                Let ReturnArray(RowOffset + r, ColOffset + c) = TheRowsAs1DArrays(c)(r)
+            Next c
+        Next r
+    Else
+        ' Pre-allocate a 2D array
+        ReDim ReturnArray(1 To Length(TheRowsAs1DArrays), 1 To Length(First(TheRowsAs1DArrays)))
+        
+        For r = LBound(TheRowsAs1DArrays) To UBound(TheRowsAs1DArrays)
+            For c = LBound(First(TheRowsAs1DArrays)) To UBound(First(TheRowsAs1DArrays))
+                Let ReturnArray(RowOffset + r, ColOffset + c) = TheRowsAs1DArrays(r)(c)
+            Next c
+        Next r
     End If
     
     Let Pack2DArray = ReturnArray
 End Function
 
-' This function is the inverse of Arrays.Pack2DArray
+' DESCRIPTION
+' Returns a 1D array of equal length arrays, where each 1D element of the returned array is one
+' of the rows of the given 2D array.  This function returns Null if the given array is undimensioned.
+' It returns the empty array if the given array is empty.  The function may be called with the
+' optional parameter UnPackAsColumnsQ set to True to send to return the columns of the given 2D
+' array as the elements of the returned array.
+'
+' Examples:
+' 1. [{1,2,3; 4,5,6}] maps to Array(Array(1,2,3), Array(4,5,6))
+' 2. [{1, 4; 2, 5; 3, 6}] maps to Array(Array(1,2,3), Array(4,5,6))
+'
+' PARAMETERS
+' 1. TheRowsAs1DArrays - A 1D array of equal-length 1D arrays
+' 2. UnPackAsColumnsQ (optional) - When explicitly passed as True, returns the 1D array whose elements
+'    are the columns of TheRowsAs1DArrays
+'
+' RETURNED VALUE
+' Returns the 1D whose elements are the rows or columns (if explicitly requested) of the given 2D array
 Public Function UnPack2DArray(A2DArray As Variant, _
                               Optional UnPackAsColumnsQ As Boolean = False) As Variant
     Dim r As Long
@@ -1513,6 +1541,7 @@ Public Function UnPack2DArray(A2DArray As Variant, _
     Dim cOffset As Long
     Dim ReturnArray As Variant
     Dim ColumnArray As Variant
+    Dim RowArray As Variant
     
     ' Set default return value
     Let UnPack2DArray = Null
@@ -1529,7 +1558,7 @@ Public Function UnPack2DArray(A2DArray As Variant, _
     ' Exit if the argument is not the expected type
     If NumberOfDimensions(A2DArray) <> 2 Then Exit Function
     
-    ' Pack the array
+    ' Unpack the array, returning the columns as the elements of the return array
     If UnPackAsColumnsQ Then
         ' Pre-allocate a 2D array filled with Empty
         ReDim ReturnArray(1 To NumberOfColumns(A2DArray))
@@ -1545,16 +1574,105 @@ Public Function UnPack2DArray(A2DArray As Variant, _
             
             Let ReturnArray(c) = ColumnArray
         Next c
+    ' Unpack the array, returning the rows as the elements of the return array
     Else
         ' Pre-allocate a 2D array filled with Empty
         ReDim ReturnArray(1 To Length(A2DArray))
+        ReDim RowArray(1 To NumberOfColumns(A2DArray))
+        
+        Let rOffset = LBound(A2DArray, 1) - 1
+        Let cOffset = LBound(A2DArray, 2) - 1
     
         For r = 1 To Length(A2DArray)
-            Let ReturnArray(r) = Part(A2DArray, r)
+            For c = 1 To NumberOfColumns(A2DArray)
+                Let RowArray(c) = A2DArray(r + rOffset, c + cOffset)
+            Next c
+            
+            Let ReturnArray(r) = RowArray
         Next r
     End If
     
     Let UnPack2DArray = ReturnArray
+End Function
+
+' DESCRIPTION
+' Returns a constant array for the given value and with the given dimensions.  If the parameter
+' n (e.g. number of columns) is omitted, the function returns a 1D array.  Otherwise, a 2D array
+' is returned. The function returns Null if m is nonpositive.
+'
+' PARAMETERS
+' 1. TheValue - Constant entry for the returned array
+' 2. m - Array length for 1D and number of rows for 2D
+' 3. n (optional) - Number of  columns when requesting a 2D array
+'
+' RETURNED VALUE
+' A constant 1D or 2D array with the given number of rows and columns.
+Public Function ConstantArray(TheValue As Variant, m As Long, Optional n As Long = 0) As Variant
+    Dim ReturnMatrix() As Long
+    Dim i As Long
+    Dim j As Long
+    
+    Let ConstantArray = Null
+
+    If NegativeWholeNumberQ(m) Or m = 0 Then Exit Function
+    If NegativeWholeNumberQ(n) Then Exit Function
+    
+    If n = 0 Then
+        ReDim ReturnMatrix(1 To m)
+        
+        For i = 1 To m
+            ReturnMatrix(i) = TheValue
+        Next
+    Else
+        ReDim ReturnMatrix(1 To m, 1 To n)
+        
+        For i = 1 To m
+            For j = 1 To n
+                Let ReturnMatrix(i, j) = TheValue
+            Next
+        Next
+    End If
+    
+    Let ConstantArray = ReturnMatrix
+End Function
+
+' DESCRIPTION
+' Returns a square identity matrix with the given dimensions.  If the parameter
+' n (e.g. number of columns) is passed, the function returns a rectangular 2D
+' matrix with ones along the diagonal and zeroes elsewhere.  The function returns
+' Null if m is nonpositive.
+'
+' PARAMETERS
+' 1. TheValue - Constant entry for the returned array
+' 2. m - Array length for 1D and number of rows for 2D
+' 3. n (optional) - Number of  columns when requesting a 2D array
+'
+' RETURNED VALUE
+' The identity matrix with the requested dimensions
+Public Function IdentityMatrix(m As Long, Optional n As Long = 0) As Variant
+    Dim ReturnMatrix() As Long
+    Dim i As Long
+    
+    Let IdentityMatrix = Null
+
+    If NegativeWholeNumberQ(m) Or m = 0 Then Exit Function
+    If NegativeWholeNumberQ(n) Then Exit Function
+    
+    If n = 0 Then
+        ReDim ReturnMatrix(1 To m, 1 To m)
+        
+        For i = 1 To m
+            Let ReturnMatrix(i, i) = 1
+        Next
+    Else
+        ReDim ReturnMatrix(1 To m, 1 To n)
+        
+        For i = 1 To Application.WorksheetFunction.Min(m, n)
+            Let ReturnMatrix(i, i) = 1
+        Next
+    End If
+    
+    Let IdentityMatrix = ReturnMatrix
 End Function
 
 Public Function Convert1DArrayIntoParentheticalExpression(TheArray As Variant) As String
@@ -1913,47 +2031,6 @@ Public Function ToTemp(AnArray As Variant, Optional PreserveColumnTextFormats As
     Set ToTemp = DumpInSheet(AnArray, TempComputation.Range("A1"), PreserveColumnTextFormats)
 End Function
 
-' This function dumps an array (1D or 2D) into the worksheet with the range referenced by TopLeftCorner as the cell in the upper-left
-' corner. It then returns a reference to the underlying range. Dimensions are preserved.  This means that an m x n array is dumped into
-' an m x n range.
-'
-' This function is a helper for Arrays.DumpInSheet()
-Private Function DumpInSheetHelper(AnArray As Variant, TopLeftCorner As Range, Optional PreserveColumnTextFormats As Boolean = False) As Range
-    Dim c As Integer
-    Dim NumberOfRows As Long
-    Dim NumberOfColumns As Integer
-    Dim NumDimensions As Integer
-
-    Let NumDimensions = NumberOfDimensions(AnArray)
-    Let NumberOfRows = GetNumberOfRows(AnArray)
-    Let NumberOfColumns = GetNumberOfColumns(AnArray)
-    
-    If PreserveColumnTextFormats Then
-        If NumDimensions = 0 Then
-            Let TempComputation.Range("A1").NumberFormat = IIf(TypeName(AnArray) = "String", "@", "0")
-            Let TempComputation.Range("A1").Value2 = AnArray
-        Else
-            ' Loop over the target columns, applying the format of the array's first column element to
-            ' the entire, corresponding target range column
-            For c = 0 To NumberOfColumns - 1
-                If NumDimensions = 1 Then
-                    Let TopLeftCorner.Offset(0, c).Resize(NumberOfRows, 1).NumberFormat = IIf(TypeName(AnArray(c + LBound(AnArray))) = "String", "@", "0")
-                Else
-                    Let TopLeftCorner.Offset(0, c).Resize(NumberOfRows, 1).NumberFormat = IIf(TypeName(AnArray(1, c + LBound(AnArray, 2))) = "String", "@", "0")
-                End If
-            Next c
-        End If
-    End If
-
-    If NumDimensions = 1 Then
-        Let TopLeftCorner(1, 1).Resize(1, NumberOfColumns).Value2 = AnArray
-        Set DumpInSheetHelper = TopLeftCorner(1, 1).Resize(1, NumberOfColumns)
-    Else
-        Let TopLeftCorner(1, 1).Resize(NumberOfRows, NumberOfColumns).Value2 = AnArray
-        Set DumpInSheetHelper = TopLeftCorner(1, 1).Resize(NumberOfRows, NumberOfColumns)
-    End If
-End Function
-
 ' This is an alias for function DumpInSheetHelper above
 ' This one handles empty arrays correctly, by doing nothing and returning Null
 Public Function DumpInSheet(AnArray As Variant, _
@@ -1994,6 +2071,47 @@ Public Function DumpInSheet(AnArray As Variant, _
         Set DumpInSheet = DumpInSheetHelper(AnArray, TopLeftCorner, PreserveColumnTextFormats:=PreserveColumnTextFormats)
     Else
         Set DumpInSheet = DumpInSheetHelper(AnArray, TopLeftCorner)
+    End If
+End Function
+
+' This function dumps an array (1D or 2D) into the worksheet with the range referenced by TopLeftCorner as the cell in the upper-left
+' corner. It then returns a reference to the underlying range. Dimensions are preserved.  This means that an m x n array is dumped into
+' an m x n range.
+'
+' This function is a helper for Arrays.DumpInSheet()
+Private Function DumpInSheetHelper(AnArray As Variant, TopLeftCorner As Range, Optional PreserveColumnTextFormats As Boolean = False) As Range
+    Dim c As Integer
+    Dim NumberOfRows As Long
+    Dim NumberOfColumns As Integer
+    Dim NumDimensions As Integer
+
+    Let NumDimensions = NumberOfDimensions(AnArray)
+    Let NumberOfRows = GetNumberOfRows(AnArray)
+    Let NumberOfColumns = GetNumberOfColumns(AnArray)
+    
+    If PreserveColumnTextFormats Then
+        If NumDimensions = 0 Then
+            Let TempComputation.Range("A1").NumberFormat = IIf(TypeName(AnArray) = "String", "@", "0")
+            Let TempComputation.Range("A1").Value2 = AnArray
+        Else
+            ' Loop over the target columns, applying the format of the array's first column element to
+            ' the entire, corresponding target range column
+            For c = 0 To NumberOfColumns - 1
+                If NumDimensions = 1 Then
+                    Let TopLeftCorner.Offset(0, c).Resize(NumberOfRows, 1).NumberFormat = IIf(TypeName(AnArray(c + LBound(AnArray))) = "String", "@", "0")
+                Else
+                    Let TopLeftCorner.Offset(0, c).Resize(NumberOfRows, 1).NumberFormat = IIf(TypeName(AnArray(1, c + LBound(AnArray, 2))) = "String", "@", "0")
+                End If
+            Next c
+        End If
+    End If
+
+    If NumDimensions = 1 Then
+        Let TopLeftCorner(1, 1).Resize(1, NumberOfColumns).Value2 = AnArray
+        Set DumpInSheetHelper = TopLeftCorner(1, 1).Resize(1, NumberOfColumns)
+    Else
+        Let TopLeftCorner(1, 1).Resize(NumberOfRows, NumberOfColumns).Value2 = AnArray
+        Set DumpInSheetHelper = TopLeftCorner(1, 1).Resize(NumberOfRows, NumberOfColumns)
     End If
 End Function
 
@@ -2693,83 +2811,6 @@ Public Function ElementWiseDivision(matrix1 As Variant, matrix2 As Variant) As V
     Let ElementWiseDivision = TheResults
 End Function
 
-'***HERE explain this a bit clearer
-' This function dumps an array (1D or 2D) into worksheet TempComputation, shifts the array by N rows or N columns depending
-' on the value of TimeDimension, and then returns a reference to the underlying range.  Dimensions are preserved.
-' This means that an m x n array is dumped into an m x n range. A 1D array is dumped vertically to allow for bigger arrays since Excel 2010
-' has a horizontal maximum under 17K columns.
-Public Function LagNRange(AnArray As Variant, N As Variant, TimeDimension As String) As Range
-    Dim tmpSht As Worksheet
-    
-    ' Set reference to worksheet TempComputation
-    Set tmpSht = ActiveWorkbook.Worksheets("TempComputation")
-    
-    ' Clear used range
-    tmpSht.UsedRange.ClearContents
-    
-    If TimeDimension = "Vertical" Then
-        If NumberOfDimensions(AnArray) = 1 Then
-            Let tmpSht.Range("A1").Offset(N, 0).Resize(UBound(AnArray)).Value2 = Application.Transpose(AnArray)
-            Set LagNRange = tmpSht.Range("A1").Resize(UBound(AnArray) + N, 1)
-        Else
-            Let tmpSht.Range("A1").Offset(N, 0).Resize(UBound(AnArray, 1), UBound(AnArray, 2)).Value2 = AnArray
-            Set LagNRange = tmpSht.Range("A1").Resize(UBound(AnArray, 1) + N, UBound(AnArray, 2))
-        End If
-    ElseIf TimeDimension = "Horizontal" Then
-        If NumberOfDimensions(AnArray) = 1 Then
-            Let tmpSht.Range("A1").Offset(0, N).Resize(UBound(AnArray)).Value2 = Application.Transpose(AnArray)
-            Set LagNRange = tmpSht.Range("A1").Resize(UBound(AnArray) + N, 1)
-        Else
-            Let tmpSht.Range("A1").Offset(0, N).Resize(UBound(AnArray, 1), UBound(AnArray, 2)).Value2 = AnArray
-            Set LagNRange = tmpSht.Range("A1").Resize(UBound(AnArray, 1), UBound(AnArray, 2) + N)
-        End If
-    Else
-        Exit Function:
-    End If
-End Function
-
-'This function returns an Array of NrOfRows rows and NrOfColumns and all elements are equal to -1
-Public Function MatrixOfMinusOnes(NrOfRows As Long, NrOfColumns As Long) As Variant
-    Dim tmpSht As Worksheet
-    
-    ' Set reference to worksheet TempComputation
-    Set tmpSht = Worksheets("TempComputation")
-    
-    ' Clear used range
-    tmpSht.UsedRange.ClearContents
-    
-    Let tmpSht.Range("A1").Resize(NrOfRows, NrOfColumns).Value2 = -1
-    Let MatrixOfMinusOnes = tmpSht.Range("A1").Resize(NrOfRows, NrOfColumns)
-End Function
-
-'This function returns an Array of NrOfRows rows and NrOfColumns columns and all elements are equal to 1
-Public Function Ones(NrOfRows As Long, NrOfColumns As Long) As Variant
-    Dim tmpSht As Worksheet
-    
-    ' Set reference to worksheet TempComputation
-    Set tmpSht = ThisWorkbook.Worksheets("TempComputation")
-    
-    ' Clear used range
-    Call tmpSht.UsedRange.ClearContents
-    
-    Let tmpSht.Range("A1").Resize(NrOfRows, NrOfColumns).Value2 = 1
-    Let Ones = tmpSht.Range("A1").Resize(NrOfRows, NrOfColumns)
-End Function
-
-'This function returns an Array of NrOfRows rows and NrOfColumns columns and all elements are equal to 1
-Public Function Zeroes(NrOfRows As Long, NrOfColumns As Long) As Variant
-    Dim tmpSht As Worksheet
-    
-    ' Set reference to worksheet TempComputation
-    Set tmpSht = ThisWorkbook.Worksheets("TempComputation")
-    
-    ' Clear used range
-    Call tmpSht.UsedRange.ClearContents
-    
-    Let tmpSht.Range("A1").Resize(NrOfRows, NrOfColumns).Value2 = 0
-    Let Zeroes = tmpSht.Range("A1").Resize(NrOfRows, NrOfColumns)
-End Function
-
 ' This function sorts a 1D array in the ascending or descending order, assuming no header.
 ' This returns a 1D array with the sorted values
 Public Function Sort1DArray(MyArray As Variant) As Variant
@@ -2881,45 +2922,6 @@ Public Function TrimAndConvertArrayToCaps(TheArray As Variant) As Variant
     End If
     
     Let TrimAndConvertArrayToCaps = ResultsArray
-End Function
-
-' This function returns a constant array with the requested dimensions
-' If NCols is not given, the result is a 1D array
-Public Function ConstantArray(TheValue As Variant, N As Long, Optional NCols As Variant) As Variant
-    Dim TheResult() As Variant
-    Dim c As Long
-    Dim r As Long
-    
-    If IsMissing(NCols) Then
-        If Not IsNumeric(N) Then
-            Let ConstantArray = EmptyArray()
-            Exit Function
-        ElseIf N < 0 Then
-            Let ConstantArray = EmptyArray()
-            Exit Function
-        ElseIf N = 1 Then
-            Let ConstantArray = Array(TheValue)
-            Exit Function
-        End If
-    
-        ReDim TheResult(1 To N)
-        
-        For c = 1 To N
-            Let TheResult(c) = TheValue
-        Next c
-        
-        Let ConstantArray = TheResult
-    Else
-        ReDim TheResult(1 To N, 1 To NCols)
-        
-        For r = 1 To N
-            For c = 1 To NCols
-                Let TheResult(r, c) = TheValue
-            Next c
-        Next r
-        
-        Let ConstantArray = TheResult
-    End If
 End Function
 
 ' This function returns the array resulting from concatenating B to the right of A.

@@ -22,7 +22,7 @@ Attribute FormManipulationExample.VB_ProcData.VB_Invoke_Func = " \n14"
     Dim theWidth As Double
     Dim i As Integer
     Dim obj() As OLEObject
-    Dim N As Integer
+    Dim n As Integer
     
     Dim var As Variant
     
@@ -30,13 +30,13 @@ Attribute FormManipulationExample.VB_ProcData.VB_Invoke_Func = " \n14"
         Call var.Delete
     Next
     
-    Let N = 10
+    Let n = 10
     
     Let theWidth = TempComputation.Range("A1").Width
     Let theHeight = TempComputation.Range("A1").height
 
-    ReDim obj(1 To N)
-    For i = 1 To N
+    ReDim obj(1 To n)
+    For i = 1 To n
         Set obj(i) = TempComputation.OLEObjects.Add(ClassType:="Forms.TextBox.1", Link:=False, DisplayAsIcon:=False, _
                                                     Left:=50, Top:=i * 50, Width:=theWidth, height:=theHeight)
         

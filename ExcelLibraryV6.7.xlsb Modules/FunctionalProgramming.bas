@@ -187,7 +187,7 @@ Public Function ArrayMapThread(AFunctionName As String, _
                                CallingWorkbook As Workbook, _
                                ParamArray ArrayOfEqualLength1DArrays() As Variant) As Variant
     Dim var As Variant
-    Dim N As Long
+    Dim n As Long
     Dim r As Long
     Dim c As Long
     Dim ArrayNumber As Long
@@ -212,19 +212,19 @@ Public Function ArrayMapThread(AFunctionName As String, _
     End If
     
     ' Get the length of the first parameter array
-    Let N = Length(First(ParamsArray))
+    Let n = Length(First(ParamsArray))
     
     ' Exit with Null if the arrays don't all have the same length or are atomic
     For Each var In ParamsArray
-        If Length(var) <> N Or Not AtomicArrayQ(var) Then Exit Function
+        If Length(var) <> n Or Not AtomicArrayQ(var) Then Exit Function
     Next
     
     ' Pre-allocate array to hold results and each function call's array
-    ReDim ReturnArray(1 To N)
+    ReDim ReturnArray(1 To n)
     ReDim CallArray(1 To Length(ParamsArray))
 
     ' Loop over the array elements to compute results to return
-    For r = 1 To N
+    For r = 1 To n
         ' Assemble array of value for this function call
         For c = 1 To Length(ParamsArray)
             Let ArrayNumber = c + LBound(ParamsArray) - 1
@@ -260,7 +260,7 @@ End Function
 Public Function ArrayMapThreadNoParamCheck(AFunctionName As String, _
                                            CallingWorkbook As Workbook, _
                                            ParamArray ArrayOfEqualLength1DArrays() As Variant) As Variant
-    Dim N As Long
+    Dim n As Long
     Dim r As Long
     Dim c As Long
     Dim ArrayNumber As Long
@@ -273,14 +273,14 @@ Public Function ArrayMapThreadNoParamCheck(AFunctionName As String, _
     Let ParamsArray = CopyParamArray(ArrayOfEqualLength1DArrays)
     
     ' Get the length of the first parameter array
-    Let N = Length(First(ParamsArray))
+    Let n = Length(First(ParamsArray))
     
     ' Pre-allocate array to hold results and each function call's array
-    ReDim ReturnArray(1 To N)
+    ReDim ReturnArray(1 To n)
     ReDim CallArray(1 To Length(ParamsArray))
 
     ' Loop over the array elements to compute results to return
-    For r = 1 To N
+    For r = 1 To n
         ' Assemble array of value for this function call
         For c = 1 To Length(ParamsArray)
             Let ArrayNumber = c + LBound(ParamsArray) - 1

@@ -103,11 +103,11 @@ Public Function GetTableHeaders(TableName As String, _
                                 ServerNameOrIpAddress As String, _
                                 UserName As String, _
                                 ThePassword As String) As Variant
-    Let GetTableHeaders = ConvertTo1DArray(ConnectAndSelect("SELECT * FROM `" & DbName & "`.`" & TableName & "` LIMIT 0,0;", _
-                                                            DbName, _
-                                                            ServerNameOrIpAddress, _
-                                                            UserName, _
-                                                            ThePassword))
+    Let GetTableHeaders = Flatten(ConnectAndSelect("SELECT * FROM `" & DbName & "`.`" & TableName & "` LIMIT 0,0;", _
+                                                   DbName, _
+                                                   ServerNameOrIpAddress, _
+                                                   UserName, _
+                                                   ThePassword))
 End Function
 
 ' Executes and returns (as 2D array with headers) the result of a SELECT query
@@ -404,7 +404,7 @@ End Sub
 
 ' This function does the same thing as Worksheet.CopyFromRecordSet, but it does not fail when a column has an entry more than 255 characters long.
 Public Function ConvertRecordSetToMatrix(rst As ADODB.Recordset, _
-                                         Optional ReturnOption As ConvertRecordSetPayloadToMatrixOptionsType = HeadersAndBody) As Variant
+                                         Optional HeadersAndBodyQ As Boolean = True) As Variant
     Dim TheResults() As Variant
     Dim CurrentRow As Long
     Dim RowCount As Long
@@ -415,11 +415,9 @@ Public Function ConvertRecordSetToMatrix(rst As ADODB.Recordset, _
     Dim h As Long
     
     Let NColumns = rst.Fields.Count
-    Select Case ReturnOption
-        Case HeadersAndBody
+    Select Case HeadersAndBodyQ
+        Case True
             Let FirstRow = 2
-        Case Body
-            Let FirstRow = 1
         Case Else
             Let FirstRow = 1
     End Select
@@ -427,15 +425,15 @@ Public Function ConvertRecordSetToMatrix(rst As ADODB.Recordset, _
     ReDim TheResults(1 To NColumns, 1 To 1)
     Let RowCount = 1
     
-    If ReturnOption = Headers Or ReturnOption = HeadersAndBody Then
+    If HeadersAndBodyQ Then
         For h = 0 To NColumns - 1
             Let TheResults(h + 1, 1) = rst.Fields(h).Name
         Next h
     End If
     
-    If ReturnOption = Body Then
+    If Not HeadersAndBodyQ Then
         Let CurrentRow = 1
-    ElseIf ReturnOption = HeadersAndBody Then
+    Else
         Let CurrentRow = 2
     End If
     
@@ -451,6 +449,6 @@ Public Function ConvertRecordSetToMatrix(rst As ADODB.Recordset, _
         Let CurrentRow = CurrentRow + 1
     Wend
     
-    Let ConvertRecordSetToMatrix = TransposeMatrix(TheResults)
+    Let ConvertRecordSetToMatrix = TransposeMatrix(TheResults, False)
 End Function
 
