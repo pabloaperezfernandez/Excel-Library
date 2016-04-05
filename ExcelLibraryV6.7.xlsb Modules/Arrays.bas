@@ -550,8 +550,8 @@ Public Function CreateSequentialArray(StartNumber As Variant, _
 End Function
 
 ' DESCRIPTION
-' This function returns a sequence the sequence of indices specified by the given Span instance relative
-' to the given array and dimension.
+' This function returns the sequence of indices specified by the given Span instance relative to the
+' given array and dimensional index.
 '
 ' PARAMETERS
 ' 1. AnArray - A dimensioned, nonempty array
@@ -560,14 +560,16 @@ End Function
 '
 ' RETURNED VALUE
 ' The requested indices sequence
-Public Function CreateSequenceFromSpan(AnArray As Variant, ASpan As Span, Optional TheDimension As Long = 1) As Variant
+Public Function CreateIndexSequenceFromSpan(AnArray As Variant, _
+                                            ASpan As Span, _
+                                            Optional TheDimension As Long = 1) As Variant
     Dim TheStart As Variant
     Dim TheEnd As Variant
     Dim c As Long
     Dim ReturnArray() As Long
 
     ' Set default return value when encountering errors
-    Let CreateSequenceFromSpan = Null
+    Let CreateIndexSequenceFromSpan = Null
     
     ' Exit with Null if AnArray is undimensioned or empty
     If Not DimensionedQ(AnArray) Or EmptyArrayQ(AnArray) Then Exit Function
@@ -592,7 +594,7 @@ Public Function CreateSequenceFromSpan(AnArray As Variant, ASpan As Span, Option
         Let c = c + 1
     Loop
     
-    Let CreateSequenceFromSpan = ReturnArray
+    Let CreateIndexSequenceFromSpan = ReturnArray
 End Function
 
 ' DESCRIPTION
@@ -675,7 +677,7 @@ Public Function Part(AnArray As Variant, ParamArray Indices() As Variant) As Var
         ElseIf NonzeroWholeNumberArrayQ(AnIndex) And NonEmptyArrayQ(AnIndex) Then
             Let IndicesCopy(IndexIndex) = NormalizeIndexArray(AnArray, AnIndex, r, False)
         ElseIf SpanQ(AnIndex) Then
-            Let IndicesCopy(IndexIndex) = CreateSequenceFromSpan(AnArray, ASpan, r)
+            Let IndicesCopy(IndexIndex) = CreateIndexSequenceFromSpan(AnArray, ASpan, r)
         Else
             Let IndicesCopy(IndexIndex) = Null
         End If
@@ -805,7 +807,7 @@ Public Function Take(AnArray As Variant, Indices As Variant) As Variant
     If WholeNumberArrayQ(Indices) And (Length(Indices) < 1 Or Length(Indices) > 3) Then Exit Function
     
     If WholeNumberQ(Indices) Then
-        If Indices > 1 Then
+        If Indices >= 1 Then
             Let Take = Part(AnArray, Span(1, CLng(Indices)))
         Else
             Let Take = Part(AnArray, Span(CLng(Indices), -1))
@@ -952,13 +954,9 @@ Public Function Append(AnArray As Variant, _
                        AnElt As Variant, _
                        Optional ParameterCheckQ As Boolean = True) As Variant
     Dim NewArray As Variant
-    Dim AnArrayNumberOfDims As Integer
     
     ' Set default return value
     Let Append = Null
-    
-    ' Get the number of dimensions of AnArray
-    Let AnArrayNumberOfDims = NumberOfDimensions(AnArray)
     
     ' Check parameter consitency if ParameterCheckQ is True
     If ParameterCheckQ Then
@@ -966,7 +964,7 @@ Public Function Append(AnArray As Variant, _
         If Not DimensionedQ(AnArray) Then Exit Function
             
         ' Exit with Null if AnArray is a 2D array and AnElt does not have the same number of columns
-        If AnArrayNumberOfDims = 2 And GetNumberOfColumns(AnArray) <> GetNumberOfColumns(AnElt) Then Exit Function
+        If NumberOfDimensions(AnArray) = 2 And GetNumberOfColumns(AnArray) <> GetNumberOfColumns(AnElt) Then Exit Function
         
         ' Exit with AnElt if AnArray is empty
         If EmptyArrayQ(AnArray) Then
@@ -1017,10 +1015,7 @@ Public Function Prepend(AnArray As Variant, _
                         AnElt As Variant, _
                         Optional ParameterCheckQ As Boolean = True) As Variant
     Dim ReturnArray() As Variant
-    Dim AnArrayNumberOfDims As Integer
     Dim c As Long
-    
-    Let AnArrayNumberOfDims = NumberOfDimensions(AnArray)
 
     ' Check parameter consitency if ParameterCheckQ is True
     If ParameterCheckQ Then
@@ -1028,7 +1023,7 @@ Public Function Prepend(AnArray As Variant, _
         If Not DimensionedQ(AnArray) Then Exit Function
             
         ' Exit with Null if AnArray is a 2D array and AnElt does not have the same number of columns
-        If AnArrayNumberOfDims = 2 And GetNumberOfColumns(AnArray) <> GetNumberOfColumns(AnElt) Then Exit Function
+        If NumberOfDimensions(AnArray) = 2 And GetNumberOfColumns(AnArray) <> GetNumberOfColumns(AnElt) Then Exit Function
         
         ' Exit with AnElt if AnArray is empty
         If EmptyArrayQ(AnArray) Then
@@ -1062,11 +1057,10 @@ Public Function Prepend(AnArray As Variant, _
         ' Set the function to return the appended array
         Let Prepend = ReturnArray
         
-        Exit Function
+    Else
+        ' AnArray and AnElt have the same number of columns.  Stack them in the right order to prepend
+        Let Prepend = StackArrays(AnElt, AnArray)
     End If
-    
-    ' AnArray and AnElt have the same number of columns.  Stack them in the right order to prepend
-    Let Prepend = StackArrays(AnElt, AnArray)
 End Function
 
 ' DESCRIPTION
@@ -1137,21 +1131,18 @@ End Function
 '    of AnArray. n may range from 1 to Length(AnArray).  The list is shifted to the right and TheElement
 '    is inserted in position 1 if n = 1.  If n < Length(AnArray), elements from n to the end of the array
 '    are shifted to the right and TheElement is inserted in position n.  TheElement is appened to the
-'    array if n = Length(AnArray).  If AnArray is a 2D array satisfying Predicates.AtomicTableQ
-' b. Insert(AnArray, TheElement, Array(n_1, n_2)) - Does the same thing as form a, but element is
-'    inserted in position n_1, n_2 of the 2D array AnArray.
-' c. Insert(AnArray, TheElement, Array(Array(n_1), ..., Array(n_k))) -
-' d. Insert(AnArray, TheElement, Array(Array(n_1, n_2), ..., Array(n_2k, n_2k+1)))
+'    array if n = Length(AnArray)+1.  If AnArray is a 2D array satisfying Predicates.AtomicTableQ
+' b. Insert(AnArray, TheElement, Array(n_1, ..., n_k)) - Inserts TheElement in positions n_1, n_2,
+'    ..., and n_k per (a) above.  The rows of a 2D array are considered its elements for the purpose
+'    of Insert.
 '
 ' PARAMETERS
 ' 1. AnArray - A dimensioned array
-' 2. TheElement - a sequence of indices (with at least one supplied) of the forms below, with each one
-'    referring to a different dimension of the array. At the moment we process only 1D and 2D arrays.
-'    So, Indices can only be one or two of the forms below.
-'
+' 2. TheElement - The element to insert in AnArray
+' 3. ThePositions - The index of array of indices where TheElement should be inserted
 '
 ' RETURNED VALUE
-' The requested slice or element of the array.
+' AnArray with TheElement inserted in the requested positions
 Public Function Insert(AnArray As Variant, _
                        TheElement As Variant, _
                        ThePositions As Variant, _
@@ -1160,48 +1151,46 @@ Public Function Insert(AnArray As Variant, _
     Dim i As Long
     Dim ResultArray As Variant
     Dim ShiftedThePositions As Variant
+    Dim NumDimensions  As Integer
     Dim ni As Long
+    Dim CurrentIndex As Long
     
     ' Set default return value
     Let Insert = Null
     
-    Select Case NumberOfDimensions(AnArray)
-        ' Process case of insertion in a 1D array
-        Case 1
-            ' Process the case when ThePositions is a non-zero whole number
-            If WholeNumberQ(ThePositions) Then
-                ' Normalize the position
-                Let ni = NormalizeIndex(AnArray, ThePositions, 1, False)
-                
-                ' Handle cases of prepend and appending to the array
-                If ni = LBound(AnArray) Then
-                    Let Insert = Prepend(AnArray, TheElement, ParameterCheckQ)
-                    Exit Function
-                ElseIf ni = UBound(AnArray) Then
-                    Let Insert = Append(AnArray, TheElement, ParameterCheckQ)
-                    Exit Function
-                End If
-                
+    Let NumDimensions = NumberOfDimensions(AnArray)
+    
+    ' Process case of insertion in a 1D array
+    If NumDimensions = 1 Then
+        ' Process the case when ThePositions is a non-zero whole number
+        If WholeNumberQ(ThePositions) Then
+            ' Convert negative indices to positive
+            Let ni = IIf(ThePositions < 0, Length(AnArray) + ni + 1, ThePositions)
+            
+            ' Handle cases of prepend and appending to the array
+            If ThePositions = -1 And EmptyArrayQ(AnArray) Then
+                Let Insert = Array(TheElement)
+            ElseIf ni = 1 Then
+                Let Insert = Prepend(AnArray, TheElement, ParameterCheckQ)
+            ElseIf ni = Length(AnArray) + 1 Then
+                Let Insert = Append(AnArray, TheElement, ParameterCheckQ)
+            Else
                 ' Compute the array to return for the case of insertion in the middle of the array
-                Let ResultArray = ConcatenateArrays(Part(AnArray, Array(1, ni - 1)), _
+                Let ResultArray = ConcatenateArrays(Part(AnArray, Span(1, ni - 1)), _
                                                     Array(TheElement), _
                                                     ParameterCheckQ)
                 Let ResultArray = ConcatenateArrays(ResultArray, _
-                                                    Part(AnArray, Array(ni, -1)), _
+                                                    Part(AnArray, Span(ni, -1)), _
                                                     ParameterCheckQ)
                 
                 Let Insert = ResultArray
-                Exit Function
             End If
-                            
-            ' Process the case when ThePositions is not a non-zero whole integer
-            ' This is the case when we want to insert the same element in multiple
-            ' positions.
-            If EmptyArrayQ(ThePositions) Then
-                Let Insert = AnArray
-                Exit Function
-            End If
-            
+        ' Process the case when ThePositions is not a non-zero whole integer
+        ' This is the case when we want to insert the same element in multiple
+        ' positions.
+        ElseIf EmptyArrayQ(ThePositions) Then
+            Let Insert = AnArray
+        Else
             ' Perform recursion on the first index
             Let ResultArray = Insert(AnArray, TheElement, First(First(ThePositions)))
             
@@ -1218,51 +1207,53 @@ Public Function Insert(AnArray As Variant, _
             ' Increment each of the remaining indices since they will be off by one
             ' after inserting the element at the first index
             Let i = 1
+            Let ni = First(First(ThePositions))
+            Let ni = IIf(ni < 0, Length(AnArray) + ni + 1, ni)
             For Each var In ShiftedThePositions
-                Let ShiftedThePositions(LBound(ShiftedThePositions) + i - 1) = Array(First(var) + 1)
+                Let CurrentIndex = First(var)
+                Let CurrentIndex = IIf(CurrentIndex < 0, Length(ResultArray) + CurrentIndex + 1, CurrentIndex)
+            
+                If CurrentIndex > ni Then
+                    Let ShiftedThePositions(LBound(ShiftedThePositions) + i - 1) = Array(CurrentIndex + 1)
+                Else
+                    Let ShiftedThePositions(LBound(ShiftedThePositions) + i - 1) = Array(CurrentIndex)
+                End If
             
                 Let i = i + 1
             Next
             
             ' Recurse of the rest of the indices
             Let Insert = Insert(ResultArray, TheElement, ShiftedThePositions)
-            Exit Function
-        ' Process case of insertion in a 2D array
-        Case 2
-            ' Process the case when ThePositions is a non-zero whole number
-            If WholeNumberQ(ThePositions) Then
-                ' Normalize the positions
-                Let ni = NormalizeIndex(AnArray, ThePositions, 1, False)
-                
-                ' Handle cases of prepend and appending to the array
-                If ni = LBound(AnArray) Then
-                    Let Insert = Prepend(AnArray, TheElement, ParameterCheckQ)
-                    Exit Function
-                ElseIf ni = UBound(AnArray) Then
-                    Let Insert = Append(AnArray, TheElement, ParameterCheckQ)
-                    Exit Function
-                End If
-                
+        End If
+    ' Process case of insertion in a 2D array
+    ElseIf NumDimensions = 2 Then
+        ' Process the case when ThePositions is a non-zero whole number
+        If WholeNumberQ(ThePositions) Then
+            ' Convert negative indices to positive
+            Let ni = IIf(ThePositions < 0, Length(AnArray) + ni + 1, ThePositions)
+            
+            ' Handle cases of prepend and appending to the array
+            If ni = 1 Then
+                Let Insert = Prepend(AnArray, TheElement, ParameterCheckQ)
+            ElseIf ni = Length(AnArray) + 1 Then
+                Let Insert = Append(AnArray, TheElement, ParameterCheckQ)
+            Else
                 ' Compute the array to return for the case of insertion in the middle of the array
-                Let ResultArray = StackArrays(TakeNoParamCheck(AnArray, ni - 1), _
+                Let ResultArray = StackArrays(Part(AnArray, Span(1, ni - 1)), _
                                               TheElement, _
                                               ParameterCheckQ)
                 Let ResultArray = StackArrays(ResultArray, _
-                                              TakeNoParamCheck(AnArray, -(Length(AnArray) - ni)), _
+                                              Part(AnArray, Span(ni, -1)), _
                                               ParameterCheckQ)
                 
                 Let Insert = ResultArray
-                Exit Function
             End If
-                            
-            ' Process the case when ThePositions is not a non-zero whole integer
-            ' This is the case when we want to insert the same element in multiple
-            ' positions.
-            If EmptyArrayQ(ThePositions) Then
-                Let Insert = AnArray
-                Exit Function
-            End If
-            
+        ' Process the case when ThePositions is not a non-zero whole integer
+        ' This is the case when we want to insert the same element in multiple
+        ' positions.
+        ElseIf EmptyArrayQ(ThePositions) Then
+            Let Insert = AnArray
+        Else
             ' Perform recursion on the first index
             Let ResultArray = Insert(AnArray, TheElement, First(First(ThePositions)))
             
@@ -1271,6 +1262,7 @@ Public Function Insert(AnArray As Variant, _
             
             ' Exit with ResultArray if Rest(ThePositions) is empty
             Let ShiftedThePositions = Rest(ThePositions)
+            
             If EmptyArrayQ(ShiftedThePositions) Then
                 Let Insert = ResultArray
                 Exit Function
@@ -1279,16 +1271,25 @@ Public Function Insert(AnArray As Variant, _
             ' Increment each of the remaining indices since they will be off by one
             ' after inserting the element at the first index
             Let i = 1
+            Let ni = First(First(ThePositions))
+            Let ni = IIf(ni < 0, Length(AnArray) + ni + 1, ni)
             For Each var In ShiftedThePositions
-                Let ShiftedThePositions(LBound(ShiftedThePositions) + i - 1) = Array(First(var) + 1)
+                Let CurrentIndex = First(var)
+                Let CurrentIndex = IIf(CurrentIndex < 0, Length(ResultArray) + CurrentIndex + 1, CurrentIndex)
+                
+                If CurrentIndex > ni Then
+                    Let ShiftedThePositions(LBound(ShiftedThePositions) + i - 1) = Array(CurrentIndex + 1)
+                Else
+                    Let ShiftedThePositions(LBound(ShiftedThePositions) + i - 1) = Array(CurrentIndex)
+                End If
             
                 Let i = i + 1
             Next
             
             ' Recurse of the rest of the indices
             Let Insert = Insert(ResultArray, TheElement, ShiftedThePositions)
-            Exit Function
-    End Select
+        End If
+    End If
 End Function
 
 ' DESCRIPTION
@@ -2934,6 +2935,20 @@ Public Function ConcatenateArrays(A As Variant, _
     Dim i As Long
     Dim ResultArray As Variant
     
+    Let ConcatenateArrays = Null
+    
+    If Not (DimensionedQ(A) And DimensionedQ(B)) Then Exit Function
+    
+    If EmptyArrayQ(A) Then
+        Let ConcatenateArrays = B
+        Exit Function
+    End If
+    
+    If EmptyArrayQ(B) Then
+        Let ConcatenateArrays = A
+        Exit Function
+    End If
+    
     If NumberOfDimensions(A) = 1 And NumberOfDimensions(B) = 1 Then
         ReDim ResultArray(1 To Length(A) + Length(B))
         
@@ -2954,21 +2969,6 @@ Public Function ConcatenateArrays(A As Variant, _
                                                         ParameterCheckQ), _
                                             False, _
                                             ParameterCheckQ)
-End Function
-
-Public Function ConcatenateArraysOLD(A As Variant, _
-                                  B As Variant, _
-                                  Optional ParameterCheckQ As Boolean = True) As Variant
-
-    Let ConcatenateArrays = TransposeMatrix(StackArrays(TransposeMatrix(A, False, ParameterCheckQ), _
-                                                        TransposeMatrix(B, False, ParameterCheckQ), _
-                                                        ParameterCheckQ), _
-                                            False, _
-                                            ParameterCheckQ)
-    
-    If NumberOfDimensions(A) = 1 And NumberOfDimensions(B) = 1 Then
-        Let ConcatenateArrays = Flatten(ConcatenateArrays, ParameterCheckQ)
-    End If
 End Function
 
 ' This function sorts the given range by the columns whose positions are given by ' ArrayOfColPos.

@@ -216,7 +216,7 @@ Public Function ArrayMapThread(AFunctionName As String, _
     
     ' Exit with Null if the arrays don't all have the same length or are atomic
     For Each var In ParamsArray
-        If Length(var) <> n Or Not AtomicArrayQ(var) Then Exit Function
+        If Length(var) <> n Then Exit Function
     Next
     
     ' Pre-allocate array to hold results and each function call's array

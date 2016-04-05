@@ -988,23 +988,23 @@ Public Sub TestPredicatesFreeQ()
     Debug.Print "FreeQ(Array(1,2,#1/1/2001#), #1/1/2001#) is " & FreeQ(Array(1, 2, #1/1/2001#), #1/1/2001#)
 End Sub
 
-Public Sub TestCreateSequenceFromSpan()
+Public Sub TestCreateIndexSequenceFromSpan()
     Dim ASpan As Span
     Dim AnArray As Variant
     
-    PrintArray CreateSequenceFromSpan(CreateSequentialArray(1, 10), _
+    PrintArray CreateIndexSequenceFromSpan(CreateSequentialArray(1, 10), _
                                       Span(1, 10))
     Debug.Print
-    PrintArray CreateSequenceFromSpan(CreateSequentialArray(1, 5), _
+    PrintArray CreateIndexSequenceFromSpan(CreateSequentialArray(1, 5), _
                                       Span(1, -1))
     Debug.Print
-    PrintArray CreateSequenceFromSpan(CreateSequentialArray(1, 5), _
+    PrintArray CreateIndexSequenceFromSpan(CreateSequentialArray(1, 5), _
                                       Span(2, -2))
     Debug.Print
-    PrintArray CreateSequenceFromSpan(CreateSequentialArray(1, 5), _
+    PrintArray CreateIndexSequenceFromSpan(CreateSequentialArray(1, 5), _
                                       Span(2, -2, 2))
     Debug.Print
-    PrintArray CreateSequenceFromSpan(CreateSequentialArray(1, 20), _
+    PrintArray CreateIndexSequenceFromSpan(CreateSequentialArray(1, 20), _
                                       Span(1, -1, 2))
 End Sub
 
@@ -1274,6 +1274,123 @@ Public Sub TestArraysPart()
     PrintArray A
 End Sub
 
+Public Sub TestArraysConcatenateArrays()
+    Dim A As Variant
+    Dim B As Variant
+    Dim c As Variant
+    
+    Let A = [{1,2,3; 4,5,6}]
+    Let B = [{7;8}]
+    Let c = ConcatenateArrays(A, B)
+    Debug.Print "a is:"
+    PrintArray A
+    Debug.Print
+    Debug.Print "b is:"
+    PrintArray B
+    Debug.Print
+    If EmptyArrayQ(c) Then
+        Debug.Print "a and b have incompatible dimensions."
+    Else
+        Debug.Print "The concatenation is:"
+    
+        PrintArray c
+    End If
+    Debug.Print "--------------------------" & vbCrLf
+    
+    Let A = [{1,2,3; 4,5,6}]
+    Let B = [{7;8;9}]
+    Let c = ConcatenateArrays(A, B)
+    Debug.Print "a is:"
+    PrintArray A
+    Debug.Print
+    Debug.Print "b is:"
+    PrintArray B
+    Debug.Print
+    If EmptyArrayQ(c) Then
+        Debug.Print "a and b have incompatible dimensions."
+    Else
+        Debug.Print "The concatenation is:"
+    
+        PrintArray c
+    End If
+    Debug.Print "--------------------------" & vbCrLf
+
+    Let A = [{1,2,3; 4,5,6}]
+    Let B = 23
+    Let c = ConcatenateArrays(A, B)
+    Debug.Print "a is:"
+    PrintArray A
+    Debug.Print
+    Debug.Print "b is:"
+    PrintArray B
+    Debug.Print
+    If EmptyArrayQ(c) Then
+        Debug.Print "a and b have incompatible dimensions."
+    Else
+        Debug.Print "The concatenation is:"
+    
+        PrintArray c
+    End If
+    Debug.Print "--------------------------" & vbCrLf
+    
+    Let A = [{1,"02",3; 4,"05",6}]
+    Let B = [{"07";"08"}]
+    Let c = ConcatenateArrays(A, B)
+    Debug.Print "a is:"
+    PrintArray A
+    Debug.Print
+    Debug.Print "b is:"
+    PrintArray B
+    Debug.Print
+    If EmptyArrayQ(c) Then
+        Debug.Print "a and b have incompatible dimensions."
+    Else
+        Debug.Print "The concatenation is:"
+    
+        PrintArray c
+    End If
+    Call ToTemp(c)
+    Debug.Print "--------------------------" & vbCrLf
+    
+    Let A = Array(1, 2, 3)
+    Let B = Array(4, 5, 6)
+    Let c = ConcatenateArrays(A, B)
+    Debug.Print "a is:"
+    PrintArray A
+    Debug.Print
+    Debug.Print "b is:"
+    PrintArray B
+    Debug.Print
+    If EmptyArrayQ(c) Then
+        Debug.Print "a and b have incompatible dimensions."
+    Else
+        Debug.Print "The concatenation is:"
+    
+        PrintArray c
+    End If
+    Call ToTemp(c)
+    Debug.Print "--------------------------" & vbCrLf
+    
+    Let A = EmptyArray()
+    Let B = Array(4, 5, 6)
+    Let c = ConcatenateArrays(A, B)
+    Debug.Print "a is:"
+    PrintArray A
+    Debug.Print
+    Debug.Print "b is:"
+    PrintArray B
+    Debug.Print
+    If EmptyArrayQ(c) Then
+        Debug.Print "a and b have incompatible dimensions."
+    Else
+        Debug.Print "The concatenation is:"
+    
+        PrintArray c
+    End If
+    Call ToTemp(c)
+    Debug.Print "--------------------------" & vbCrLf
+End Sub
+
 ' This tests Arrays.Take
 Public Sub TestArraysTake()
     Dim A() As Integer
@@ -1321,7 +1438,8 @@ Public Sub TestArraysTake()
     Debug.Print "Set a to:"
     PrintArray A
     Debug.Print
-    Debug.Print "Bounds LBound(a,1), UBound(a,1), LBound(a,2), UBound(a,2): ", LBound(A, 1), UBound(A, 1), LBound(A, 2), UBound(A, 2)
+    Debug.Print "Bounds LBound(a,1), UBound(a,1), LBound(a,2), UBound(a,2): "
+    Debug.Print LBound(A, 1), UBound(A, 1), LBound(A, 2), UBound(A, 2)
     Debug.Print
     
     For r = -10 To 10
@@ -1458,10 +1576,33 @@ Public Sub TestArraysInsert()
     Dim A As Variant
     Dim i As Long
     
+    Debug.Print "Testing insertion into 1D array:"
     Let A = CreateSequentialArray(1, 15)
+    Debug.Print "Insert in a = CreateSequentialArray(1, 15) i for 1 to 16"
+    For i = 1 To 16
+        PrintArray Insert(A, "*", i)
+    Next
     
-    Debug.Print "Insert in a = CreateSequentialArray(1, 15) i for 1 to 15"
-    For i = 1 To 15
+    Debug.Print
+    Debug.Print "Insert using negative indices."
+    Debug.Print "Insert in a = CreateSequentialArray(1, 15) i for 16 to 1 step -1"
+    For i = 16 To 1 Step -1
+        PrintArray Insert(A, "*", i)
+    Next
+    Debug.Print
+    
+    ReDim A(0 To 14)
+    For i = 0 To 14: Let A(i) = i: Next
+    Debug.Print "A now has indices LBound(A) = " & LBound(A) & " and UBound(A) = " & UBound(A)
+    Debug.Print "Insert in a = CreateSequentialArray(1, 15) i for 0 to 15"
+    For i = 1 To 16
+        PrintArray Insert(A, "*", i)
+    Next
+    
+    Debug.Print
+    Debug.Print "Insert using negative indices."
+    Debug.Print "Insert in a = CreateSequentialArray(1, 15) i for 16 to 1 step -1"
+    For i = 16 To 1 Step -1
         PrintArray Insert(A, "*", i)
     Next
     
@@ -1471,7 +1612,68 @@ Public Sub TestArraysInsert()
     Debug.Print "Testing insertion into 2D array:"
     PrintArray A
     Debug.Print
-    For i = 1 To 3: Debug.Print "Insert into row " & i: PrintArray Insert(A, Array("*", "*", "*"), i): Next
+    For i = 1 To 4: Debug.Print "Insert into row " & i: PrintArray Insert(A, Array("*", "*", "*"), i): Next
+    
+    Debug.Print
+    Let A = CreateSequentialArray(1, 15)
+    Debug.Print "Inserting into multiple places at once."
+    Debug.Print "Inserting * at Array(Array(1),Array(3)) in"
+    Debug.Print "A = (" & PrintArray(A, True) & ")"
+    PrintArray Insert(A, "*", Array(Array(1), Array(3)))
+    Debug.Print
+    Debug.Print "Inserting * at Array(Array(2),Array(4)) in"
+    Debug.Print "A = (" & PrintArray(A, True) & ")"
+    PrintArray Insert(A, "*", Array(Array(2), Array(4)))
+    Debug.Print
+    Debug.Print "Inserting * at Array(Array(5),Array(7),Array(9)) in"
+    Debug.Print "A = (" & PrintArray(A, True) & ")"
+    PrintArray Insert(A, "*", Array(Array(5), Array(7), Array(9)))
+    Debug.Print
+    Debug.Print "Inserting * at Array(Array(1),Array(16)) in"
+    Debug.Print "A = (" & PrintArray(A, True) & ")"
+    PrintArray Insert(A, "*", Array(Array(1), Array(16)))
+    Debug.Print
+    Debug.Print "Inserting * at Array(Array(1),Array(15)) in"
+    Debug.Print "A = (" & PrintArray(A, True) & ")"
+    PrintArray Insert(A, "*", Array(Array(1), Array(15)))
+    Debug.Print
+    Debug.Print "Inserting * at Array(Array(1),Array(2)) in"
+    Debug.Print "A = (" & PrintArray(Array(), True) & ")"
+    PrintArray Insert(Array(), "*", Array(Array(1), Array(2)))
+    Debug.Print
+    Debug.Print "Inserting * at Array(Array(1)) in"
+    Debug.Print "A = (" & PrintArray(Array(), True) & ")"
+    PrintArray Insert(Array(), "*", Array(Array(1)))
+    Debug.Print
+    Debug.Print "Inserting * at Array(Array(1), Array(-1)) in"
+    Debug.Print "A = (" & PrintArray(Array(), True) & ")"
+    PrintArray Insert(Array(), "*", Array(Array(1), Array(-1)))
+    Debug.Print
+    Debug.Print "Inserting * at Array(Array(1), Array(-2)) in"
+    Debug.Print "A = (" & PrintArray(Array(1), True) & ")"
+    PrintArray Insert(Array(), "*", Array(Array(1), Array(-2)))
+    
+    Debug.Print
+    Let A = ConstantArray(Empty, 3, 3)
+    For i = 1 To 3: Let A(i, i) = i: Next
+    Debug.Print "Testing insertion in multiple indices into 2D array:"
+    PrintArray A
+    Debug.Print
+    
+    Debug.Print "Inserting Array(""*"", ""*"", ""*"") at Array(Array(2), Array(3)):"
+    PrintArray Insert(A, Array("*", "*", "*"), Array(Array(2), Array(3)))
+    Debug.Print
+    Debug.Print "Inserting Array(""*"", ""*"", ""*"") at Array(Array(1), Array(4)):"
+    PrintArray Insert(A, Array("*", "*", "*"), Array(Array(1), Array(4)))
+    Debug.Print
+    Debug.Print "Inserting Array(""*"", ""*"", ""*"") at Array(Array(1), Array(-1)):"
+    PrintArray Insert(A, Array("*", "*", "*"), Array(Array(1), Array(-1)))
+    Debug.Print
+    Debug.Print "Inserting Array(""*"", ""*"", ""*"") at Array(Array(3), Array(2)):"
+    PrintArray Insert(A, Array("*", "*", "*"), Array(Array(3), Array(2)))
+    Debug.Print
+    Debug.Print "Inserting Array(""*"", ""*"", ""*"") at Array(Array(3), Array(-1)):"
+    PrintArray Insert(A, Array("*", "*", "*"), Array(Array(3), Array(-1)))
 End Sub
 
 Public Sub TestConnectAndSelect()
