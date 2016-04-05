@@ -205,18 +205,18 @@ End Function
 ' RETURNED VALUE
 ' First element in the given array
 Public Function First(AnArray As Variant) As Variant
+    Let First = Null
+
     If Not DimensionedQ(AnArray) Then
-        Let First = Null
+        Exit Function
     ElseIf NumberOfDimensions(AnArray) = 1 Then
         If EmptyArrayQ(AnArray) Then
-            Let First = Null
+            Exit Function
         Else
             Let First = AnArray(LBound(AnArray))
         End If
     ElseIf NumberOfDimensions(AnArray) = 2 Then
         Let First = Part(AnArray, 1)
-    Else
-        Let First = Null
     End If
 End Function
 
@@ -233,11 +233,13 @@ End Function
 ' RETURNED VALUE
 ' Last element in the given array
 Public Function Last(AnArray As Variant) As Variant
+    Let Last = Null
+
     If Not DimensionedQ(AnArray) Then
-        Let Last = Null
+        Exit Function
     ElseIf NumberOfDimensions(AnArray) = 1 Then
         If EmptyArrayQ(AnArray) Then
-            Let Last = Null
+            Exit Function
         Else
             Let Last = AnArray(UBound(AnArray))
         End If
@@ -2924,6 +2926,26 @@ Public Function TrimAndConvertArrayToCaps(TheArray As Variant) As Variant
     
     Let TrimAndConvertArrayToCaps = ResultsArray
 End Function
+
+' DESCRIPTION
+' This function returns the array resulting from concatenating the given list of arrays and along the optional
+' dimensionality index. If the dimensionality index is not provided, it defaults to the first dimension.
+' This function allows for dimensionality indices 1 and 2.  All elements to join must be arrays.  If the
+' dimensionality
+'
+'
+'
+' PARAMETERS
+' 1. Params - a variant ParamArray, each of which except possibly the last one must be arrays.  If the
+'    last element of Params is an integer, then the function joins the arrays along the dimensional
+'    index indicated by such integer
+'
+' RETURNED VALUE
+' An array joining the arrays passed as parameters
+Public Function JoinArrays(ParamArray Params()) As Variant
+'***HERE
+End Function
+
 
 ' This function returns the array resulting from concatenating B to the right of A.
 ' A and B must have the same dimensions (e.g. 1 or 2D)
