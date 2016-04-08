@@ -739,7 +739,7 @@ Public Sub TestBloombergNewsAlerts2()
 End Sub
 
 Public Sub TestPart()
-    Dim m As Variant
+    Dim M As Variant
     Dim A(0 To 2, 0 To 2) As Integer
     Dim B(1 To 3, 1 To 3) As Integer
     Dim i As Integer
@@ -789,59 +789,59 @@ Public Sub TestPart()
     PrintArray Part(B, 3)
     Debug.Print
     
-    Let m = [{1,2,3;4,5,6;7,8,9}]
+    Let M = [{1,2,3;4,5,6;7,8,9}]
     Debug.Print "Testing getting row 1 from [{1,2,3;4,5,6;7,8,9}]"
-    PrintArray Part(m, 1)
+    PrintArray Part(M, 1)
     Debug.Print
     
-    Let m = [{1,2,3;4,5,6;7,8,9}]
+    Let M = [{1,2,3;4,5,6;7,8,9}]
     Debug.Print "Testing getting row 2 from [{1,2,3;4,5,6;7,8,9}]"
-    PrintArray Part(m, 2)
+    PrintArray Part(M, 2)
     Debug.Print
 
-    Let m = [{1,2,3;4,5,6;7,8,9}]
+    Let M = [{1,2,3;4,5,6;7,8,9}]
     Debug.Print "Testing getting row 3 from [{1,2,3;4,5,6;7,8,9}]"
-    PrintArray Part(m, 3)
+    PrintArray Part(M, 3)
     Debug.Print
     
-    Let m = [{1;2;3}]
+    Let M = [{1;2;3}]
     Debug.Print "Testing getting row 3 from [{1;2;3}]"
-    PrintArray Part(m, 3)
+    PrintArray Part(M, 3)
     Debug.Print
     
-    Let m = [{1,2,3;4,5,6;7,8,9}]
+    Let M = [{1,2,3;4,5,6;7,8,9}]
     Debug.Print "Testing getting row 10 from [{1,2,3;4,5,6;7,8,9}]"
-    PrintArray Part(m, 10)
+    PrintArray Part(M, 10)
     Debug.Print
     
-    Let m = [{1,2,3;4,5,6;7,8,9}]
+    Let M = [{1,2,3;4,5,6;7,8,9}]
     Debug.Print "Testing getting row 0 from [{1,2,3;4,5,6;7,8,9}]"
-    PrintArray Part(m, 0)
+    PrintArray Part(M, 0)
     Debug.Print
 
-    Let m = [{1,2,3}]
+    Let M = [{1,2,3}]
     Debug.Print "Testing getting row 2 from [{1,2,3}]"
-    PrintArray Part(m, 2)
+    PrintArray Part(M, 2)
     Debug.Print
     
-    Let m = Array(1, 2, 3)
+    Let M = Array(1, 2, 3)
     Debug.Print "Testing getting row 0 from Array(1, 2, 3)"
-    PrintArray Part(m, 0)
+    PrintArray Part(M, 0)
     Debug.Print
     
-    Let m = Array(1, 2, 3)
+    Let M = Array(1, 2, 3)
     Debug.Print "Testing getting row 3 from Array(1, 2, 3)"
-    PrintArray Part(m, 3)
+    PrintArray Part(M, 3)
     Debug.Print
     
-    Let m = Array(1, 2, 3)
+    Let M = Array(1, 2, 3)
     Debug.Print "Testing getting row 1 from Array(1, 2, 3)"
-    PrintArray Part(m, 1)
+    PrintArray Part(M, 1)
     Debug.Print
     
-    Let m = EmptyArray()
+    Let M = EmptyArray()
     Debug.Print "Testing  EmptyArray()"
-    PrintArray Part(m, 1)
+    PrintArray Part(M, 1)
     Debug.Print
 End Sub
 
@@ -1237,29 +1237,29 @@ Public Sub TestStackArrays()
 End Sub
 
 Public Sub TestStack2DArrayAs1DArray()
-    Dim m As Variant
+    Dim M As Variant
     Dim m2(0 To 3) As Variant
     Dim m3(0 To 3, 0 To 1) As Variant
     
-    Let m = Array(1, 2, 3, 4)
+    Let M = Array(1, 2, 3, 4)
     Debug.Print "Testing:"
-    PrintArray m
+    PrintArray M
     Debug.Print "We get:"
-    PrintArray Stack2DArrayAs1DArray(m)
+    PrintArray Stack2DArrayAs1DArray(M)
     Debug.Print
 
-    Let m = [{1; 2; 3; 4}]
+    Let M = [{1; 2; 3; 4}]
     Debug.Print "Testing:"
-    PrintArray m
+    PrintArray M
     Debug.Print "We get:"
-    PrintArray Stack2DArrayAs1DArray(m)
+    PrintArray Stack2DArrayAs1DArray(M)
     Debug.Print
 
-    Let m = [{1,2; 3,4; 5,6; 7,8}]
+    Let M = [{1,2; 3,4; 5,6; 7,8}]
     Debug.Print "Testing:"
-    PrintArray m
+    PrintArray M
     Debug.Print "We get:"
-    PrintArray Stack2DArrayAs1DArray(m)
+    PrintArray Stack2DArrayAs1DArray(M)
     Debug.Print
 
     Let m2(0) = 0
@@ -1578,21 +1578,21 @@ Public Sub TestAppend()
     Debug.Print "The result has length " & GetArrayLength(Append(A, B))
 End Sub
 
-Public Sub TestCreateSequentialArray()
+Public Sub TestNumericalSequence()
     Debug.Print "Sequential array 1...10"
-    PrintArray CreateSequentialArray(1, 10)
+    PrintArray NumericalSequence(1, 10)
     Debug.Print
     
     Debug.Print "Sequential array 2...6"
-    PrintArray CreateSequentialArray(2, 5)
+    PrintArray NumericalSequence(2, 5)
     Debug.Print
     
     Debug.Print "Sequential array 2...12 step 2"
-    PrintArray CreateSequentialArray(2, 6, 2)
+    PrintArray NumericalSequence(2, 6, 2)
     Debug.Print
 
     Debug.Print "Sequential array 2...2 repeated 10 times at step 0"
-    PrintArray CreateSequentialArray(2, 10, 0)
+    PrintArray NumericalSequence(2, 10, 0)
     Debug.Print
 End Sub
 

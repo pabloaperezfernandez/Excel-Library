@@ -6,7 +6,7 @@ Option Explicit
 ' This function returns an instance of class Span. It makes sense only when used in the context
 ' of a given array and relative to one of the array's dimensions.
 '
-' For details on how to call this function, see Arrays.CreateSequentialArray.
+' For details on how to call this function, see Arrays.NumericalSequence.
 '
 ' PARAMETERS
 ' 1. StartNumber - First number in the span

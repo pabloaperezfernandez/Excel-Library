@@ -992,58 +992,53 @@ Public Sub TestCreateIndexSequenceFromSpan()
     Dim ASpan As Span
     Dim AnArray As Variant
     
-    PrintArray CreateIndexSequenceFromSpan(CreateSequentialArray(1, 10), _
-                                      Span(1, 10))
+    PrintArray CreateIndexSequenceFromSpan(NumericalSequence(1, 10), Span(1, 10))
     Debug.Print
-    PrintArray CreateIndexSequenceFromSpan(CreateSequentialArray(1, 5), _
-                                      Span(1, -1))
+    PrintArray CreateIndexSequenceFromSpan(NumericalSequence(1, 5), Span(1, -1))
     Debug.Print
-    PrintArray CreateIndexSequenceFromSpan(CreateSequentialArray(1, 5), _
-                                      Span(2, -2))
+    PrintArray CreateIndexSequenceFromSpan(NumericalSequence(1, 5), Span(2, -2))
     Debug.Print
-    PrintArray CreateIndexSequenceFromSpan(CreateSequentialArray(1, 5), _
-                                      Span(2, -2, 2))
+    PrintArray CreateIndexSequenceFromSpan(NumericalSequence(1, 5), Span(2, -2, 2))
     Debug.Print
-    PrintArray CreateIndexSequenceFromSpan(CreateSequentialArray(1, 20), _
-                                      Span(1, -1, 2))
+    PrintArray CreateIndexSequenceFromSpan(NumericalSequence(1, 20), Span(1, -1, 2))
 End Sub
 
 Public Sub TestArraysPart()
     Dim i As Long
     Dim j As Long
-    Dim m As Variant
+    Dim M As Variant
     Dim A As Variant
     Dim r As Long
     Dim c As Long
     
     ' 1D Tests
-    Let m = Array(1, 2, 3, 4, 5)
+    Let M = Array(1, 2, 3, 4, 5)
     Debug.Print "We have m = Array(1, 2, 3, 4, 5)"
     For i = -10 To 10
-        Debug.Print "Part(m, " & i & ") = " & Part(m, i)
+        Debug.Print "Part(m, " & i & ") = " & Part(M, i)
     Next
     
     Debug.Print
     Debug.Print "Getting Part(m, Array(1, 5))"
-    PrintArray Part(m, Array(1, 5))
+    PrintArray Part(M, Array(1, 5))
     
     Debug.Print
     Debug.Print "Getting Part(m, Span(1, -2))"
-    PrintArray Part(m, Span(1, -2))
+    PrintArray Part(M, Span(1, -2))
 
     Debug.Print
     Debug.Print "Getting Part(m, Span(1, -3))"
-    PrintArray Part(m, Span(1, -3))
+    PrintArray Part(M, Span(1, -3))
     
     Debug.Print
     Debug.Print "Getting Part(m, Span(2, -3))"
-    PrintArray Part(m, Span(2, -3))
+    PrintArray Part(M, Span(2, -3))
     
     Debug.Print
-    ReDim m(0 To 5)
-    For i = 1 To 6: Let m(i - 1) = i: Next
+    ReDim M(0 To 5)
+    For i = 1 To 6: Let M(i - 1) = i: Next
     Debug.Print "Setting m = Array(1, 2, 3, 4, 5, 6)"
-    Debug.Print "LBound(m), UBound(m) = " & LBound(m), "&", UBound(m)
+    Debug.Print "LBound(m), UBound(m) = " & LBound(M), "&", UBound(M)
     For i = 1 To 6: Debug.Print "Part(Array(1, 2, 3, 4, 5, 6), " & i & ") = " & Part(Array(1, 2, 3, 4, 5, 6), i): Next
     
     Debug.Print
@@ -1081,13 +1076,13 @@ Public Sub TestArraysPart()
     For i = -10 To 10: Debug.Print "Row " & i & " is " & PrintArray(Part(A, i), True): Next
     Debug.Print
     Debug.Print "Getting set of rows."
-    ReDim m(1 To 3)
+    ReDim M(1 To 3)
     For i = 1 To 10
         For j = 1 To 3
-            Let m(j) = Application.WorksheetFunction.RandBetween(1, 5)
+            Let M(j) = Application.WorksheetFunction.RandBetween(1, 5)
         Next
         
-        Debug.Print "Rows (" & PrintArray(m, True) & ") is " & vbCr & PrintArray(Part(A, m), True)
+        Debug.Print "Rows (" & PrintArray(M, True) & ") is " & vbCr & PrintArray(Part(A, M), True)
         Debug.Print
     Next
     Debug.Print
@@ -1166,109 +1161,109 @@ Public Sub TestArraysPart()
     PrintArray Part(A, Span(1, -1, 2), Span(1, 3, 2))
     Debug.Print
     
-    Let m = ConstantArray(Empty, 7, 8)
-    For i = 1 To NumberOfRows(m)
-        For j = 1 To NumberOfColumns(m)
+    Let M = ConstantArray(Empty, 7, 8)
+    For i = 1 To NumberOfRows(M)
+        For j = 1 To NumberOfColumns(M)
             If j > 1 Then
-                Let m(i, j) = 10 ^ (j - 1) * i + m(i, j - 1)
+                Let M(i, j) = 10 ^ (j - 1) * i + M(i, j - 1)
             Else
-                Let m(i, j) = i
+                Let M(i, j) = i
             End If
         Next
     Next
     Debug.Print "Cycling through elements of:"
-    PrintArray m
+    PrintArray M
     Debug.Print
     Debug.Print "Getting individual rows 1 through 6"
-    For i = 1 To 6: PrintArray Part(m, i): Next
+    For i = 1 To 6: PrintArray Part(M, i): Next
     Debug.Print
     Debug.Print "Cycling through segments Array(1, i)"
-    For i = 1 To 6: PrintArray Part(m, Array(1, i)): Debug.Print: Next
+    For i = 1 To 6: PrintArray Part(M, Array(1, i)): Debug.Print: Next
     Debug.Print
     Debug.Print "Cycling through segments Array(i, -1)"
-    For i = 1 To 6: PrintArray Part(m, Array(i, -1)): Debug.Print: Next
+    For i = 1 To 6: PrintArray Part(M, Array(i, -1)): Debug.Print: Next
     Debug.Print
     Debug.Print "Cycling through segments Array(-6, i)"
-    For i = 1 To 6: PrintArray Part(m, Array(-6, i)): Debug.Print: Next
+    For i = 1 To 6: PrintArray Part(M, Array(-6, i)): Debug.Print: Next
     Debug.Print
     
     Debug.Print "Get elts 3, 5, 1"
-    PrintArray Part(m, Array(3, 5, 1))
+    PrintArray Part(M, Array(3, 5, 1))
     Debug.Print
     Debug.Print "Get stepped segment Span(3, 5, 1)"
-    PrintArray Part(m, Span(3, 5, 1))
+    PrintArray Part(M, Span(3, 5, 1))
     Debug.Print
     Debug.Print "Get stepped segment Span(3, 5, 2)"
-    PrintArray Part(m, Span(3, 5, 2))
+    PrintArray Part(M, Span(3, 5, 2))
     Debug.Print
     Debug.Print "Get stepped segment Span(3, 5, 6)"
-    PrintArray Part(m, Span(3, 5, 6))
+    PrintArray Part(M, Span(3, 5, 6))
     Debug.Print
     Debug.Print "Get segment Span(-4,-2))"
-    PrintArray Part(m, Span(-4, -2))
+    PrintArray Part(M, Span(-4, -2))
     Debug.Print
     Debug.Print "Get segment Span(-4,-2)"
-    PrintArray Part(m, Span(-4, -2))
+    PrintArray Part(M, Span(-4, -2))
     
     ' 2D Test with two dimensional index sets
-    Let m = ConstantArray(Empty, 7, 8)
-    For i = 1 To NumberOfRows(m)
-        For j = 1 To NumberOfColumns(m)
+    Let M = ConstantArray(Empty, 7, 8)
+    For i = 1 To NumberOfRows(M)
+        For j = 1 To NumberOfColumns(M)
             If j > 1 Then
-                Let m(i, j) = 10 ^ (j - 1) * i + m(i, j - 1)
+                Let M(i, j) = 10 ^ (j - 1) * i + M(i, j - 1)
             Else
-                Let m(i, j) = i
+                Let M(i, j) = i
             End If
         Next
     Next
     Debug.Print "Cycling through elements of:"
-    PrintArray m
+    PrintArray M
     Debug.Print
     Debug.Print "Getting individual columns 1 through 6"
-    For i = 1 To 6: PrintArray Part(m, Span(1, -1), i): Debug.Print: Next
+    For i = 1 To 6: PrintArray Part(M, Span(1, -1), i): Debug.Print: Next
     Debug.Print
     Debug.Print "Cycling through segments Span(1, -1), Span(1, i)"
-    For i = 1 To 6: PrintArray Part(m, Span(1, -1), Span(1, i)): Debug.Print: Next
+    For i = 1 To 6: PrintArray Part(M, Span(1, -1), Span(1, i)): Debug.Print: Next
     Debug.Print
     Debug.Print "Cycling through segments Array(1, -1), Array(i, -1)"
-    For i = 1 To 6: PrintArray Part(m, Array(1, -1), Array(i, -1)): Debug.Print: Next
+    For i = 1 To 6: PrintArray Part(M, Array(1, -1), Array(i, -1)): Debug.Print: Next
     Debug.Print
     Debug.Print "Cycling through segments Array(1, -1), Array(-6, i)"
-    For i = 1 To 6: PrintArray Part(m, Array(1, -1), Array(-6, i)): Debug.Print: Next
+    For i = 1 To 6: PrintArray Part(M, Array(1, -1), Array(-6, i)): Debug.Print: Next
     Debug.Print
     Debug.Print "Get Array(1, -1) with elts 3, 5, 1"
-    PrintArray Part(m, Array(1, -1), Array(Array(3, 5, 1)))
+    PrintArray Part(M, Array(1, -1), Array(Array(3, 5, 1)))
     Debug.Print
     Debug.Print "Get stepped segment Array(1, -1), Array(3, 5, 1)"
-    PrintArray Part(m, Array(1, -1), Array(3, 5, 1))
+    PrintArray Part(M, Array(1, -1), Array(3, 5, 1))
     Debug.Print
     Debug.Print "Get stepped segment Array(1, -1),Array(3, 5, 2)"
-    PrintArray Part(m, Array(1, -1), Array(3, 5, 2))
+    PrintArray Part(M, Array(1, -1), Array(3, 5, 2))
     Debug.Print
     Debug.Print "Get stepped segment Array(1, -1), Array(3, 5, 6)"
-    PrintArray Part(m, Array(1, -1), Array(3, 5, 6))
+    PrintArray Part(M, Array(1, -1), Array(3, 5, 6))
     Debug.Print
     Debug.Print "Get segment Array(1, -1), Array(-4,-2))"
-    PrintArray Part(m, Array(1, -1), Array(-4, -2))
+    PrintArray Part(M, Array(1, -1), Array(-4, -2))
     Debug.Print
     Debug.Print "Get segment Array(1, -1), Array(Array(-4,-2))"
-    PrintArray Part(m, Array(1, -1), Array(Array(-4, -2)))
+    PrintArray Part(M, Array(1, -1), Array(Array(-4, -2)))
     Debug.Print
     Debug.Print "Getting a rectangular submatrix Array(Array(3,4)), Array(Array(5,6,7))"
-    PrintArray Part(m, Array(Array(3, 4)), Array(Array(5, 6, 7)))
+    PrintArray Part(M, Array(Array(3, 4)), Array(Array(5, 6, 7)))
     Debug.Print
     
     Debug.Print "SPEED TESTS"
     Debug.Print "Creating a large 10000 by 1000 2D array"
-    Let m = ConstantArray(Empty, 10000, 1000)
-    For i = 1 To 10000: For j = 1 To 1000: Let m(i, j) = i * 1000 + j: Next: Next
+    Let M = ConstantArray(Empty, 10000, 1000)
+    For i = 1 To 10000: For j = 1 To 1000: Let M(i, j) = i * 1000 + j: Next: Next
     Debug.Print "Accessing element 500 by 200"
-    Debug.Print m(500, 200)
+    Debug.Print M(500, 200)
     Debug.Print "Accessing row 7000"
-    Let A = Part(m, 7000)
+    Let A = Part(M, 7000)
     PrintArray A
     Debug.Print "Accessig column 700"
-    Let A = Part(m, Span(1, -1), 700)
+    Let A = Part(M, Span(1, -1), 700)
     Debug.Print "The arrays dimensions are: ", LBound(A), UBound(A)
     Debug.Print "The array is"
     PrintArray A
@@ -1391,7 +1386,6 @@ Public Sub TestArraysConcatenateArrays()
     Debug.Print "--------------------------" & vbCrLf
 End Sub
 
-' This tests Arrays.Take
 Public Sub TestArraysTake()
     Dim A() As Integer
     Dim r As Long
@@ -1577,15 +1571,15 @@ Public Sub TestArraysInsert()
     Dim i As Long
     
     Debug.Print "Testing insertion into 1D array:"
-    Let A = CreateSequentialArray(1, 15)
-    Debug.Print "Insert in a = CreateSequentialArray(1, 15) i for 1 to 16"
+    Let A = NumericalSequence(1, 15)
+    Debug.Print "Insert in a = NumericalSequence(1, 15) i for 1 to 16"
     For i = 1 To 16
         PrintArray Insert(A, "*", i)
     Next
     
     Debug.Print
     Debug.Print "Insert using negative indices."
-    Debug.Print "Insert in a = CreateSequentialArray(1, 15) i for 16 to 1 step -1"
+    Debug.Print "Insert in a = NumericalSequence(1, 15) i for 16 to 1 step -1"
     For i = 16 To 1 Step -1
         PrintArray Insert(A, "*", i)
     Next
@@ -1594,14 +1588,14 @@ Public Sub TestArraysInsert()
     ReDim A(0 To 14)
     For i = 0 To 14: Let A(i) = i: Next
     Debug.Print "A now has indices LBound(A) = " & LBound(A) & " and UBound(A) = " & UBound(A)
-    Debug.Print "Insert in a = CreateSequentialArray(1, 15) i for 0 to 15"
+    Debug.Print "Insert in a = NumericalSequence(1, 15) i for 0 to 15"
     For i = 1 To 16
         PrintArray Insert(A, "*", i)
     Next
     
     Debug.Print
     Debug.Print "Insert using negative indices."
-    Debug.Print "Insert in a = CreateSequentialArray(1, 15) i for 16 to 1 step -1"
+    Debug.Print "Insert in a = NumericalSequence(1, 15) i for 16 to 1 step -1"
     For i = 16 To 1 Step -1
         PrintArray Insert(A, "*", i)
     Next
@@ -1615,7 +1609,7 @@ Public Sub TestArraysInsert()
     For i = 1 To 4: Debug.Print "Insert into row " & i: PrintArray Insert(A, Array("*", "*", "*"), i): Next
     
     Debug.Print
-    Let A = CreateSequentialArray(1, 15)
+    Let A = NumericalSequence(1, 15)
     Debug.Print "Inserting into multiple places at once."
     Debug.Print "Inserting * at Array(Array(1),Array(3)) in"
     Debug.Print "A = (" & PrintArray(A, True) & ")"
@@ -1742,6 +1736,73 @@ Public Sub TestArraysJoinArrays()
     Debug.Print
     Debug.Print "Testing JoinArrays([{1,2;3,4}], [{5,6;7,8}], 2)"
     PrintArray JoinArrays([{1,2;3,4}], [{5,6;7,8}], 2)
+End Sub
+
+Public Sub TestArraysReverse()
+    Dim A As Variant
+    Dim M As Variant
+    
+    Let A = NumericalSequence(1, 10)
+    Debug.Print "A is (" & Join(A, ",") & ")"
+    Debug.Print "Reverse(A) = (" & Join(Reverse(A), ",") & ")"
+    
+    Debug.Print
+    Debug.Print "Reverse(A,2) is"
+    PrintArray Reverse(A, 2)
+
+    Debug.Print
+    Let M = [{1,2,3;4,5,6;7,8,9}]
+    Debug.Print "M is"
+    PrintArray M
+    
+    Debug.Print
+    Debug.Print "Reverse(M) is"
+    PrintArray Reverse(M)
+
+    Debug.Print
+    Debug.Print "Reverse(M,2) is"
+    PrintArray Reverse(M, 2)
+    
+    Debug.Print
+    Let M = [{1;2;3}]
+    Debug.Print "M is"
+    PrintArray M
+    
+    Debug.Print
+    Debug.Print "Reverse(M) is"
+    PrintArray Reverse(M)
+
+    Debug.Print
+    Debug.Print "Reverse(M,2) is"
+    PrintArray Reverse(M, 2)
+End Sub
+
+Public Sub TestArraysDrop()
+    Dim A As Variant
+    Dim M As Variant
+    Dim i As Long
+    Dim var As Variant
+    
+    Let A = NumericalSequence(1, 15)
+    Debug.Print "A = " & CreateFunctionalParameterArray(A)
+    Debug.Print
+    
+    For Each var In NumericalSequence(-17, 17, 1, True)
+        If IsNull(Drop(A, var)) Then
+            Debug.Print "Drop(A, [{" & var & "}]) = Null"
+        Else
+            Debug.Print "Drop(A, [{" & var & "}]) = " & CreateFunctionalParameterArray(Drop(A, [{var}]))
+        End If
+    Next
+    
+    Debug.Print
+    For Each var In NumericalSequence(-17, 17, 1, True)
+        If IsNull(Drop(A, var)) Then
+            Debug.Print "Drop(A, " & var & ") = Null"
+        Else
+            Debug.Print "Drop(A, " & var & ") = " & CreateFunctionalParameterArray(Drop(A, var))
+        End If
+    Next
 End Sub
 
 Public Sub TestConnectAndSelect()

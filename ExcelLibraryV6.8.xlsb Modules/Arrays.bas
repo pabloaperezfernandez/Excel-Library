@@ -379,36 +379,25 @@ Public Function NormalizeIndex(AnArray As Variant, _
                                TheIndex As Variant, _
                                Optional DimensionIndexRelativeTo As Long = 1, _
                                Optional ParameterCheckQ As Boolean = True) As Variant
+    ' Set default return value when encountering errors
+    Let NormalizeIndex = Null
+                               
     ' This is here for high-speed applications
     If ParameterCheckQ Then
         ' Exit with Null if AnArray is undimensioned
-        If Not DimensionedQ(AnArray) Then
-            Let NormalizeIndex = Null
-            Exit Function
-        End If
+        If Not DimensionedQ(AnArray) Then Exit Function
          
         ' Exit if AnArray is the empty 1D array
-        If EmptyArrayQ(AnArray) Then
-            Let NormalizeIndex = Null
-            Exit Function
-        End If
+        If EmptyArrayQ(AnArray) Then Exit Function
             
         ' Exit with Null if TheIndex is not a positive integer
-        If Not NonzeroWholeNumberQ(TheIndex) Then
-            Let NormalizeIndex = Null
-            Exit Function
-        End If
+        If Not NonzeroWholeNumberQ(TheIndex) Then Exit Function
         
         ' Exit with Null if TheIndex is outside of acceptable bounds
-        If DimensionIndexRelativeTo > NumberOfDimensions(AnArray) Then
-            Let NormalizeIndex = Null
-            Exit Function
-        End If
+        If DimensionIndexRelativeTo > NumberOfDimensions(AnArray) Then Exit Function
         
-        If Abs(TheIndex) < 1 Or Abs(TheIndex) > UBound(AnArray, DimensionIndexRelativeTo) - LBound(AnArray, DimensionIndexRelativeTo) + 1 Then
-            Let NormalizeIndex = Null
-            Exit Function
-        End If
+        If Abs(TheIndex) < 1 Or _
+           Abs(TheIndex) > UBound(AnArray, DimensionIndexRelativeTo) - LBound(AnArray, DimensionIndexRelativeTo) + 1 Then Exit Function
     End If
     
     ' Handles non-negative TheIndex case
@@ -504,32 +493,26 @@ End Function
 '
 ' RETURNED VALUE
 ' The requested numerical sequence
-Public Function CreateSequentialArray(StartNumber As Variant, _
+Public Function NumericalSequence(StartNumber As Variant, _
                                       n As Variant, _
                                       Optional TheStep As Variant, _
-                                      Optional ToEndNumberQ As Variant) As Variant
+                                      Optional ToEndNumberQ As Boolean = False) As Variant
     Dim TheStepCopy As Variant
     Dim ReturnArray As Variant
     Dim CurrentNumber As Variant
     Dim i As Long
     
     ' Set default return value for errors
-    Let CreateSequentialArray = Null
+    Let NumericalSequence = Null
+    
+    ' Set default value for the return array
     Let ReturnArray = Null
     
     ' Set default value for TheStep if missing from function call
     Let TheStepCopy = IIf(IsMissing(TheStep), 1, TheStep)
     
-    ' Process calling modality 1
-    If IsMissing(ToEndNumberQ) Then
-        If n < 0 Then Exit Function
-        
-        ReDim ReturnArray(1 To n)
-        For i = StartNumber To StartNumber + n - 1
-            Let ReturnArray(i - StartNumber + 1) = StartNumber + (i - StartNumber) * TheStepCopy
-        Next i
     ' Process calling modality 2
-    ElseIf ToEndNumberQ = True Then
+    If ToEndNumberQ Then
         ' Exit with NULL if any of the three parameters is non-numeric
         If Not NumberArrayQ(Array(StartNumber, n, TheStepCopy)) Then Exit Function
         
@@ -546,9 +529,17 @@ Public Function CreateSequentialArray(StartNumber As Variant, _
             Let i = i + 1
             Let CurrentNumber = StartNumber + i * TheStepCopy
         Loop
+    ' Process calling modality 1
+    Else
+        If n < 0 Then Exit Function
+        
+        ReDim ReturnArray(1 To n)
+        For i = StartNumber To StartNumber + n - 1
+            Let ReturnArray(i - StartNumber + 1) = StartNumber + (i - StartNumber) * TheStepCopy
+        Next i
     End If
     
-    Let CreateSequentialArray = ReturnArray
+    Let NumericalSequence = ReturnArray
 End Function
 
 ' DESCRIPTION
@@ -1066,6 +1057,71 @@ Public Function Prepend(AnArray As Variant, _
 End Function
 
 ' DESCRIPTION
+' Prepends an element to the given 1D or 2D array.  To be prepended to a 2D array, the element must
+' must be 1D or 2D array with the same number of columns.  The function returns Null in all other
+' cases.
+'
+' PARAMETERS
+' 1. AnArray - A 1D or 2D array to which AnElt should be appended
+' 2. AnElt - a 1D or 2D array to append to AnArray
+' 3. ParameterCheckQ - (optional) When explicitly set to False, no parameter checks are done
+'
+' RETURNED VALUE
+' Returns the array resylt from prepending an element to an array.
+Public Function Reverse(AnArray As Variant, Optional DimensionalityIndex As Integer = 1)
+    Dim ReturnArray As Variant
+    Dim i As Long
+    Dim j As Long
+
+    Let Reverse = Null
+    
+    If Not DimensionedQ(AnArray) Then Exit Function
+    
+    If EmptyArrayQ(AnArray) Then
+        Let Reverse = EmptyArray
+        Exit Function
+    End If
+    
+    If NumberOfDimensions(AnArray) > 2 Then Exit Function
+    
+    If DimensionalityIndex > NumberOfDimensions(AnArray) Then Exit Function
+    
+    ' AnArray may be 1D or 2D.  Reverse along the first dimensionality index in either case.
+    If DimensionalityIndex = 1 Then
+        ' Reverse the 1D array
+        If NumberOfDimensions(AnArray) = 1 Then
+            ReDim ReturnArray(LBound(AnArray) To UBound(AnArray))
+            
+            For i = LBound(AnArray) To UBound(AnArray)
+                Let ReturnArray(LBound(AnArray) - i + UBound(AnArray)) = AnArray(i)
+            Next
+        ' Reverse the 2D array with respect to its rows
+        Else
+            ReDim ReturnArray(LBound(AnArray, 1) To UBound(AnArray, 1), _
+                              LBound(AnArray, 2) To UBound(AnArray, 2))
+            
+            For i = LBound(AnArray, 1) To UBound(AnArray, 1)
+                For j = LBound(AnArray, 2) To UBound(AnArray, 2)
+                    Let ReturnArray(LBound(AnArray, 1) - i + UBound(AnArray, 1), j) = AnArray(i, j)
+                Next j
+            Next i
+        End If
+    ' Reverse the 2D array with respect to the second dimensionality index
+    Else
+        ReDim ReturnArray(LBound(AnArray, 1) To UBound(AnArray, 1), LBound(AnArray, 2) To UBound(AnArray, 2))
+        
+        For i = LBound(AnArray, 1) To UBound(AnArray, 1)
+            For j = LBound(AnArray, 2) To UBound(AnArray, 2)
+                Let ReturnArray(i, LBound(AnArray, 2) - j + UBound(AnArray, 2)) = AnArray(i, j)
+            Next j
+        Next i
+    End If
+    
+    ' Return the reversed array
+    Let Reverse = ReturnArray
+End Function
+
+' DESCRIPTION
 ' Prints the given 1D or 2D printable table to a string and to the debug window.
 ' If TheArray is not a printable array, the function returns "Not An Array"
 ' If TheArray an empty array, the function returns "Empty 1D Array"
@@ -1331,7 +1387,7 @@ Public Function Drop(AnArray As Variant, ThePositions As Variant) As Variant
     Dim IndicesToDrop As Variant
     
     ' Set default return value
-    Let Insert = Null
+    Let Drop = Null
     
     ' Process the case when ThePositions is an empty array
     If EmptyArrayQ(ThePositions) Then
@@ -1339,40 +1395,55 @@ Public Function Drop(AnArray As Variant, ThePositions As Variant) As Variant
         Exit Function
     End If
     
+    ' Process case of insertion in a 1D array
     Select Case NumberOfDimensions(AnArray)
-        ' Process case of insertion in a 1D array
         Case 1
             ' Process the case when ThePositions is a non-zero whole number
             If WholeNumberQ(ThePositions) Then
                 ' Normalize the position
-                Let ni = NormalizeIndex(AnArray, ThePositions, 1, False)
-                
-                If ThePositions >= 0 Then
-                    Let Drop = Take(AnArray, Array(ni + 1, -1))
+                Let var = NormalizeIndex(AnArray, ThePositions)
+                If IsNull(var) Then
+                    Exit Function
                 Else
-                    Let Drop = Take(AnArray, Array(1, ni - 1))
+                    Let ni = var
                 End If
                 
-                Exit Function
-            End If
-            
-            If WholeNumberArrayQ(ThePositions) Then
+                If ThePositions >= 0 Then
+                    If ni = 0 Then
+                        Exit Function
+                    ElseIf ni > Length(AnArray) Then
+                        Exit Function
+                    ElseIf ni = Length(AnArray) Then
+                        Let Drop = EmptyArray
+                        Exit Function
+                    Else
+                        Let Drop = Take(AnArray, Array(ni + 1, -1))
+                    End If
+                Else
+                    If ni = 1 Then
+                        Let Drop = EmptyArray
+                        Exit Function
+                    Else
+                        Let Drop = Take(AnArray, Array(1, ni - 1))
+                    End If
+                End If
+            ElseIf WholeNumberArrayQ(ThePositions) Then
                 Select Case Length(ThePositions)
                     Case 1
                         Let ni = NormalizeIndex(AnArray, First(ThePositions))
                         
-                        If ni = 1 Then
+                        If ni = 0 Then
+                            Exit Function
+                        ElseIf ni = 1 Then
                             Let Drop = Rest(AnArray)
                         ElseIf ni = Length(AnArray) Then
                             Let Drop = Most(AnArray)
                         Else
                             Let Drop = ConcatenateArrays(Take(AnArray, ni - 1), Take(AnArray, -(ni - 1)))
                         End If
-                        
-                        Exit Function
                     Case 2
                         Let n1 = NormalizeIndex(AnArray, First(ThePositions))
-                        Let n2 = NormalizeIndex(Anrray, Last(ThePositions))
+                        Let n2 = NormalizeIndex(AnArray, Last(ThePositions))
                         
                         If n1 > n2 Then
                             Let Drop = Null
@@ -1397,23 +1468,16 @@ Public Function Drop(AnArray As Variant, ThePositions As Variant) As Variant
                         Else
                             ' Extract the start and stop indices to drop
                             Let n1 = NormalizeIndex(AnArray, First(ThePositions))
-                            Let n2 = NormalizeIndex(AnArray, First(First(ThePositions)))
+                            Let n2 = NormalizeIndex(AnArray, First(Rest(ThePositions)))
                         
-                            ' Compute the set of indices to drop
-                            Let IndicesToDrop = EmptyArray()
-                            Let j = 0
-                            For i = n1 To n3 Step TheStep
-                                ' Add each of the indices to drop as they get computed
-                                ' Adjust indices for the fact that they will get shifted as
-                                ' indices on the left get dropped first
-                                Let IndicesToDrop = Append(IndicesToDrop, n1 + TheStep * (i - 1) - j)
-                                Let j = j + 1
-                            Next
+                            ' Compute the set of indices to drop. Reverse them to
+                            ' start dropping them from the end of the list.
+                            Let IndicesToDrop = Reverse(NumericalSequence(n1, n2, TheStep))
                             
                             ' Recurse of each of the indices top drop all of the requested elements
                             Let ResultArray = AnArray
-                            For i = 1 To Length(IndicesToDrop)
-                                Let ResultArray = Drop(ResultArray, Array(IndicesToDrop(i)))
+                            For Each var In IndicesToDrop
+                                Let ResultArray = Drop(ResultArray, Array(var))
                             Next
                             
                             Let Drop = ResultArray
@@ -1421,16 +1485,193 @@ Public Function Drop(AnArray As Variant, ThePositions As Variant) As Variant
                     Case Else
                         Let Drop = Null
                 End Select
-                
-                Exit Function
+            Else
+                ' If the code gets here, ThePositions has an invalid form.
+                Let Drop = Null
             End If
-            
-            ' If the code gets here, ThePositions has an invalid form.
-            Let Drop = Null
         ' Process case of droppoing from a 2D array
         Case 2
-'***HERE
+            Debug.Print "HERE"
     End Select
+End Function
+
+' aMatrix is a 1D or 2D array of values (not a range).
+' Returns a 1-dimensional array with the unique subset of elements.
+' If aMatrix has more than two dimensions, the function returns Null
+Public Function UniqueSubset(aMatrix As Variant) As Variant
+    Dim r As Long
+    Dim c As Long
+    Dim UniqueDict As Dictionary
+    Dim Dimensionality As Integer
+    
+    ' Exit, returning an empty array if aMatrix is empty
+    If EmptyArrayQ(aMatrix) Or IsEmpty(aMatrix) Then
+        Let UniqueSubset = EmptyArray()
+        Exit Function
+    End If
+    
+    Set UniqueDict = New Dictionary
+    Let Dimensionality = NumberOfDimensions(aMatrix)
+    
+    If Dimensionality = 0 Then
+        Let UniqueSubset = aMatrix
+        
+        Exit Function
+    ElseIf Dimensionality = 1 Then
+        For r = LBound(aMatrix) To UBound(aMatrix)
+            If Not UniqueDict.Exists(aMatrix(r)) Then
+                Call UniqueDict.Add(Key:=aMatrix(r), Item:=1)
+            End If
+        Next r
+    ElseIf Dimensionality = 2 Then
+        For r = LBound(aMatrix, 1) To UBound(aMatrix, 1)
+            For c = LBound(aMatrix, 2) To UBound(aMatrix, 2)
+                If Not UniqueDict.Exists(aMatrix(r, c)) Then
+                    Call UniqueDict.Add(Key:=aMatrix(r, c), Item:=1)
+                End If
+            Next c
+        Next r
+    Else
+        Let UniqueSubset = Null
+        
+        Exit Function
+    End If
+    
+    Let UniqueSubset = UniqueDict.Keys
+End Function
+
+' Returns the unique set of values contained in the two 1D arrays. The union of Set1 and Set2 is returned as a 1D array.
+' Set1 and Set2 must have no empty rows of columns.
+Public Function UnionOfSets(Set1 As Variant, Set2 As Variant) As Variant
+    Dim FirstSet As Variant
+    Dim SecondSet As Variant
+    Dim CombinedSet As Dictionary
+    Dim i As Long
+
+    Set CombinedSet = New Dictionary
+    
+    If (EmptyArrayQ(Set1) Or IsEmpty(Set1)) And (EmptyArrayQ(Set2) Or IsEmpty(Set2)) Then
+        Let UnionOfSets = EmptyArray()
+        Exit Function
+    ElseIf (EmptyArrayQ(Set1) Or IsEmpty(Set1)) And Not EmptyArrayQ(Set2) Then
+        Let UnionOfSets = UniqueSubset(Set2)
+        Exit Function
+    ElseIf Not EmptyArrayQ(Set1) And (EmptyArrayQ(Set2) Or IsEmpty(Set2)) Then
+        Let UnionOfSets = UniqueSubset(Set1)
+        Exit Function
+    End If
+
+    ' Stack the two sets on top of each other in the worksheet TempComputation
+    Let FirstSet = UniqueSubset(Set1)
+    Let SecondSet = UniqueSubset(Set2)
+    
+    For i = LBound(FirstSet) To UBound(FirstSet)
+        If Not CombinedSet.Exists(FirstSet(i)) Then
+            Call CombinedSet.Add(Key:=FirstSet(i), Item:=i)
+        End If
+    Next i
+    
+    For i = LBound(SecondSet) To UBound(SecondSet)
+        If Not CombinedSet.Exists(SecondSet(i)) Then
+            Call CombinedSet.Add(Key:=SecondSet(i), Item:=i)
+        End If
+    Next i
+    
+    Let UnionOfSets = CombinedSet.Keys
+End Function
+
+' This function takes two parameters.  Each could be either a 1D array or a 2D array.
+' This function returns the intersection of the two arrays.
+Public Function IntersectionOfSets(Set1 As Variant, Set2 As Variant) As Variant
+    Dim FirstDict As Dictionary
+    Dim First1DSet As Variant
+    Dim Second1DSet As Variant
+    Dim IntersectionDict As Dictionary
+    Dim i As Long
+    
+    ' Exit returning an empty array if either set is empty
+    If EmptyArrayQ(Set1) Or IsEmpty(Set1) Or EmptyArrayQ(Set2) Or IsEmpty(Set2) Then
+        Let IntersectionOfSets = EmptyArray()
+        Exit Function
+    End If
+    
+    ' Instantiate dictionaries
+    Set FirstDict = New Dictionary
+    Set IntersectionDict = New Dictionary
+    
+    ' Convert each set to a 1D array
+    Let First1DSet = Flatten(Set1)
+    Let Second1DSet = Flatten(Set2)
+    
+    ' Load a dictionary with the elements of the first set
+    For i = LBound(First1DSet) To UBound(First1DSet)
+        Call FirstDict.Add(Key:=First1DSet(i), Item:=1)
+    Next i
+    
+    ' Store the elements of the second set that are in the first
+    For i = LBound(Second1DSet) To UBound(Second1DSet)
+        If FirstDict.Exists(Key:=Second1DSet(i)) Then
+            Call IntersectionDict.Add(Key:=Second1DSet(i), Item:=1)
+        End If
+    Next i
+    
+    ' Return the intesection of the two sets
+    Let IntersectionOfSets = IntersectionDict.Keys
+End Function
+
+' This function returns the complement of set B in A
+' Both A and B are required to be 1D arrays
+' If the complement is empty, this function returns an empty array (e.g. EmptyArray())
+Public Function ComplementOfSets(A As Variant, B As Variant) As Variant
+    Dim BDict As Dictionary
+    Dim ComplementDict As Dictionary
+    Dim obj As Variant
+    
+    ' If a is an empty array, exit returning an empty array
+    If EmptyArrayQ(A) Or IsEmpty(A) Then
+        Let ComplementOfSets = EmptyArray()
+        Exit Function
+    End If
+    
+    If EmptyArrayQ(B) Or IsEmpty(B) Then
+        Let ComplementOfSets = A
+        Exit Function
+    End If
+    
+    If NumberOfDimensions(A) < 1 Or NumberOfDimensions(B) < 1 Then
+        Let ComplementOfSets = EmptyArray()
+        
+        Exit Function
+    End If
+    
+    ' Instantiate dictionaries
+    Set BDict = New Dictionary
+    Set ComplementDict = New Dictionary
+    
+    ' Initialize ADict to get unique subset of ADict
+    If GetArrayLength(B) > 0 Then
+        For Each obj In B
+            If Not BDict.Exists(Key:=obj) Then
+                Call BDict.Add(Key:=obj, Item:=obj)
+            End If
+        Next
+    End If
+    
+    ' Populate ComplementDict
+    If GetArrayLength(A) > 0 Then
+        For Each obj In A
+            If Not BDict.Exists(Key:=obj) And Not ComplementDict.Exists(Key:=obj) Then
+                Call ComplementDict.Add(Key:=obj, Item:=obj)
+            End If
+        Next
+    End If
+    
+    ' Return complement as 1D array
+    If ComplementDict.Count = 0 Then
+        Let ComplementOfSets = EmptyArray()
+    Else
+        Let ComplementOfSets = ComplementDict.Keys
+    End If
 End Function
 
 ' DESCRIPTION
@@ -1610,26 +1851,26 @@ End Function
 '
 ' RETURNED VALUE
 ' A constant 1D or 2D array with the given number of rows and columns.
-Public Function ConstantArray(TheValue As Variant, m As Long, Optional n As Long = 0) As Variant
+Public Function ConstantArray(TheValue As Variant, M As Long, Optional n As Long = 0) As Variant
     Dim ReturnMatrix() As Long
     Dim i As Long
     Dim j As Long
     
     Let ConstantArray = Null
 
-    If NegativeWholeNumberQ(m) Or m = 0 Then Exit Function
+    If NegativeWholeNumberQ(M) Or M = 0 Then Exit Function
     If NegativeWholeNumberQ(n) Then Exit Function
     
     If n = 0 Then
-        ReDim ReturnMatrix(1 To m)
+        ReDim ReturnMatrix(1 To M)
         
-        For i = 1 To m
+        For i = 1 To M
             ReturnMatrix(i) = TheValue
         Next
     Else
-        ReDim ReturnMatrix(1 To m, 1 To n)
+        ReDim ReturnMatrix(1 To M, 1 To n)
         
-        For i = 1 To m
+        For i = 1 To M
             For j = 1 To n
                 Let ReturnMatrix(i, j) = TheValue
             Next
@@ -1652,25 +1893,25 @@ End Function
 '
 ' RETURNED VALUE
 ' The identity matrix with the requested dimensions
-Public Function IdentityMatrix(m As Long, Optional n As Long = 0) As Variant
+Public Function IdentityMatrix(M As Long, Optional n As Long = 0) As Variant
     Dim ReturnMatrix() As Long
     Dim i As Long
     
     Let IdentityMatrix = Null
 
-    If NegativeWholeNumberQ(m) Or m = 0 Then Exit Function
+    If NegativeWholeNumberQ(M) Or M = 0 Then Exit Function
     If NegativeWholeNumberQ(n) Then Exit Function
     
     If n = 0 Then
-        ReDim ReturnMatrix(1 To m, 1 To m)
+        ReDim ReturnMatrix(1 To M, 1 To M)
         
-        For i = 1 To m
+        For i = 1 To M
             Let ReturnMatrix(i, i) = 1
         Next
     Else
-        ReDim ReturnMatrix(1 To m, 1 To n)
+        ReDim ReturnMatrix(1 To M, 1 To n)
         
-        For i = 1 To Application.WorksheetFunction.Min(m, n)
+        For i = 1 To Application.WorksheetFunction.Min(M, n)
             Let ReturnMatrix(i, i) = 1
         Next
     End If
@@ -1729,298 +1970,6 @@ Public Function Sort2DArray(MyArray As Variant, ArrayOfColPos As Variant, _
     
     ' Extract horizontally reversed matrix and set them to return when the function exits
     Let Sort2DArray = TmpSheet.Range("A1").CurrentRegion.Value2
-End Function
-
-' This function reverses the horizontal order of an array (1D or 2D)
-' It assumes that the first column must remain unchanged.
-'***HERE Implement using loops
-Public Function ReverseHorizontally(MyArray As Variant) As Variant
-    Dim TheRange As Range
-    Dim TmpSheet As Worksheet
-
-    ' Set pointer to temp sheet and clear its used range
-    Set TmpSheet = ThisWorkbook.Worksheets("TempComputation")
-    TmpSheet.UsedRange.ClearContents
-    
-    ' Dump array in temp sheet
-    Let TmpSheet.Range("A1").Resize(UBound(MyArray, 1), UBound(MyArray, 2)).Value2 = MyArray
-
-    ' Insert an empty row at the top where we will place the horizontal column counter
-    TmpSheet.Range("1:1").Insert
-    
-    ' Insert column counter in first row
-    Let TmpSheet.Range("A1").Resize(1, TmpSheet.Range("A2").CurrentRegion.Columns.Count).Formula = "=column()"
-    
-    ' Change the column index of the first column to be larger than the number of columns so it does not change
-    ' position
-    Let TmpSheet.Range("A1").Value2 = Application.Max(TmpSheet.Range(Range("B1"), Range("B1").End(xlToRight))) + 1
-    
-    ' Copy and paste column Indices as values
-    TmpSheet.Range(Range("A1"), Range("A1").End(xlToRight)).Value2 = TmpSheet.Range(Range("A1"), Range("A1").End(xlToRight)).Value2
-    
-    ' Set range pointer to the data we just dumped in the temp sheet
-    Set TheRange = TmpSheet.Range("A1").CurrentRegion
-
-    ' Clear any previous sorting criteria
-    TmpSheet.Sort.SortFields.Clear
-
-    ' Add criteria to sort by date
-    TheRange.Worksheet.Sort.SortFields.Add _
-        Key:=TheRange.Rows(1), _
-        SortOn:=xlSortOnValues, _
-        Order:=xlDescending, _
-        DataOption:=xlSortNormal
-        
-    ' Execute the sort
-    With TheRange.Worksheet.Sort
-        .SetRange TheRange
-        .Header = xlYes
-        .MatchCase = False
-        .Orientation = xlLeftToRight
-        .SortMethod = xlPinYin
-        .Apply
-    End With
-    
-    ' Delete the header row
-    TmpSheet.Range("1:1").Delete
-    
-    ' Extract horizontally reversed matrix and set them to return when the function exits
-    Let ReverseHorizontally = TmpSheet.Range("A1").CurrentRegion.Value2
-End Function
-
-' This function reverses the horizontal order of an array (1D or 2D)
-' It assumes that the first column must remain unchanged.
-'***HERE Implement using loops
-Public Function ReverseVertically(MyArray As Variant) As Variant
-    Dim TheRange As Range
-    Dim TmpSheet As Worksheet
-    
-    ' Set pointer to temp sheet and clear its used range
-    Set TmpSheet = ThisWorkbook.Worksheets("TempComputation")
-    TmpSheet.UsedRange.ClearContents
-    
-    ' Dump array in temp sheet
-    Let TmpSheet.Range("A1").Resize(UBound(MyArray, 1), UBound(MyArray, 2)).Value2 = MyArray
-
-    ' Insert an empty row at the top where we will place the horizontal column counter
-    TmpSheet.Range("A:A").Insert
-    
-    ' Insert column counter in first row
-    Let TmpSheet.Range("A1").Resize(TmpSheet.Range("A2").CurrentRegion.Rows.Count, 1).Formula = "=row()"
-    
-    ' Change the row index of the first row to be larger than the number of row so it does not change
-    ' position
-    Let TmpSheet.Range("A1").Value2 = Application.Max(TmpSheet.Range(TmpSheet.Range("A2"), TmpSheet.Range("A2").End(xlDown))) + 1
-    
-    ' Copy and paste column Indices as values
-    Let TmpSheet.Range("A1").CurrentRegion.Columns(1).Value2 = TmpSheet.Range("A1").CurrentRegion.Columns(1).Value2
-    
-    ' Set range pointer to the data we just dumped in the temp sheet
-    Set TheRange = TmpSheet.Range("A1").CurrentRegion
-
-    ' Clear any previous sorting criteria
-    TmpSheet.Sort.SortFields.Clear
-
-    ' Add criteria to sort by date
-    TheRange.Worksheet.Sort.SortFields.Add _
-        Key:=TheRange.Columns(1), _
-        SortOn:=xlSortOnValues, _
-        Order:=xlDescending, _
-        DataOption:=xlSortNormal
-        
-    ' Execute the sort
-    With TheRange.Worksheet.Sort
-        .SetRange TheRange
-        .Header = xlYes
-        .MatchCase = False
-        .Orientation = xlTopToBottom
-        .SortMethod = xlPinYin
-        .Apply
-    End With
-    
-    ' Delete the header row
-    TmpSheet.Range("A:A").Delete
-    
-    ' Extract horizontally reversed matrix and set them to return when the function exits
-    Let ReverseVertically = TmpSheet.Range("A1").CurrentRegion.Value2
-End Function
-
-' aMatrix is a 1D or 2D array of values (not a range).
-' Returns a 1-dimensional array with the unique subset of elements.
-' If aMatrix has more than two dimensions, the function returns Null
-Public Function UniqueSubset(aMatrix As Variant) As Variant
-    Dim r As Long
-    Dim c As Long
-    Dim UniqueDict As Dictionary
-    Dim Dimensionality As Integer
-    
-    ' Exit, returning an empty array if aMatrix is empty
-    If EmptyArrayQ(aMatrix) Or IsEmpty(aMatrix) Then
-        Let UniqueSubset = EmptyArray()
-        Exit Function
-    End If
-    
-    Set UniqueDict = New Dictionary
-    Let Dimensionality = NumberOfDimensions(aMatrix)
-    
-    If Dimensionality = 0 Then
-        Let UniqueSubset = aMatrix
-        
-        Exit Function
-    ElseIf Dimensionality = 1 Then
-        For r = LBound(aMatrix) To UBound(aMatrix)
-            If Not UniqueDict.Exists(aMatrix(r)) Then
-                Call UniqueDict.Add(Key:=aMatrix(r), Item:=1)
-            End If
-        Next r
-    ElseIf Dimensionality = 2 Then
-        For r = LBound(aMatrix, 1) To UBound(aMatrix, 1)
-            For c = LBound(aMatrix, 2) To UBound(aMatrix, 2)
-                If Not UniqueDict.Exists(aMatrix(r, c)) Then
-                    Call UniqueDict.Add(Key:=aMatrix(r, c), Item:=1)
-                End If
-            Next c
-        Next r
-    Else
-        Let UniqueSubset = Null
-        
-        Exit Function
-    End If
-    
-    Let UniqueSubset = UniqueDict.Keys
-End Function
-' Returns the unique set of values contained in the two 1D arrays. The union of Set1 and Set2 is returned as a 1D array.
-' Set1 and Set2 must have no empty rows of columns.
-Public Function UnionOfSets(Set1 As Variant, Set2 As Variant) As Variant
-    Dim FirstSet As Variant
-    Dim SecondSet As Variant
-    Dim CombinedSet As Dictionary
-    Dim i As Long
-
-    Set CombinedSet = New Dictionary
-    
-    If (EmptyArrayQ(Set1) Or IsEmpty(Set1)) And (EmptyArrayQ(Set2) Or IsEmpty(Set2)) Then
-        Let UnionOfSets = EmptyArray()
-        Exit Function
-    ElseIf (EmptyArrayQ(Set1) Or IsEmpty(Set1)) And Not EmptyArrayQ(Set2) Then
-        Let UnionOfSets = UniqueSubset(Set2)
-        Exit Function
-    ElseIf Not EmptyArrayQ(Set1) And (EmptyArrayQ(Set2) Or IsEmpty(Set2)) Then
-        Let UnionOfSets = UniqueSubset(Set1)
-        Exit Function
-    End If
-
-    ' Stack the two sets on top of each other in the worksheet TempComputation
-    Let FirstSet = UniqueSubset(Set1)
-    Let SecondSet = UniqueSubset(Set2)
-    
-    For i = LBound(FirstSet) To UBound(FirstSet)
-        If Not CombinedSet.Exists(FirstSet(i)) Then
-            Call CombinedSet.Add(Key:=FirstSet(i), Item:=i)
-        End If
-    Next i
-    
-    For i = LBound(SecondSet) To UBound(SecondSet)
-        If Not CombinedSet.Exists(SecondSet(i)) Then
-            Call CombinedSet.Add(Key:=SecondSet(i), Item:=i)
-        End If
-    Next i
-    
-    Let UnionOfSets = CombinedSet.Keys
-End Function
-
-' This function takes two parameters.  Each could be either a 1D array or a 2D array.
-' This function returns the intersection of the two arrays.
-Public Function IntersectionOfSets(Set1 As Variant, Set2 As Variant) As Variant
-    Dim FirstDict As Dictionary
-    Dim First1DSet As Variant
-    Dim Second1DSet As Variant
-    Dim IntersectionDict As Dictionary
-    Dim i As Long
-    
-    ' Exit returning an empty array if either set is empty
-    If EmptyArrayQ(Set1) Or IsEmpty(Set1) Or EmptyArrayQ(Set2) Or IsEmpty(Set2) Then
-        Let IntersectionOfSets = EmptyArray()
-        Exit Function
-    End If
-    
-    ' Instantiate dictionaries
-    Set FirstDict = New Dictionary
-    Set IntersectionDict = New Dictionary
-    
-    ' Convert each set to a 1D array
-    Let First1DSet = Flatten(Set1)
-    Let Second1DSet = Flatten(Set2)
-    
-    ' Load a dictionary with the elements of the first set
-    For i = LBound(First1DSet) To UBound(First1DSet)
-        Call FirstDict.Add(Key:=First1DSet(i), Item:=1)
-    Next i
-    
-    ' Store the elements of the second set that are in the first
-    For i = LBound(Second1DSet) To UBound(Second1DSet)
-        If FirstDict.Exists(Key:=Second1DSet(i)) Then
-            Call IntersectionDict.Add(Key:=Second1DSet(i), Item:=1)
-        End If
-    Next i
-    
-    ' Return the intesection of the two sets
-    Let IntersectionOfSets = IntersectionDict.Keys
-End Function
-
-' This function returns the complement of set B in A
-' Both A and B are required to be 1D arrays
-' If the complement is empty, this function returns an empty array (e.g. EmptyArray())
-Public Function ComplementOfSets(A As Variant, B As Variant) As Variant
-    Dim BDict As Dictionary
-    Dim ComplementDict As Dictionary
-    Dim obj As Variant
-    
-    ' If a is an empty array, exit returning an empty array
-    If EmptyArrayQ(A) Or IsEmpty(A) Then
-        Let ComplementOfSets = EmptyArray()
-        Exit Function
-    End If
-    
-    If EmptyArrayQ(B) Or IsEmpty(B) Then
-        Let ComplementOfSets = A
-        Exit Function
-    End If
-    
-    If NumberOfDimensions(A) < 1 Or NumberOfDimensions(B) < 1 Then
-        Let ComplementOfSets = EmptyArray()
-        
-        Exit Function
-    End If
-    
-    ' Instantiate dictionaries
-    Set BDict = New Dictionary
-    Set ComplementDict = New Dictionary
-    
-    ' Initialize ADict to get unique subset of ADict
-    If GetArrayLength(B) > 0 Then
-        For Each obj In B
-            If Not BDict.Exists(Key:=obj) Then
-                Call BDict.Add(Key:=obj, Item:=obj)
-            End If
-        Next
-    End If
-    
-    ' Populate ComplementDict
-    If GetArrayLength(A) > 0 Then
-        For Each obj In A
-            If Not BDict.Exists(Key:=obj) And Not ComplementDict.Exists(Key:=obj) Then
-                Call ComplementDict.Add(Key:=obj, Item:=obj)
-            End If
-        Next
-    End If
-    
-    ' Return complement as 1D array
-    If ComplementDict.Count = 0 Then
-        Let ComplementOfSets = EmptyArray()
-    Else
-        Let ComplementOfSets = ComplementDict.Keys
-    End If
 End Function
 
 ' This function dumps an array (1D or 2D) into worksheet TempComputation and then returns a reference to
