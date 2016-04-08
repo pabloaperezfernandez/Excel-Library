@@ -1370,7 +1370,7 @@ End Function
 '    equal to that of n2.  step must be a whole number equal to or larger of 1.
 '
 ' PARAMETERS
-' 1. AnArray - A dimensioned array
+' 1. AnArray - A dimensioned array or dimensions 1 or 2
 ' 2. ThePositions - One of the forms detailed above
 '
 ' RETURNED VALUE
@@ -1395,282 +1395,124 @@ Public Function Drop(AnArray As Variant, ThePositions As Variant) As Variant
         Exit Function
     End If
     
-    ' Process case of insertion in a 1D array
-    Select Case NumberOfDimensions(AnArray)
-        Case 1
-            ' Process the case when ThePositions is a non-zero whole number
-            If WholeNumberQ(ThePositions) Then
-                ' Normalize the position
-                Let var = NormalizeIndex(AnArray, ThePositions)
+    ' Process the case when ThePositions is a non-zero whole number
+    If WholeNumberQ(ThePositions) Then
+        ' Normalize the position
+        Let var = NormalizeIndex(AnArray, ThePositions)
+        If IsNull(var) Then
+            Exit Function
+        Else
+            Let ni = var
+        End If
+        
+        If ThePositions >= 0 Then
+            If ni = 0 Then
+                Exit Function
+            ElseIf ni > Length(AnArray) Then
+                Exit Function
+            ElseIf ni = Length(AnArray) Then
+                Let Drop = EmptyArray
+                Exit Function
+            Else
+                Let Drop = Take(AnArray, Array(ni + 1, -1))
+            End If
+        Else
+            If ni = 1 Then
+                Let Drop = EmptyArray
+                Exit Function
+            Else
+                Let Drop = Take(AnArray, Array(1, ni - 1))
+            End If
+        End If
+    ElseIf WholeNumberArrayQ(ThePositions) Then
+        Select Case Length(ThePositions)
+            Case 1
+                Let var = NormalizeIndex(AnArray, First(ThePositions))
                 If IsNull(var) Then
                     Exit Function
                 Else
                     Let ni = var
                 End If
                 
-                If ThePositions >= 0 Then
-                    If ni = 0 Then
-                        Exit Function
-                    ElseIf ni > Length(AnArray) Then
-                        Exit Function
-                    ElseIf ni = Length(AnArray) Then
-                        Let Drop = EmptyArray
-                        Exit Function
-                    Else
-                        Let Drop = Take(AnArray, Array(ni + 1, -1))
-                    End If
+                If ni = 0 Then
+                    Exit Function
+                ElseIf ni = 1 Then
+                    Let Drop = Rest(AnArray)
+                ElseIf ni = Length(AnArray) Then
+                    Let Drop = Most(AnArray)
                 Else
-                    If ni = 1 Then
-                        Let Drop = EmptyArray
-                        Exit Function
+                    Let Drop = ConcatenateArrays(Part(AnArray, Span(1, ni - 1)), _
+                                                 Part(AnArray, Span(ni + 1, -1)))
+                End If
+            Case 2
+                Let var = NormalizeIndex(AnArray, First(ThePositions))
+                If IsNull(var) Then
+                    Exit Function
+                Else
+                    Let n1 = var
+                End If
+                
+                Let var = NormalizeIndex(AnArray, Last(ThePositions))
+                If IsNull(var) Then
+                    Exit Function
+                Else
+                    Let n2 = var
+                End If
+                
+                If n1 > n2 Then
+                    Let Drop = Null
+                Else
+                    If n1 = 1 And n2 = Length(AnArray) Then
+                        Let Drop = EmptyArray()
+                    ElseIf n1 = 1 Then
+                        Let Drop = Part(AnArray, Span(n2 + 1, -1))
+                    ElseIf n2 = Length(AnArray) Then
+                        Let Drop = Part(AnArray, Span(1, n1 - 1))
                     Else
-                        Let Drop = Take(AnArray, Array(1, ni - 1))
+                        Let Drop = ConcatenateArrays(Part(AnArray, Span(1, n1 - 1)), _
+                                                     Part(AnArray, Span(n2 + 1, -1)))
                     End If
                 End If
-            ElseIf WholeNumberArrayQ(ThePositions) Then
-                Select Case Length(ThePositions)
-                    Case 1
-                        Let ni = NormalizeIndex(AnArray, First(ThePositions))
-                        
-                        If ni = 0 Then
-                            Exit Function
-                        ElseIf ni = 1 Then
-                            Let Drop = Rest(AnArray)
-                        ElseIf ni = Length(AnArray) Then
-                            Let Drop = Most(AnArray)
-                        Else
-                            Let Drop = ConcatenateArrays(Take(AnArray, ni - 1), Take(AnArray, -(ni - 1)))
-                        End If
-                    Case 2
-                        Let n1 = NormalizeIndex(AnArray, First(ThePositions))
-                        Let n2 = NormalizeIndex(AnArray, Last(ThePositions))
-                        
-                        If n1 > n2 Then
-                            Let Drop = Null
-                        Else
-                            If n1 = 1 And n2 = Length(AnArray) Then
-                                Let Drop = EmptyArray()
-                            ElseIf n1 = 1 Then
-                                Let Drop = Take(AnArray, Array(n2 + 1, -1))
-                            ElseIf n2 = Length(AnArray) Then
-                                Let Drop = Take(AnArray, Array(1, n1 - 1))
-                            Else
-                                Let Drop = ConcatenateArrays(Take(AnArray, n1 - 1), _
-                                                             Take(AnArray, Array(n2 + 1, -1)))
-                            End If
-                        End If
-                    Case 3
-                        ' Extract the index step
-                        Let TheStep = Last(ThePositions)
-                        
-                        If TheStep <= 0 Then
-                            Let Drop = Null
-                        Else
-                            ' Extract the start and stop indices to drop
-                            Let n1 = NormalizeIndex(AnArray, First(ThePositions))
-                            Let n2 = NormalizeIndex(AnArray, First(Rest(ThePositions)))
-                        
-                            ' Compute the set of indices to drop. Reverse them to
-                            ' start dropping them from the end of the list.
-                            Let IndicesToDrop = Reverse(NumericalSequence(n1, n2, TheStep))
-                            
-                            ' Recurse of each of the indices top drop all of the requested elements
-                            Let ResultArray = AnArray
-                            For Each var In IndicesToDrop
-                                Let ResultArray = Drop(ResultArray, Array(var))
-                            Next
-                            
-                            Let Drop = ResultArray
-                        End If
-                    Case Else
-                        Let Drop = Null
-                End Select
-            Else
-                ' If the code gets here, ThePositions has an invalid form.
-                Let Drop = Null
-            End If
-        ' Process case of droppoing from a 2D array
-        Case 2
-            Debug.Print "HERE"
-    End Select
-End Function
-
-' aMatrix is a 1D or 2D array of values (not a range).
-' Returns a 1-dimensional array with the unique subset of elements.
-' If aMatrix has more than two dimensions, the function returns Null
-Public Function UniqueSubset(aMatrix As Variant) As Variant
-    Dim r As Long
-    Dim c As Long
-    Dim UniqueDict As Dictionary
-    Dim Dimensionality As Integer
-    
-    ' Exit, returning an empty array if aMatrix is empty
-    If EmptyArrayQ(aMatrix) Or IsEmpty(aMatrix) Then
-        Let UniqueSubset = EmptyArray()
-        Exit Function
-    End If
-    
-    Set UniqueDict = New Dictionary
-    Let Dimensionality = NumberOfDimensions(aMatrix)
-    
-    If Dimensionality = 0 Then
-        Let UniqueSubset = aMatrix
-        
-        Exit Function
-    ElseIf Dimensionality = 1 Then
-        For r = LBound(aMatrix) To UBound(aMatrix)
-            If Not UniqueDict.Exists(aMatrix(r)) Then
-                Call UniqueDict.Add(Key:=aMatrix(r), Item:=1)
-            End If
-        Next r
-    ElseIf Dimensionality = 2 Then
-        For r = LBound(aMatrix, 1) To UBound(aMatrix, 1)
-            For c = LBound(aMatrix, 2) To UBound(aMatrix, 2)
-                If Not UniqueDict.Exists(aMatrix(r, c)) Then
-                    Call UniqueDict.Add(Key:=aMatrix(r, c), Item:=1)
+            Case 3
+                ' Extract the index step
+                Let TheStep = Last(ThePositions)
+                
+                If TheStep <= 0 Then
+                    Let Drop = Null
+                Else
+                    ' Extract the start and stop indices to drop
+                    Let var = NormalizeIndex(AnArray, First(ThePositions))
+                    If IsNull(var) Then
+                        Exit Function
+                    Else
+                        Let n1 = var
+                    End If
+                    
+                    Let var = NormalizeIndex(AnArray, First(Rest(ThePositions)))
+                    If IsNull(var) Then
+                        Exit Function
+                    Else
+                        Let n2 = var
+                    End If
+                
+                    ' Compute the set of indices to drop. Reverse them to
+                    ' start dropping them from the end of the list.
+                    Let IndicesToDrop = Reverse(NumericalSequence(n1, n2, TheStep, True))
+                    
+                    ' Recurse of each of the indices top drop all of the requested elements
+                    Let ResultArray = AnArray
+                    For Each var In IndicesToDrop
+                        Let ResultArray = Drop(ResultArray, Array(var))
+                    Next
+                    
+                    Let Drop = ResultArray
                 End If
-            Next c
-        Next r
+            Case Else
+                Let Drop = Null
+        End Select
     Else
-        Let UniqueSubset = Null
-        
-        Exit Function
-    End If
-    
-    Let UniqueSubset = UniqueDict.Keys
-End Function
-
-' Returns the unique set of values contained in the two 1D arrays. The union of Set1 and Set2 is returned as a 1D array.
-' Set1 and Set2 must have no empty rows of columns.
-Public Function UnionOfSets(Set1 As Variant, Set2 As Variant) As Variant
-    Dim FirstSet As Variant
-    Dim SecondSet As Variant
-    Dim CombinedSet As Dictionary
-    Dim i As Long
-
-    Set CombinedSet = New Dictionary
-    
-    If (EmptyArrayQ(Set1) Or IsEmpty(Set1)) And (EmptyArrayQ(Set2) Or IsEmpty(Set2)) Then
-        Let UnionOfSets = EmptyArray()
-        Exit Function
-    ElseIf (EmptyArrayQ(Set1) Or IsEmpty(Set1)) And Not EmptyArrayQ(Set2) Then
-        Let UnionOfSets = UniqueSubset(Set2)
-        Exit Function
-    ElseIf Not EmptyArrayQ(Set1) And (EmptyArrayQ(Set2) Or IsEmpty(Set2)) Then
-        Let UnionOfSets = UniqueSubset(Set1)
-        Exit Function
-    End If
-
-    ' Stack the two sets on top of each other in the worksheet TempComputation
-    Let FirstSet = UniqueSubset(Set1)
-    Let SecondSet = UniqueSubset(Set2)
-    
-    For i = LBound(FirstSet) To UBound(FirstSet)
-        If Not CombinedSet.Exists(FirstSet(i)) Then
-            Call CombinedSet.Add(Key:=FirstSet(i), Item:=i)
-        End If
-    Next i
-    
-    For i = LBound(SecondSet) To UBound(SecondSet)
-        If Not CombinedSet.Exists(SecondSet(i)) Then
-            Call CombinedSet.Add(Key:=SecondSet(i), Item:=i)
-        End If
-    Next i
-    
-    Let UnionOfSets = CombinedSet.Keys
-End Function
-
-' This function takes two parameters.  Each could be either a 1D array or a 2D array.
-' This function returns the intersection of the two arrays.
-Public Function IntersectionOfSets(Set1 As Variant, Set2 As Variant) As Variant
-    Dim FirstDict As Dictionary
-    Dim First1DSet As Variant
-    Dim Second1DSet As Variant
-    Dim IntersectionDict As Dictionary
-    Dim i As Long
-    
-    ' Exit returning an empty array if either set is empty
-    If EmptyArrayQ(Set1) Or IsEmpty(Set1) Or EmptyArrayQ(Set2) Or IsEmpty(Set2) Then
-        Let IntersectionOfSets = EmptyArray()
-        Exit Function
-    End If
-    
-    ' Instantiate dictionaries
-    Set FirstDict = New Dictionary
-    Set IntersectionDict = New Dictionary
-    
-    ' Convert each set to a 1D array
-    Let First1DSet = Flatten(Set1)
-    Let Second1DSet = Flatten(Set2)
-    
-    ' Load a dictionary with the elements of the first set
-    For i = LBound(First1DSet) To UBound(First1DSet)
-        Call FirstDict.Add(Key:=First1DSet(i), Item:=1)
-    Next i
-    
-    ' Store the elements of the second set that are in the first
-    For i = LBound(Second1DSet) To UBound(Second1DSet)
-        If FirstDict.Exists(Key:=Second1DSet(i)) Then
-            Call IntersectionDict.Add(Key:=Second1DSet(i), Item:=1)
-        End If
-    Next i
-    
-    ' Return the intesection of the two sets
-    Let IntersectionOfSets = IntersectionDict.Keys
-End Function
-
-' This function returns the complement of set B in A
-' Both A and B are required to be 1D arrays
-' If the complement is empty, this function returns an empty array (e.g. EmptyArray())
-Public Function ComplementOfSets(A As Variant, B As Variant) As Variant
-    Dim BDict As Dictionary
-    Dim ComplementDict As Dictionary
-    Dim obj As Variant
-    
-    ' If a is an empty array, exit returning an empty array
-    If EmptyArrayQ(A) Or IsEmpty(A) Then
-        Let ComplementOfSets = EmptyArray()
-        Exit Function
-    End If
-    
-    If EmptyArrayQ(B) Or IsEmpty(B) Then
-        Let ComplementOfSets = A
-        Exit Function
-    End If
-    
-    If NumberOfDimensions(A) < 1 Or NumberOfDimensions(B) < 1 Then
-        Let ComplementOfSets = EmptyArray()
-        
-        Exit Function
-    End If
-    
-    ' Instantiate dictionaries
-    Set BDict = New Dictionary
-    Set ComplementDict = New Dictionary
-    
-    ' Initialize ADict to get unique subset of ADict
-    If GetArrayLength(B) > 0 Then
-        For Each obj In B
-            If Not BDict.Exists(Key:=obj) Then
-                Call BDict.Add(Key:=obj, Item:=obj)
-            End If
-        Next
-    End If
-    
-    ' Populate ComplementDict
-    If GetArrayLength(A) > 0 Then
-        For Each obj In A
-            If Not BDict.Exists(Key:=obj) And Not ComplementDict.Exists(Key:=obj) Then
-                Call ComplementDict.Add(Key:=obj, Item:=obj)
-            End If
-        Next
-    End If
-    
-    ' Return complement as 1D array
-    If ComplementDict.Count = 0 Then
-        Let ComplementOfSets = EmptyArray()
-    Else
-        Let ComplementOfSets = ComplementDict.Keys
+        ' If the code gets here, ThePositions has an invalid form.
+        Let Drop = Null
     End If
 End Function
 
@@ -1919,8 +1761,295 @@ Public Function IdentityMatrix(M As Long, Optional n As Long = 0) As Variant
     Let IdentityMatrix = ReturnMatrix
 End Function
 
-Public Function Convert1DArrayIntoParentheticalExpression(TheArray As Variant) As String
-    Let Convert1DArrayIntoParentheticalExpression = "(" & Join(TheArray, ",") & ")"
+' DESCRIPTION
+' This function returns the array resulting from concatenating the given list of arrays and along the optional
+' dimensionality index. If the dimensionality index is not provided, it defaults to the first dimension.
+' This function allows for dimensionality indices 1 and 2.  All elements to join must be arrays.  The function
+' returns Null if the dimensionality index is larger than the number of dimensions in any of the arrays being
+' joined. 2D arrays are interpreted as 1D arrays of 1D arrays.
+'
+' PARAMETERS
+' 1. Params - a variant ParamArray, each of which except possibly the last one must be arrays.  If the
+'    last element of Params is an integer, then the function joins the arrays along the dimensional
+'    index indicated by such integer
+'
+' RETURNED VALUE
+' An array joining the arrays passed as parameters
+Public Function JoinArrays(ParamArray Params()) As Variant
+    Dim ParamsCopy As Variant
+    Dim var As Variant
+    Dim var2 As Variant
+    Dim DimensionalityIndex As Integer
+    Dim ReturnArray As Variant
+    Dim ReturnArrayLength As Long
+    Dim MaxNumRows As Long
+    Dim i As Long
+    Dim j As Long
+    Dim k() As Long
+    Dim OneParam2DFlag As Boolean
+    Dim SameLengthFlag As Boolean
+    
+    ' Set default value to return when encountering errors
+    Let JoinArrays = Null
+    
+    ' Make copy of ParamArray
+    Let ParamsCopy = CopyParamArray(Params)
+    
+    ' Exit with Null if no parameters are passed
+    If Not DimensionedQ(ParamsCopy) Then Exit Function
+    
+    ' Return the empty array if called with no arrays to join
+    If EmptyArrayQ(ParamsCopy) Then
+        Let JoinArrays = EmptyArray()
+        Exit Function
+    End If
+    
+    ' Exit with Null if any of the parameters is not an array (with the exception of the last one, which
+    ' could 1 or 2.  If the last parameter is 1 or 2 and the only parameter, exit with Null.  If any of
+    ' the parameters other than the last one is not an array, exit with Null.  If the last parameter is
+    ' 2 and any of the other parameters is 1, exith with Null.
+    If PositiveWholeNumberQ(Last(ParamsCopy)) Then
+        Let DimensionalityIndex = Last(ParamsCopy)
+    
+        If DimensionalityIndex > 2 Then Exit Function
+        If Length(ParamsCopy) < 2 Then Exit Function
+        
+        For i = LBound(ParamsCopy) To UBound(ParamsCopy) - 1
+            If Not DimensionedQ(ParamsCopy(i)) Then Exit Function
+            If NumberOfDimensions(ParamsCopy(i)) < DimensionalityIndex Then Exit Function
+        Next
+    Else
+        For i = LBound(ParamsCopy) To UBound(ParamsCopy)
+            If Not DimensionedQ(ParamsCopy(i)) Then Exit Function
+        Next
+    End If
+    
+    ' Process according to the dimensionality index
+    If DimensionalityIndex = 0 Or DimensionalityIndex = 1 Then
+        ' Turn on repackaging flag if all arrays have the same number of columns and
+        ' dimensionality index is 1 and at least one is a 2D array
+        Let OneParam2DFlag = False
+        Let SameLengthFlag = True
+        For i = LBound(ParamsCopy) To UBound(ParamsCopy)
+            If NumberOfColumns(First(ParamsCopy)) <> NumberOfColumns(ParamsCopy(i)) And IsArray(ParamsCopy(i)) Then
+                Let SameLengthFlag = False
+            End If
+            
+            If NumberOfDimensions(ParamsCopy(i)) = 2 Then Let OneParam2DFlag = True
+        Next
+    
+        ' Compute array length required to hold joined arrays
+        For i = LBound(ParamsCopy) To UBound(ParamsCopy)
+            Let ReturnArrayLength = ReturnArrayLength + Length(ParamsCopy(i))
+        Next
+                
+        ' Convert all 2D arrays to 1D arrays
+        For i = LBound(ParamsCopy) To UBound(ParamsCopy)
+            If IsArray(ParamsCopy(i)) And NumberOfDimensions(ParamsCopy(i)) = 2 Then
+                Let ParamsCopy(i) = UnPack2DArray(ParamsCopy(i))
+            End If
+        Next
+        
+        ' Pre-allocate an array big enough to hold the joined arrays
+        ReDim ReturnArray(1 To ReturnArrayLength)
+        
+        ' Create the joined array
+        Let i = 1
+        For Each var In ParamsCopy
+            If IsArray(var) Then
+                For j = LBound(var) To UBound(var)
+                    Let ReturnArray(i) = Part(var, j + 1 - LBound(var))
+                    Let i = i + 1
+                Next
+            End If
+        Next
+        
+        ' Repack as 2D array if necessary
+        If OneParam2DFlag And SameLengthFlag Then Let ReturnArray = Pack2DArray(ReturnArray)
+    Else
+        ' Compute the number of columns required for the return array
+        For Each var In ParamsCopy
+            Let ReturnArrayLength = ReturnArrayLength + NumberOfColumns(var)
+            Let MaxNumRows = Application.Max(MaxNumRows, Length(var))
+        Next
+        
+        ' Pre-allocate return array
+        ReDim ReturnArray(1 To MaxNumRows, 1 To ReturnArrayLength)
+        ReDim k(1 To MaxNumRows)
+        
+        For Each var In ParamsCopy
+            If IsArray(var) Then
+                For i = LBound(var) To UBound(var)
+                    For j = LBound(var, 2) To UBound(var, 2)
+                        Let k(i + 1 - LBound(var)) = k(i + 1 - LBound(var)) + 1
+                        Let ReturnArray(i + 1 - LBound(var), k(i + 1 - LBound(var))) = var(i, j)
+                    Next
+                Next
+            End If
+        Next
+    End If
+    
+    Let JoinArrays = ReturnArray
+End Function
+
+' DESCRIPTION
+' This function returns the list of unique values or object references in the given array.  This array
+' could be nested as many levels deep as desired.  The function considers only the leaves of the tree
+' represented by the array.  This function returns Null if AnArray is non-dimensioned.
+'
+' PARAMETERS
+' 1. AnArray - A dimensioned array
+'
+' RETURNED VALUE
+' An array with the unique values at the leaves of the tree represented by the array or the unchanged
+' argument if it is atomic
+Public Function UniqueSubset(AnArray As Variant) As Variant
+    Dim var As Variant
+    Dim UniqueDict As Dictionary
+    
+    ' Set default return value in case of errors
+    Let UniqueSubset = Null
+    
+    ' Exit with Null if AnArray is not dimensioned
+    If Not DimensionedQ(AnArray) Then Exit Function
+    
+    ' Exit, returning an empty array if AnArray is empty
+    If EmptyArrayQ(AnArray) Then
+        Let UniqueSubset = EmptyArray()
+        Exit Function
+    End If
+    
+    Set UniqueDict = New Dictionary
+    For Each var In Flatten(AnArray)
+        If Not UniqueDict.Exists(var) Then Call UniqueDict.Add(Key:=var, Item:=1)
+    Next
+    
+    Let UniqueSubset = UniqueDict.Keys
+End Function
+
+' DESCRIPTION
+' This function returns the set-theoretic union of the atomic values in the leaves of the trees
+' represented by the two given arrays.
+'
+' PARAMETERS
+' 1. Set1 - A dimensioned array
+' 2. Set2 - A dimensioned array
+'
+' RETURNED VALUE
+' The set theoretic union of the atomic values in the leaves of the trees represented by the arrays
+Public Function UnionOfSets(Set1 As Variant, Set2 As Variant) As Variant
+    Let UnionOfSets = UniqueSubset(JoinArrays(Flatten(Set1), Flatten(Set2)))
+End Function
+
+' DESCRIPTION
+' This function returns the set-theoretic intersection of the atomic values in the leaves of the trees
+' represented by the two given arrays.
+'
+' PARAMETERS
+' 1. Set1 - A dimensioned array
+' 2. Set1 -  A dimensioned array
+'
+' RETURNED VALUE
+' The set theoretic intersection of the atomic values in the leaves of the trees represented by the arrays
+Public Function IntersectionOfSets(Set1 As Variant, Set2 As Variant) As Variant
+    Dim FirstDict As Dictionary
+    Dim First1DSet As Variant
+    Dim Second1DSet As Variant
+    Dim IntersectionDict As Dictionary
+    Dim i As Long
+    
+    ' Set default value to return if error encountered
+    Let IntersectionOfSets = Null
+    
+    ' Exit if either set if not dimensioned
+    If Not (DimensionedQ(Set1) And DimensionedQ(Set2)) Then Exit Function
+    
+    ' Exit returning an empty array if either set is empty
+    If EmptyArrayQ(Set1) Or EmptyArrayQ(Set2) Then
+        Let IntersectionOfSets = EmptyArray()
+        Exit Function
+    End If
+    
+    ' Instantiate dictionaries
+    Set FirstDict = New Dictionary
+    Set IntersectionDict = New Dictionary
+    
+    ' Convert each set to a 1D array
+    Let First1DSet = Flatten(Set1)
+    Let Second1DSet = Flatten(Set2)
+    
+    ' Load a dictionary with the elements of the first set
+    For i = LBound(First1DSet) To UBound(First1DSet)
+        Call FirstDict.Add(Key:=First1DSet(i), Item:=1)
+    Next i
+    
+    ' Store the elements of the second set that are in the first
+    For i = LBound(Second1DSet) To UBound(Second1DSet)
+        If FirstDict.Exists(Key:=Second1DSet(i)) Then
+            Call IntersectionDict.Add(Key:=Second1DSet(i), Item:=1)
+        End If
+    Next i
+    
+    ' Return the intesection of the two sets
+    Let IntersectionOfSets = IntersectionDict.Keys
+End Function
+
+' DESCRIPTION
+' This function returns the set-theoretic complement of the atomic values in the leaves of first tree
+' with respect to the leaves of the other tree.
+'
+' PARAMETERS
+' 1. Set1 - A dimensioned array
+' 2. Set1 -  A dimensioned array
+'
+' RETURNED VALUE
+' The set complement of one set with respect to another
+Public Function ComplementOfSets(A As Variant, B As Variant) As Variant
+    Dim BDict As Dictionary
+    Dim ComplementDict As Dictionary
+    Dim var As Variant
+    
+    ' Set default value to return if error encountered
+    Let ComplementOfSets = Null
+    
+    ' Exit with Null if either set is undimensioned
+    If Not (DimensionedQ(A) And DimensionedQ(B)) Then Exit Function
+    
+    ' If a is an empty array, exit returning an empty array
+    If EmptyArrayQ(A) Then
+        Let ComplementOfSets = EmptyArray()
+        Exit Function
+    End If
+    
+    If EmptyArrayQ(B) Then
+        Let ComplementOfSets = A
+        Exit Function
+    End If
+    
+    ' Instantiate dictionaries
+    Set BDict = New Dictionary
+    Set ComplementDict = New Dictionary
+    
+    ' Initialize BDict to get unique subset of ADict
+    For Each var In UniqueSubset(B)
+        If Not BDict.Exists(Key:=var) Then
+            Call BDict.Add(Key:=var, Item:=var)
+        End If
+    Next
+    
+    ' Populate ComplementDict
+    For Each var In UniqueSubset(A)
+        If Not BDict.Exists(Key:=var) And Not ComplementDict.Exists(Key:=var) Then
+            Call ComplementDict.Add(Key:=var, Item:=var)
+        End If
+    Next
+    
+    ' Return complement as 1D array
+    If ComplementDict.Count = 0 Then
+        Let ComplementOfSets = EmptyArray()
+    Else
+        Let ComplementOfSets = ComplementDict.Keys
+    End If
 End Function
 
 ' This function sorts the given 2D matrix by the columns whose positions are given by
@@ -2839,172 +2968,6 @@ Public Function RandomMatrix(NRows As Long, NColumns As Long) As Variant
     
     ' Clear TmpSht
     Call ThisWorkbook.Worksheets("TempComputation").UsedRange.ClearContents
-End Function
-
-' This function takes a 1D range and trims its contents after converting it to upper case
-Public Function TrimAndConvertArrayToCaps(TheArray As Variant) As Variant
-    Dim i As Long
-    Dim j As Long
-    Dim ResultsArray As Variant
-    
-    ' Exit with an empty array if TheArray is empty
-    If EmptyArrayQ(TheArray) Then
-        Let TrimAndConvertArrayToCaps = EmptyArray()
-        Exit Function
-    End If
-    
-    If NumberOfDimensions(TheArray) = 0 Then
-        Let ResultsArray = UCase(Trim(TheArray))
-    ElseIf NumberOfDimensions(TheArray) = 1 Then
-        Let ResultsArray = TheArray
-        
-        For i = LBound(TheArray) To UBound(TheArray)
-            Let ResultsArray(i) = UCase(Trim(TheArray(i)))
-        Next i
-    ElseIf NumberOfDimensions(TheArray) = 2 Then
-        Let ResultsArray = TheArray
-        
-        For i = LBound(TheArray, 1) To UBound(TheArray, 1)
-            For j = LBound(TheArray, 2) To UBound(TheArray, 2)
-                Let ResultsArray(i, j) = UCase(Trim(TheArray(i, j)))
-            Next j
-        Next i
-    Else
-        Let ResultsArray = TheArray
-    End If
-    
-    Let TrimAndConvertArrayToCaps = ResultsArray
-End Function
-
-' DESCRIPTION
-' This function returns the array resulting from concatenating the given list of arrays and along the optional
-' dimensionality index. If the dimensionality index is not provided, it defaults to the first dimension.
-' This function allows for dimensionality indices 1 and 2.  All elements to join must be arrays.  The function
-' returns Null if the dimensionality index is larger than the number of dimensions in any of the arrays being
-' joined. 2D arrays are interpreted as 1D arrays of 1D arrays.
-'
-' PARAMETERS
-' 1. Params - a variant ParamArray, each of which except possibly the last one must be arrays.  If the
-'    last element of Params is an integer, then the function joins the arrays along the dimensional
-'    index indicated by such integer
-'
-' RETURNED VALUE
-' An array joining the arrays passed as parameters
-Public Function JoinArrays(ParamArray Params()) As Variant
-    Dim ParamsCopy As Variant
-    Dim var As Variant
-    Dim var2 As Variant
-    Dim DimensionalityIndex As Integer
-    Dim ReturnArray As Variant
-    Dim ReturnArrayLength As Long
-    Dim MaxNumRows As Long
-    Dim i As Long
-    Dim j As Long
-    Dim k() As Long
-    Dim OneParam2DFlag As Boolean
-    Dim SameLengthFlag As Boolean
-    
-    ' Set default value to return when encountering errors
-    Let JoinArrays = Null
-    
-    ' Make copy of ParamArray
-    Let ParamsCopy = CopyParamArray(Params)
-    
-    ' Exit with Null if no parameters are passed
-    If Not DimensionedQ(ParamsCopy) Then Exit Function
-    
-    ' Return the empty array if called with no arrays to join
-    If EmptyArrayQ(ParamsCopy) Then
-        Let JoinArrays = EmptyArray()
-        Exit Function
-    End If
-    
-    ' Exit with Null if any of the parameters is not an array (with the exception of the last one, which
-    ' could 1 or 2.  If the last parameter is 1 or 2 and the only parameter, exit with Null.  If any of
-    ' the parameters other than the last one is not an array, exit with Null.  If the last parameter is
-    ' 2 and any of the other parameters is 1, exith with Null.
-    If PositiveWholeNumberQ(Last(ParamsCopy)) Then
-        Let DimensionalityIndex = Last(ParamsCopy)
-    
-        If DimensionalityIndex > 2 Then Exit Function
-        If Length(ParamsCopy) < 2 Then Exit Function
-        
-        For i = LBound(ParamsCopy) To UBound(ParamsCopy) - 1
-            If Not DimensionedQ(ParamsCopy(i)) Then Exit Function
-            If NumberOfDimensions(ParamsCopy(i)) < DimensionalityIndex Then Exit Function
-        Next
-    Else
-        For i = LBound(ParamsCopy) To UBound(ParamsCopy)
-            If Not DimensionedQ(ParamsCopy(i)) Then Exit Function
-        Next
-    End If
-    
-    ' Process according to the dimensionality index
-    If DimensionalityIndex = 0 Or DimensionalityIndex = 1 Then
-        ' Turn on repackaging flag if all arrays have the same number of columns and
-        ' dimensionality index is 1 and at least one is a 2D array
-        Let OneParam2DFlag = False
-        Let SameLengthFlag = True
-        For i = LBound(ParamsCopy) To UBound(ParamsCopy)
-            If NumberOfColumns(First(ParamsCopy)) <> NumberOfColumns(ParamsCopy(i)) And IsArray(ParamsCopy(i)) Then
-                Let SameLengthFlag = False
-            End If
-            
-            If NumberOfDimensions(ParamsCopy(i)) = 2 Then Let OneParam2DFlag = True
-        Next
-    
-        ' Compute array length required to hold joined arrays
-        For i = LBound(ParamsCopy) To UBound(ParamsCopy)
-            Let ReturnArrayLength = ReturnArrayLength + Length(ParamsCopy(i))
-        Next
-                
-        ' Convert all 2D arrays to 1D arrays
-        For i = LBound(ParamsCopy) To UBound(ParamsCopy)
-            If IsArray(ParamsCopy(i)) And NumberOfDimensions(ParamsCopy(i)) = 2 Then
-                Let ParamsCopy(i) = UnPack2DArray(ParamsCopy(i))
-            End If
-        Next
-        
-        ' Pre-allocate an array big enough to hold the joined arrays
-        ReDim ReturnArray(1 To ReturnArrayLength)
-        
-        ' Create the joined array
-        Let i = 1
-        For Each var In ParamsCopy
-            If IsArray(var) Then
-                For j = LBound(var) To UBound(var)
-                    Let ReturnArray(i) = Part(var, j + 1 - LBound(var))
-                    Let i = i + 1
-                Next
-            End If
-        Next
-        
-        ' Repack as 2D array if necessary
-        If OneParam2DFlag And SameLengthFlag Then Let ReturnArray = Pack2DArray(ReturnArray)
-    Else
-        ' Compute the number of columns required for the return array
-        For Each var In ParamsCopy
-            Let ReturnArrayLength = ReturnArrayLength + NumberOfColumns(var)
-            Let MaxNumRows = Application.Max(MaxNumRows, Length(var))
-        Next
-        
-        ' Pre-allocate return array
-        ReDim ReturnArray(1 To MaxNumRows, 1 To ReturnArrayLength)
-        ReDim k(1 To MaxNumRows)
-        
-        For Each var In ParamsCopy
-            If IsArray(var) Then
-                For i = LBound(var) To UBound(var)
-                    For j = LBound(var, 2) To UBound(var, 2)
-                        Let k(i + 1 - LBound(var)) = k(i + 1 - LBound(var)) + 1
-                        Let ReturnArray(i + 1 - LBound(var), k(i + 1 - LBound(var))) = var(i, j)
-                    Next
-                Next
-            End If
-        Next
-    End If
-    
-    Let JoinArrays = ReturnArray
 End Function
 
 ' This function returns the array resulting from concatenating B to the right of A.

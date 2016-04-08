@@ -325,3 +325,44 @@ Public Function EnforceBloombergEquityTicker(TheTicker As String) As String
     
     Let EnforceBloombergEquityTicker = ATicker
 End Function
+
+' This function takes a 1D range and trims its contents after converting it to upper case
+Public Function TrimAndConvertArrayToCaps(TheArray As Variant) As Variant
+    Dim i As Long
+    Dim j As Long
+    Dim ResultsArray As Variant
+    
+    ' Exit with an empty array if TheArray is empty
+    If EmptyArrayQ(TheArray) Then
+        Let TrimAndConvertArrayToCaps = EmptyArray()
+        Exit Function
+    End If
+    
+    If NumberOfDimensions(TheArray) = 0 Then
+        Let ResultsArray = UCase(Trim(TheArray))
+    ElseIf NumberOfDimensions(TheArray) = 1 Then
+        Let ResultsArray = TheArray
+        
+        For i = LBound(TheArray) To UBound(TheArray)
+            Let ResultsArray(i) = UCase(Trim(TheArray(i)))
+        Next i
+    ElseIf NumberOfDimensions(TheArray) = 2 Then
+        Let ResultsArray = TheArray
+        
+        For i = LBound(TheArray, 1) To UBound(TheArray, 1)
+            For j = LBound(TheArray, 2) To UBound(TheArray, 2)
+                Let ResultsArray(i, j) = UCase(Trim(TheArray(i, j)))
+            Next j
+        Next i
+    Else
+        Let ResultsArray = TheArray
+    End If
+    
+    Let TrimAndConvertArrayToCaps = ResultsArray
+End Function
+
+Public Function Convert1DArrayIntoParentheticalExpression(TheArray As Variant) As String
+    Let Convert1DArrayIntoParentheticalExpression = "(" & Join(TheArray, ",") & ")"
+End Function
+
+

@@ -1789,9 +1789,9 @@ Public Sub TestArraysDrop()
     
     For Each var In NumericalSequence(-17, 17, 1, True)
         If IsNull(Drop(A, var)) Then
-            Debug.Print "Drop(A, [{" & var & "}]) = Null"
+            Debug.Print "Drop(A, Array(" & var & ")) =  Null"
         Else
-            Debug.Print "Drop(A, [{" & var & "}]) = " & CreateFunctionalParameterArray(Drop(A, [{var}]))
+            Debug.Print "Drop(A, Array(" & var & ")) = " & CreateFunctionalParameterArray(Drop(A, Array(var)))
         End If
     Next
     
@@ -1803,10 +1803,76 @@ Public Sub TestArraysDrop()
             Debug.Print "Drop(A, " & var & ") = " & CreateFunctionalParameterArray(Drop(A, var))
         End If
     Next
+    
+    Debug.Print
+    For Each var In Array(Array(1, 2), Array(1, 4), Array(5, 10), Array(1, 15), Array(4, 15))
+        If IsNull(Drop(A, var)) Then
+            Debug.Print "Drop(A, " & var & ") = Null"
+        Else
+            Debug.Print "Drop(A, " & CreateFunctionalParameterArray(var) & ") = " & CreateFunctionalParameterArray(Drop(A, var))
+        End If
+    Next
+    
+    Debug.Print
+    For Each var In Array(Array(1, 2, 1), Array(1, 4, 1), Array(5, 10, 1), Array(1, 15, 1), Array(4, 15, 1))
+        If IsNull(Drop(A, var)) Then
+            Debug.Print "Drop(A, " & var & ") = Null"
+        Else
+            Debug.Print "Drop(A, " & CreateFunctionalParameterArray(var) & ") = " & CreateFunctionalParameterArray(Drop(A, var))
+        End If
+    Next
+    
+    Debug.Print
+    For Each var In Array(Array(1, 2, 2), Array(1, 4, 2), Array(5, 10, 2), Array(1, 15, 2), Array(4, 15, 2))
+        If IsNull(Drop(A, var)) Then
+            Debug.Print "Drop(A, " & var & ") = Null"
+        Else
+            Debug.Print "Drop(A, " & CreateFunctionalParameterArray(var) & ") = " & CreateFunctionalParameterArray(Drop(A, var))
+        End If
+    Next
+    
+    Debug.Print
+    For Each var In Array(Array(1, 2, 4), Array(1, 4, 4), Array(5, 10, 4), Array(1, 15, 4), Array(4, 15, 4))
+        If IsNull(Drop(A, var)) Then
+            Debug.Print "Drop(A, " & var & ") = Null"
+        Else
+            Debug.Print "Drop(A, " & CreateFunctionalParameterArray(var) & ") = " & CreateFunctionalParameterArray(Drop(A, var))
+        End If
+    Next
+    
+    Debug.Print
+    Let M = [{1,2,3;4,5,6;7,8,9;10,11,12;13,14,15}]
+    Debug.Print "We set M to"
+    PrintArray M: Debug.Print
+    
+    For i = -6 To 6: PrintArray Drop(M, i): Debug.Print: Next
+
+    For Each var In NumericalSequence(-6, 6, 1, True)
+        If IsNull(Drop(M, Array(var))) Then
+            Debug.Print "Drop(M, Array(" & var & ")) =  Null"
+        Else
+            Debug.Print "Drop(M, Array(" & var & ")) = "
+            PrintArray Drop(M, Array(var))
+        End If
+    Next
+    
+    Debug.Print
+    For Each var In NumericalSequence(-6, 6, 1, True)
+        If IsNull(Drop(M, var)) Then
+            Debug.Print "Drop(M, " & var & ") = Null"
+        Else
+            Debug.Print "Drop(M, " & var & ") = "
+            PrintArray Drop(M, var)
+        End If
+    Next
 End Sub
 
 Public Sub TestConnectAndSelect()
-    PrintArray ConnectAndSelect("SELECT * FROM `documentation`.`wp_posts`;", "documentation", "localhost", "root", "")
+    PrintArray ConnectAndSelect("SELECT * FROM `documentation`.`wp_posts`;", _
+                                "documentation", _
+                                "localhost", _
+                                "root", _
+                                "")
 End Sub
 
 Public Sub TestGetTableHeaders()
