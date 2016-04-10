@@ -254,7 +254,7 @@ End Function
 ' True or False depending on whether or not its argument is dimensioned, non-empty and all
 ' its elements satisfy Predicates.PositiveWholeNumberQ
 Public Function PositiveWholeNumberArrayQ(arg As Variant) As Boolean
-    Let PositiveWholeNumberArrayQ = AllTrueQ(arg, thisworbook, "PositiveWholeNumberQ")
+    Let PositiveWholeNumberArrayQ = AllTrueQ(arg, ThisWorkbook, "PositiveWholeNumberQ")
 End Function
 
 ' DESCRIPTION

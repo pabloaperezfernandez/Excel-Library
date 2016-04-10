@@ -3558,7 +3558,7 @@ Public Sub TestAddColumnsToListObject()
                                 TheData:=DataColumns)
 End Sub
 
-Public Sub TestElementwiseDivision()
+Public Sub TestDivide()
     Dim m1 As Variant
     Dim m2 As Variant
     
@@ -3566,80 +3566,80 @@ Public Sub TestElementwiseDivision()
     Let m2 = 2
     Debug.Print "Let m1 = Array(1, 2, 3)"
     Debug.Print "Let m2 = 2"
-    PrintArray ElementWiseDivision(m1, m2)
+    PrintArray Divide(m1, m2)
     
     Debug.Print
     Let m1 = 2
     Let m2 = Array(1, 2, 3)
     Debug.Print "Let m1 = 2"
     Debug.Print "Let m2 = Array(1, 2, 3)"
-    PrintArray ElementWiseDivision(m1, m2)
+    PrintArray Divide(m1, m2)
 
     Debug.Print
     Let m1 = [{1, 2, 3}]
     Let m2 = 2
     Debug.Print "Let m1 = [{1, 2, 3}]"
     Debug.Print "Let m2 = 2"
-    PrintArray ElementWiseDivision(m1, m2)
+    PrintArray Divide(m1, m2)
     
     Debug.Print
     Let m1 = 2
     Let m2 = [{1, 2, 3}]
     Debug.Print "Let m1 = 2"
     Debug.Print "Let m2 = [{1, 2, 3}]"
-    PrintArray ElementWiseDivision(m1, m2)
+    PrintArray Divide(m1, m2)
 
     Debug.Print
     Let m1 = [{1; 2; 3}]
     Let m2 = 2
     Debug.Print "Let m1 = [{1; 2; 3}]"
     Debug.Print "Let m2 = 2"
-    PrintArray ElementWiseDivision(m1, m2)
+    PrintArray Divide(m1, m2)
     
     Debug.Print
     Let m1 = 2
     Let m2 = [{1; 2; 3}]
     Debug.Print "Let m1 = 2"
     Debug.Print "Let m2 = [{1; 2; 3}]"
-    PrintArray ElementWiseDivision(m1, m2)
+    PrintArray Divide(m1, m2)
 
     Debug.Print
     Let m1 = [{1,2,4; 4,5,6; 7,8,9}]
     Let m2 = 2
     Debug.Print "Let m1 = [{1,2,4; 4,5,6; 7,8,9}]"
     Debug.Print "Let m2 = 2"
-    PrintArray ElementWiseDivision(m1, m2)
+    PrintArray Divide(m1, m2)
     
     Debug.Print
     Let m1 = 2
     Let m2 = [{1,2,4; 4,5,6; 7,8,9}]
     Debug.Print "Let m1 = 2"
     Debug.Print "Let m2 = [{1,2,4; 4,5,6; 7,8,9}]"
-    PrintArray ElementWiseDivision(m1, m2)
+    PrintArray Divide(m1, m2)
     
     Debug.Print
     Let m1 = [{1,2,4; 4,5,6; 7,8,9}]
     Let m2 = Array(1, 2, 3)
     Debug.Print "Let m1 = [{1,2,4; 4,5,6; 7,8,9}]"
     Debug.Print "Let m2 = Array(1, 2, 3)"
-    PrintArray ElementWiseDivision(m1, m2)
+    PrintArray Divide(m1, m2)
     
     Debug.Print
     Let m1 = Array(1, 2, 3)
     Let m2 = [{1,2,4; 4,5,6; 7,8,9}]
     Debug.Print "Let m1 =  Array(1, 2, 3)"
     Debug.Print "Let m2 = [{1,2,4; 4,5,6; 7,8,9}]"
-    PrintArray ElementWiseDivision(m1, m2)
+    PrintArray Divide(m1, m2)
     
     Debug.Print
     Let m1 = [{2,4; 8, 10; 14, 24}]
     Let m2 = [{1,2; 4,5; 7,8}]
     Debug.Print "Let m1 = [{2,4; 8, 10; 14, 24}]"
     Debug.Print "Let m2 =  [{1,2; 4,5; 7,8}]"
-    PrintArray ElementWiseDivision(m1, m2)
+    PrintArray Divide(m1, m2)
 End Sub
 
-Public Sub TestElementwiseMultiplication()
+Public Sub TestMultiply()
     Dim m1 As Variant
     Dim m2 As Variant
     
@@ -3647,80 +3647,80 @@ Public Sub TestElementwiseMultiplication()
     Let m2 = 2
     Debug.Print "Let m1 = Array(1, 2, 3)"
     Debug.Print "Let m2 = 2"
-    PrintArray ElementwiseMultiplication(m1, m2)
+    PrintArray Multiply(m1, m2)
     
     Debug.Print
     Let m1 = 2
     Let m2 = Array(1, 2, 3)
     Debug.Print "Let m1 = 2"
     Debug.Print "Let m2 = Array(1, 2, 3)"
-    PrintArray ElementwiseMultiplication(m1, m2)
+    PrintArray Multiply(m1, m2)
 
     Debug.Print
     Let m1 = [{1, 2, 3}]
     Let m2 = 2
     Debug.Print "Let m1 = [{1, 2, 3}]"
     Debug.Print "Let m2 = 2"
-    PrintArray ElementwiseMultiplication(m1, m2)
+    PrintArray Multiply(m1, m2)
     
     Debug.Print
     Let m1 = 2
     Let m2 = [{1, 2, 3}]
     Debug.Print "Let m1 = 2"
     Debug.Print "Let m2 = [{1, 2, 3}]"
-    PrintArray ElementwiseMultiplication(m1, m2)
+    PrintArray Multiply(m1, m2)
 
     Debug.Print
     Let m1 = [{1; 2; 3}]
     Let m2 = 2
     Debug.Print "Let m1 = [{1; 2; 3}]"
     Debug.Print "Let m2 = 2"
-    PrintArray ElementwiseMultiplication(m1, m2)
+    PrintArray Multiply(m1, m2)
     
     Debug.Print
     Let m1 = 2
     Let m2 = [{1; 2; 3}]
     Debug.Print "Let m1 = 2"
     Debug.Print "Let m2 = [{1; 2; 3}]"
-    PrintArray ElementwiseMultiplication(m1, m2)
+    PrintArray Multiply(m1, m2)
 
     Debug.Print
     Let m1 = [{1,2,4; 4,5,6; 7,8,9}]
     Let m2 = 2
     Debug.Print "Let m1 = [{1,2,4; 4,5,6; 7,8,9}]"
     Debug.Print "Let m2 = 2"
-    PrintArray ElementwiseMultiplication(m1, m2)
+    PrintArray Multiply(m1, m2)
     
     Debug.Print
     Let m1 = 2
     Let m2 = [{1,2,4; 4,5,6; 7,8,9}]
     Debug.Print "Let m1 = 2"
     Debug.Print "Let m2 = [{1,2,4; 4,5,6; 7,8,9}]"
-    PrintArray ElementwiseMultiplication(m1, m2)
+    PrintArray Multiply(m1, m2)
     
     Debug.Print
     Let m1 = [{1,2,4; 4,5,6; 7,8,9}]
     Let m2 = Array(1, 2, 3)
     Debug.Print "Let m1 = [{1,2,4; 4,5,6; 7,8,9}]"
     Debug.Print "Let m2 = Array(1, 2, 3)"
-    PrintArray ElementwiseMultiplication(m1, m2)
+    PrintArray Multiply(m1, m2)
     
     Debug.Print
     Let m1 = Array(1, 2, 3)
     Let m2 = [{1,2,4; 4,5,6; 7,8,9}]
     Debug.Print "Let m1 =  Array(1, 2, 3)"
     Debug.Print "Let m2 = [{1,2,4; 4,5,6; 7,8,9}]"
-    PrintArray ElementwiseMultiplication(m1, m2)
+    PrintArray Multiply(m1, m2)
     
     Debug.Print
     Let m1 = [{2,4; 8, 10; 14, 24}]
     Let m2 = [{1,2; 4,5; 7,8}]
     Debug.Print "Let m1 = [{2,4; 8, 10; 14, 24}]"
     Debug.Print "Let m2 =  [{1,2; 4,5; 7,8}]"
-    PrintArray ElementwiseMultiplication(m1, m2)
+    PrintArray Multiply(m1, m2)
 End Sub
 
-Public Sub TestElementwiseAddition()
+Public Sub TestAdd()
     Dim m1 As Variant
     Dim m2 As Variant
     
@@ -3728,77 +3728,77 @@ Public Sub TestElementwiseAddition()
     Let m2 = 2
     Debug.Print "Let m1 = Array(1, 2, 3)"
     Debug.Print "Let m2 = 2"
-    PrintArray ElementwiseAddition(m1, m2)
+    PrintArray Add(m1, m2)
     
     Debug.Print
     Let m1 = 2
     Let m2 = Array(1, 2, 3)
     Debug.Print "Let m1 = 2"
     Debug.Print "Let m2 = Array(1, 2, 3)"
-    PrintArray ElementwiseAddition(m1, m2)
+    PrintArray Add(m1, m2)
 
     Debug.Print
     Let m1 = [{1, 2, 3}]
     Let m2 = 2
     Debug.Print "Let m1 = [{1, 2, 3}]"
     Debug.Print "Let m2 = 2"
-    PrintArray ElementwiseAddition(m1, m2)
+    PrintArray Add(m1, m2)
     
     Debug.Print
     Let m1 = 2
     Let m2 = [{1, 2, 3}]
     Debug.Print "Let m1 = 2"
     Debug.Print "Let m2 = [{1, 2, 3}]"
-    PrintArray ElementwiseAddition(m1, m2)
+    PrintArray Add(m1, m2)
 
     Debug.Print
     Let m1 = [{1; 2; 3}]
     Let m2 = 2
     Debug.Print "Let m1 = [{1; 2; 3}]"
     Debug.Print "Let m2 = 2"
-    PrintArray ElementwiseAddition(m1, m2)
+    PrintArray Add(m1, m2)
     
     Debug.Print
     Let m1 = 2
     Let m2 = [{1; 2; 3}]
     Debug.Print "Let m1 = 2"
     Debug.Print "Let m2 = [{1; 2; 3}]"
-    PrintArray ElementwiseAddition(m1, m2)
+    PrintArray Add(m1, m2)
 
     Debug.Print
     Let m1 = [{1,2,4; 4,5,6; 7,8,9}]
     Let m2 = 2
     Debug.Print "Let m1 = [{1,2,4; 4,5,6; 7,8,9}]"
     Debug.Print "Let m2 = 2"
-    PrintArray ElementwiseAddition(m1, m2)
+    PrintArray Add(m1, m2)
     
     Debug.Print
     Let m1 = 2
     Let m2 = [{1,2,4; 4,5,6; 7,8,9}]
     Debug.Print "Let m1 = 2"
     Debug.Print "Let m2 = [{1,2,4; 4,5,6; 7,8,9}]"
-    PrintArray ElementwiseAddition(m1, m2)
+    PrintArray Add(m1, m2)
     
     Debug.Print
     Let m1 = [{1,2,4; 4,5,6; 7,8,9}]
     Let m2 = Array(1, 2, 3)
     Debug.Print "Let m1 = [{1,2,4; 4,5,6; 7,8,9}]"
     Debug.Print "Let m2 = Array(1, 2, 3)"
-    PrintArray ElementwiseAddition(m1, m2)
+    PrintArray Add(m1, m2)
     
     Debug.Print
     Let m1 = Array(1, 2, 3)
     Let m2 = [{1,2,4; 4,5,6; 7,8,9}]
     Debug.Print "Let m1 =  Array(1, 2, 3)"
     Debug.Print "Let m2 = [{1,2,4; 4,5,6; 7,8,9}]"
-    PrintArray ElementwiseAddition(m1, m2)
+    PrintArray Add(m1, m2)
     
     Debug.Print
     Let m1 = [{2,4; 8, 10; 14, 24}]
     Let m2 = [{1,2; 4,5; 7,8}]
     Debug.Print "Let m1 = [{2,4; 8, 10; 14, 24}]"
     Debug.Print "Let m2 =  [{1,2; 4,5; 7,8}]"
-    PrintArray ElementwiseAddition(m1, m2)
+    PrintArray Add(m1, m2)
 End Sub
 
 Public Sub TestDotProduct()

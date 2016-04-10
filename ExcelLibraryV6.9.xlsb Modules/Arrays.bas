@@ -1766,54 +1766,84 @@ End Function
 ' user's specifications.
 '
 ' PARAMETERS
-' 1. TheParams - An Array of parameter.  The sequence of parameters could be any of
+' 1. ARange (optional) - An Array of parameter.  The sequence of parameters could be any of
 '    the following:
 '
 '    a. none - returns a pseudorandom number between 0 and 1
-'    b. Array(Xmin, Xmax) - returns a pseudorandom number between Xmin and Xmax
-'    c. Xmax (a real number) - returns a pseudorandom number between 0 and Xmax
-'    d. Array(Xmin, Xmax), n (a positive whole number) - returns an array of n pseudorandom numbers
-'       between Xmin and Xmax
-'    e. Array(Xmin, Xmax), n1, n2 (a positive whole number) - returns a matrix of n pseudorandom numbers
-'       between Xmin and Xmax
+'    b. Xmax returns a pseudorandom number between 0 and Xmax
+'    c. Array(Xmin, Xmax) - returns a pseudorandom number between Xmin and Xmax
+'
+' 2. TheDims (optional) - Indicates the number of elements to return.  ARange must be provided
+'    if TheDims is.  TheDims must be either a non-negative whole number or an array of them. It
+'    may take one of the following two forms:
+'
+'    a. N - a positive whole number
+'    b. (N, M) - An array of two positive whole numbers
 '
 ' RETURNED VALUE
-' The identity matrix with the requested dimensions
-Public Function RandomReal(ParamArray TheParams()) As Variant
-'***HERE
-End Function
-
-' Returns a 2D array of uniformly distributed random numbers between 0 and 1.
-Public Function RandomMatrix(NRows As Long, NColumns As Long) As Variant
-    Dim ReturnMatrix() As Double
-
-    If NRows < 0 Or NColumns < 0 Then
-        Let RandomMatrix = Empty
+' Either a pseudorandom real, or an array/matrix of them
+Public Function RandomReal(Optional ARange As Variant, Optional TheDims As Variant) As Variant
+    Dim ParamsCopy As Variant
+    Dim LB As Double
+    Dim UB As Double
+    Dim ReturnArray As Variant
+    Dim i As Long
+    Dim j As Long
+    
+    ' Exit with a random number between 0 and 1 is called with no arguments
+    If IsMissing(ARange) And IsMissing(TheDims) Then
+        Let RandomReal = Rnd()
         Exit Function
     End If
     
-    If NRows = 0 Or NColumns = 0 Then
-        Let RandomMatrix = Empty
+    ' Set default value when encountering errors
+    Let RandomReal = Null
+    
+    ' Exit with Null if TheDimins given while ARange missing
+    If IsMissing(ARange) And Not IsMissing(TheDims) Then Exit Function
+    
+    ' If the code gets here, ARange is not missing
+    
+    ' Process the cases when TheDims are missing
+    If IsMissing(TheDims) Then
+        If NumberQ(ARange) Then
+            If ARange = 0 Then
+                Let RandomReal = 0
+            Else
+                Let RandomReal = ARange * Rnd()
+            End If
+        ElseIf NumberArrayQ(ARange) And Length(ARange) = 2 Then
+            Let LB = Application.Min(ARange)
+            Let UB = Application.Max(ARange)
+            Let RandomReal = Rnd() * (UB - LB) + LB
+        End If
+        
         Exit Function
     End If
     
-    ' Allocate a return
-    ReDim ReturnMatrix(NRows, NColumns)
+    ' If the code gets here, the user is requesting an array of random reals
     
-    ' Clear TmpSht
-    Call ThisWorkbook.Worksheets("TempComputation").UsedRange.ClearContents
+    ' Exit with Null if TheDims is not either a positive, whole number or a 2-elt array of them
+    If Not (PositiveWholeNumberQ(TheDims) Or (PositiveWholeNumberArrayQ(TheDims) And Length(TheDims) = 2)) Then Exit Function
     
-    ' Create random matrix
-    Let Application.Calculation = xlManual
-    Let ThisWorkbook.Worksheets("TempComputation").Cells(1, 1).Resize(NRows, NColumns).Formula = "=Rand()"
-    Call Application.Calculate
-    Let Application.Calculation = xlAutomatic
+    ' Process depending on the number of dimensions requested
+    If Length(TheDims) = 2 Then
+        ReDim ReturnArray(1 To First(TheDims), 1 To Last(TheDims))
+        
+        For i = 1 To First(TheDims)
+            For j = 1 To Last(TheDims)
+                Let ReturnArray(i, j) = RandomReal(ARange)
+            Next
+        Next
+    Else
+        ReDim ReturnArray(1 To TheDims)
+        
+        For i = 1 To TheDims
+            Let ReturnArray(i) = RandomReal(ARange)
+        Next
+    End If
     
-    ' Return random matrix
-    Let RandomMatrix = ThisWorkbook.Worksheets("TempComputation").Range("A1").CurrentRegion.Value2
-    
-    ' Clear TmpSht
-    Call ThisWorkbook.Worksheets("TempComputation").UsedRange.ClearContents
+    Let RandomReal = ReturnArray
 End Function
 
 ' DESCRIPTION
@@ -2110,7 +2140,7 @@ End Function
 ' This function performs matrix element-wise division on two 0D, 1D, or 2D arrays.  Clearly, the two arrays
 ' must have the same dimensions.  The result is returned as an array of the same dimensions as those of
 ' the input.  This function throws an error if there is a division by 0
-Public Function ElementwiseAddition(matrix1 As Variant, matrix2 As Variant) As Variant
+Public Function Add(matrix1 As Variant, matrix2 As Variant) As Variant
     Dim TmpSheet As Worksheet
     Dim NumRows As Long
     Dim numColumns As Long
@@ -2125,23 +2155,23 @@ Public Function ElementwiseAddition(matrix1 As Variant, matrix2 As Variant) As V
     
     ' Check parameter consistency
     If EmptyArrayQ(matrix1) Or EmptyArrayQ(matrix2) Then
-        Let ElementwiseAddition = Null
+        Let Add = Null
     End If
     
     If Not (IsNumeric(matrix1) Or VectorQ(matrix1) Or MatrixQ(matrix1)) Then
-        Let ElementwiseAddition = Null
+        Let Add = Null
         Exit Function
     End If
     
     If Not (IsNumeric(matrix2) Or VectorQ(matrix2) Or MatrixQ(matrix2)) Then
-        Let ElementwiseAddition = Null
+        Let Add = Null
         Exit Function
     End If
     
     If MatrixQ(matrix1) And MatrixQ(matrix2) Then
         If GetNumberOfRows(matrix1) <> GetNumberOfRows(matrix2) Or _
            GetNumberOfColumns(matrix1) <> GetNumberOfColumns(matrix2) Then
-           Let ElementwiseAddition = Null
+           Let Add = Null
            Exit Function
         End If
     End If
@@ -2149,7 +2179,7 @@ Public Function ElementwiseAddition(matrix1 As Variant, matrix2 As Variant) As V
     If (RowVectorQ(matrix1) And MatrixQ(matrix2)) Or _
        (MatrixQ(matrix1) And RowVectorQ(matrix2)) Then
         If GetNumberOfColumns(matrix1) <> GetNumberOfColumns(matrix2) Then
-           Let ElementwiseAddition = Null
+           Let Add = Null
            Exit Function
         End If
     End If
@@ -2157,7 +2187,7 @@ Public Function ElementwiseAddition(matrix1 As Variant, matrix2 As Variant) As V
     If (ColumnVectorQ(matrix1) And MatrixQ(matrix2)) Or _
        (MatrixQ(matrix1) And ColumnVectorQ(matrix2)) Then
         If GetNumberOfRows(matrix1) <> GetNumberOfRows(matrix2) Then
-           Let ElementwiseAddition = Null
+           Let Add = Null
            Exit Function
         End If
     End If
@@ -2165,10 +2195,10 @@ Public Function ElementwiseAddition(matrix1 As Variant, matrix2 As Variant) As V
     ' Perform the calculations
     If IsNumeric(matrix1) And IsNumeric(matrix2) Then
         If CDbl(matrix2) <> 0 Then
-            Let ElementwiseAddition = CDbl(matrix1) + CDbl(matrix2)
+            Let Add = CDbl(matrix1) + CDbl(matrix2)
             Exit Function
         Else
-            Let ElementwiseAddition = Null
+            Let Add = Null
             Exit Function
         End If
     ElseIf IsNumeric(matrix1) And RowVectorQ(matrix2) Then
@@ -2332,17 +2362,17 @@ Public Function ElementwiseAddition(matrix1 As Variant, matrix2 As Variant) As V
             Next c
         Next r
     Else
-        Let ElementwiseAddition = Null
+        Let Add = Null
     End If
     
     ' Return the result
-    Let ElementwiseAddition = TheResults
+    Let Add = TheResults
 End Function
 
 ' This function performs matrix element-wise division on two 0D, 1D, or 2D arrays.  Clearly, the two arrays
 ' must have the same dimensions.  The result is returned as an array of the same dimensions as those of
 ' the input.  This function throws an error if there is a division by 0
-Public Function ElementwiseMultiplication(matrix1 As Variant, matrix2 As Variant) As Variant
+Public Function Multiply(matrix1 As Variant, matrix2 As Variant) As Variant
     Dim TmpSheet As Worksheet
     Dim NumRows As Long
     Dim numColumns As Long
@@ -2357,23 +2387,23 @@ Public Function ElementwiseMultiplication(matrix1 As Variant, matrix2 As Variant
     
     ' Check parameter consistency
     If EmptyArrayQ(matrix1) Or EmptyArrayQ(matrix2) Then
-        Let ElementwiseMultiplication = Null
+        Let Multiply = Null
     End If
     
     If Not (IsNumeric(matrix1) Or VectorQ(matrix1) Or MatrixQ(matrix1)) Then
-        Let ElementwiseMultiplication = Null
+        Let Multiply = Null
         Exit Function
     End If
     
     If Not (IsNumeric(matrix2) Or VectorQ(matrix2) Or MatrixQ(matrix2)) Then
-        Let ElementwiseMultiplication = Null
+        Let Multiply = Null
         Exit Function
     End If
     
     If MatrixQ(matrix1) And MatrixQ(matrix2) Then
         If GetNumberOfRows(matrix1) <> GetNumberOfRows(matrix2) Or _
            GetNumberOfColumns(matrix1) <> GetNumberOfColumns(matrix2) Then
-           Let ElementwiseMultiplication = Null
+           Let Multiply = Null
            Exit Function
         End If
     End If
@@ -2381,7 +2411,7 @@ Public Function ElementwiseMultiplication(matrix1 As Variant, matrix2 As Variant
     If (RowVectorQ(matrix1) And MatrixQ(matrix2)) Or _
        (MatrixQ(matrix1) And RowVectorQ(matrix2)) Then
         If GetNumberOfColumns(matrix1) <> GetNumberOfColumns(matrix2) Then
-           Let ElementwiseMultiplication = Null
+           Let Multiply = Null
            Exit Function
         End If
     End If
@@ -2389,7 +2419,7 @@ Public Function ElementwiseMultiplication(matrix1 As Variant, matrix2 As Variant
     If (ColumnVectorQ(matrix1) And MatrixQ(matrix2)) Or _
        (MatrixQ(matrix1) And ColumnVectorQ(matrix2)) Then
         If GetNumberOfRows(matrix1) <> GetNumberOfRows(matrix2) Then
-           Let ElementwiseMultiplication = Null
+           Let Multiply = Null
            Exit Function
         End If
     End If
@@ -2397,10 +2427,10 @@ Public Function ElementwiseMultiplication(matrix1 As Variant, matrix2 As Variant
     ' Perform the calculations
     If IsNumeric(matrix1) And IsNumeric(matrix2) Then
         If CDbl(matrix2) <> 0 Then
-            Let ElementwiseMultiplication = CDbl(matrix1) * CDbl(matrix2)
+            Let Multiply = CDbl(matrix1) * CDbl(matrix2)
             Exit Function
         Else
-            Let ElementwiseMultiplication = Null
+            Let Multiply = Null
             Exit Function
         End If
     ElseIf IsNumeric(matrix1) And RowVectorQ(matrix2) Then
@@ -2564,17 +2594,17 @@ Public Function ElementwiseMultiplication(matrix1 As Variant, matrix2 As Variant
             Next c
         Next r
     Else
-        Let ElementwiseMultiplication = Null
+        Let Multiply = Null
     End If
     
     ' Return the result
-    Let ElementwiseMultiplication = TheResults
+    Let Multiply = TheResults
 End Function
 
 ' This function performs matrix element-wise division on two 0D, 1D, or 2D arrays.  Clearly, the two arrays
 ' must have the same dimensions.  The result is returned as an array of the same dimensions as those of
 ' the input.  This function throws an error if there is a division by 0
-Public Function ElementWiseDivision(matrix1 As Variant, matrix2 As Variant) As Variant
+Public Function Divide(matrix1 As Variant, matrix2 As Variant) As Variant
     Dim TmpSheet As Worksheet
     Dim NumRows As Long
     Dim numColumns As Long
@@ -2589,23 +2619,23 @@ Public Function ElementWiseDivision(matrix1 As Variant, matrix2 As Variant) As V
     
     ' Check parameter consistency
     If EmptyArrayQ(matrix1) Or EmptyArrayQ(matrix2) Then
-        Let ElementWiseDivision = Null
+        Let Divide = Null
     End If
     
     If Not (IsNumeric(matrix1) Or VectorQ(matrix1) Or MatrixQ(matrix1)) Then
-        Let ElementWiseDivision = Null
+        Let Divide = Null
         Exit Function
     End If
     
     If Not (IsNumeric(matrix2) Or VectorQ(matrix2) Or MatrixQ(matrix2)) Then
-        Let ElementWiseDivision = Null
+        Let Divide = Null
         Exit Function
     End If
     
     If MatrixQ(matrix1) And MatrixQ(matrix2) Then
         If GetNumberOfRows(matrix1) <> GetNumberOfRows(matrix2) Or _
            GetNumberOfColumns(matrix1) <> GetNumberOfColumns(matrix2) Then
-           Let ElementWiseDivision = Null
+           Let Divide = Null
            Exit Function
         End If
     End If
@@ -2613,7 +2643,7 @@ Public Function ElementWiseDivision(matrix1 As Variant, matrix2 As Variant) As V
     If (RowVectorQ(matrix1) And MatrixQ(matrix2)) Or _
        (MatrixQ(matrix1) And RowVectorQ(matrix2)) Then
         If GetNumberOfColumns(matrix1) <> GetNumberOfColumns(matrix2) Then
-           Let ElementWiseDivision = Null
+           Let Divide = Null
            Exit Function
         End If
     End If
@@ -2621,7 +2651,7 @@ Public Function ElementWiseDivision(matrix1 As Variant, matrix2 As Variant) As V
     If (ColumnVectorQ(matrix1) And MatrixQ(matrix2)) Or _
        (MatrixQ(matrix1) And ColumnVectorQ(matrix2)) Then
         If GetNumberOfRows(matrix1) <> GetNumberOfRows(matrix2) Then
-           Let ElementWiseDivision = Null
+           Let Divide = Null
            Exit Function
         End If
     End If
@@ -2629,10 +2659,10 @@ Public Function ElementWiseDivision(matrix1 As Variant, matrix2 As Variant) As V
     ' Perform the calculations
     If IsNumeric(matrix1) And IsNumeric(matrix2) Then
         If CDbl(matrix2) <> 0 Then
-            Let ElementWiseDivision = CDbl(matrix1) / CDbl(matrix2)
+            Let Divide = CDbl(matrix1) / CDbl(matrix2)
             Exit Function
         Else
-            Let ElementWiseDivision = Null
+            Let Divide = Null
             Exit Function
         End If
     ElseIf IsNumeric(matrix1) And RowVectorQ(matrix2) Then
@@ -2796,11 +2826,11 @@ Public Function ElementWiseDivision(matrix1 As Variant, matrix2 As Variant) As V
             Next c
         Next r
     Else
-        Let ElementWiseDivision = Null
+        Let Divide = Null
     End If
     
     ' Return the result
-    Let ElementWiseDivision = TheResults
+    Let Divide = TheResults
 End Function
 
 ' This function sorts the given 2D matrix by the columns whose positions are given by

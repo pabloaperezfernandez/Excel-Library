@@ -6,12 +6,16 @@ Option Base 1
 ' Miscellaneous VBA
 '********************************************************************************************
 Public Sub TestArrayParamUsage()
+    Debug.Print "Call VarParamFunction"
     Call VarParamFunction
     Debug.Print
+    Debug.Print "Call VarParamFunction(0)"
     Call VarParamFunction(0)
     Debug.Print
+    Debug.Print "Call VarParamFunction(0, 1)"
     Call VarParamFunction(0, 1)
     Debug.Print
+    Debug.Print "Call VarParamFunction(0, 1, 2)"
     Call VarParamFunction(0, 1, 2)
 End Sub
 
@@ -1865,6 +1869,53 @@ Public Sub TestArraysDrop()
             PrintArray Drop(M, var)
         End If
     Next
+End Sub
+
+Public Sub TestArraysRandomReal()
+    Dim i As Long
+
+    Debug.Print "Generating 10 randoms between 0,1"
+    For i = 1 To 10
+        Debug.Print RandomReal
+    Next
+    Debug.Print
+    
+    Debug.Print "Generating 10 randoms between 0,10"
+    For i = 1 To 10
+        Debug.Print RandomReal(10)
+    Next
+    Debug.Print
+
+    Debug.Print "Generating 10 randoms between 1 and 10"
+    For i = 1 To 10
+        Debug.Print RandomReal(Array(1, 10))
+    Next
+    Debug.Print
+    
+    Debug.Print "Generating 10 randoms between -10 and -5"
+    For i = 1 To 10
+        Debug.Print RandomReal(Array(-10, -5))
+    Next
+    Debug.Print
+    
+    Debug.Print "Generating 10 arrays of 10 randoms between 0 and 1"
+    For i = 1 To 10
+        PrintArray RandomReal(Array(0, 1), 10)
+    Next
+    Debug.Print
+    
+    Debug.Print "Generating 10 arrays of 10 randoms between -10 and -5"
+    For i = 1 To 10
+        PrintArray RandomReal(Array(-10, -5), 10)
+    Next
+    Debug.Print
+    
+    Debug.Print "Generating a 10 by 5 array of randoms between 0 and 1"
+    PrintArray RandomReal(Array(0, 1), Array(10, 5))
+    
+    
+    Debug.Print "Generating a 10 by 5 array of randoms between -10 and -5"
+    PrintArray RandomReal(Array(-10, -5), Array(10, 5))
 End Sub
 
 Public Sub TestConnectAndSelect()

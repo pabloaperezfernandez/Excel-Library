@@ -535,7 +535,7 @@ Function ComputeDistribution(TimeSeries As Variant, NumberOfBins As Integer) As 
     Let BinSize = (MaxVal - MinVal) / NumberOfBins
     
     ' Create the sequence of right, end-points for the bins
-    Let BinRightEndPoints = ElementwiseAddition(ElementwiseMultiplication(NumericalSequence(1, CLng(NumberOfBins)), _
+    Let BinRightEndPoints = Add(Multiply(NumericalSequence(1, CLng(NumberOfBins)), _
                                                                           BinSize), _
                                                 MinVal)
         
