@@ -494,7 +494,7 @@ End Function
 ' RETURNED VALUE
 ' The requested numerical sequence
 Public Function NumericalSequence(StartNumber As Variant, _
-                                      n As Variant, _
+                                      N As Variant, _
                                       Optional TheStep As Variant, _
                                       Optional ToEndNumberQ As Boolean = False) As Variant
     Dim TheStepCopy As Variant
@@ -514,7 +514,7 @@ Public Function NumericalSequence(StartNumber As Variant, _
     ' Process calling modality 2
     If ToEndNumberQ Then
         ' Exit with NULL if any of the three parameters is non-numeric
-        If Not NumberArrayQ(Array(StartNumber, n, TheStepCopy)) Then Exit Function
+        If Not NumberArrayQ(Array(StartNumber, N, TheStepCopy)) Then Exit Function
         
         ' Set first return value
         ReDim ReturnArray(1 To 1): Let ReturnArray(1) = StartNumber
@@ -522,7 +522,7 @@ Public Function NumericalSequence(StartNumber As Variant, _
         ' Complete the sequence of numbers
         Let i = 1
         Let CurrentNumber = StartNumber + i * TheStepCopy
-        Do While CurrentNumber <= n
+        Do While CurrentNumber <= N
             ReDim Preserve ReturnArray(1 To i + 1)
             
             Let ReturnArray(i + 1) = CurrentNumber
@@ -531,10 +531,10 @@ Public Function NumericalSequence(StartNumber As Variant, _
         Loop
     ' Process calling modality 1
     Else
-        If n < 0 Then Exit Function
+        If N < 0 Then Exit Function
         
-        ReDim ReturnArray(1 To n)
-        For i = StartNumber To StartNumber + n - 1
+        ReDim ReturnArray(1 To N)
+        For i = StartNumber To StartNumber + N - 1
             Let ReturnArray(i - StartNumber + 1) = StartNumber + (i - StartNumber) * TheStepCopy
         Next i
     End If
@@ -1693,27 +1693,27 @@ End Function
 '
 ' RETURNED VALUE
 ' A constant 1D or 2D array with the given number of rows and columns.
-Public Function ConstantArray(TheValue As Variant, M As Long, Optional n As Long = 0) As Variant
+Public Function ConstantArray(TheValue As Variant, m As Long, Optional N As Long = 0) As Variant
     Dim ReturnMatrix() As Long
     Dim i As Long
     Dim j As Long
     
     Let ConstantArray = Null
 
-    If NegativeWholeNumberQ(M) Or M = 0 Then Exit Function
-    If NegativeWholeNumberQ(n) Then Exit Function
+    If NegativeWholeNumberQ(m) Or m = 0 Then Exit Function
+    If NegativeWholeNumberQ(N) Then Exit Function
     
-    If n = 0 Then
-        ReDim ReturnMatrix(1 To M)
+    If N = 0 Then
+        ReDim ReturnMatrix(1 To m)
         
-        For i = 1 To M
+        For i = 1 To m
             ReturnMatrix(i) = TheValue
         Next
     Else
-        ReDim ReturnMatrix(1 To M, 1 To n)
+        ReDim ReturnMatrix(1 To m, 1 To N)
         
-        For i = 1 To M
-            For j = 1 To n
+        For i = 1 To m
+            For j = 1 To N
                 Let ReturnMatrix(i, j) = TheValue
             Next
         Next
@@ -1735,25 +1735,25 @@ End Function
 '
 ' RETURNED VALUE
 ' The identity matrix with the requested dimensions
-Public Function IdentityMatrix(M As Long, Optional n As Long = 0) As Variant
+Public Function IdentityMatrix(m As Long, Optional N As Long = 0) As Variant
     Dim ReturnMatrix() As Long
     Dim i As Long
     
     Let IdentityMatrix = Null
 
-    If NegativeWholeNumberQ(M) Or M = 0 Then Exit Function
-    If NegativeWholeNumberQ(n) Then Exit Function
+    If NegativeWholeNumberQ(m) Or m = 0 Then Exit Function
+    If NegativeWholeNumberQ(N) Then Exit Function
     
-    If n = 0 Then
-        ReDim ReturnMatrix(1 To M, 1 To M)
+    If N = 0 Then
+        ReDim ReturnMatrix(1 To m, 1 To m)
         
-        For i = 1 To M
+        For i = 1 To m
             Let ReturnMatrix(i, i) = 1
         Next
     Else
-        ReDim ReturnMatrix(1 To M, 1 To n)
+        ReDim ReturnMatrix(1 To m, 1 To N)
         
-        For i = 1 To Application.WorksheetFunction.Min(M, n)
+        For i = 1 To Application.WorksheetFunction.Min(m, N)
             Let ReturnMatrix(i, i) = 1
         Next
     End If
@@ -2138,6 +2138,268 @@ Public Function ComplementOfSets(A As Variant, B As Variant) As Variant
 End Function
 
 ' DESCRIPTION
+' This function returns the set-theoretic complement of the atomic values in the leaves of first tree
+' with respect to the leaves of the other tree.  The function's name is a bit of a misnomer.  It will
+' traspose an array or table even if the entries are not numeric.
+'
+' PARAMETERS
+' 1. Set1 - A dimensioned array
+' 2. Set1 -  A dimensioned array
+' 3. ParamConsistencyChecksQ (optiomal) - If explicitly passed as False, this function performs no
+'    parameter consistency checks
+'
+' RETURNED VALUE
+' The set complement of one set with respect to another
+Public Function TransposeMatrix(aMatrix As Variant, _
+                                Optional UseBuiltInQ As Boolean = False, _
+                                Optional ParameterCheckQ As Boolean = True) As Variant
+    Dim r As Long
+    Dim c As Long
+    Dim TheResult() As Variant
+
+    Let TransposeMatrix = Null
+
+    If ParameterCheckQ Then
+        If Not DimensionedQ(aMatrix) Then Exit Function
+        
+        If NumberOfDimensions(aMatrix) = 0 Then
+            Let TransposeMatrix = aMatrix
+            Exit Function
+        End If
+    End If
+    
+    If EmptyArrayQ(aMatrix) Then
+        Let TransposeMatrix = EmptyArray()
+        Exit Function
+    End If
+    
+    If UseBuiltInQ Then
+        Let TransposeMatrix = Application.Transpose(aMatrix)
+        Exit Function
+    End If
+    
+    If NumberOfDimensions(aMatrix) = 1 Then
+        ReDim TheResult(LBound(aMatrix) To UBound(aMatrix), 1)
+    
+        For c = LBound(aMatrix) To UBound(aMatrix)
+            Let TheResult(c, 1) = aMatrix(c)
+        Next c
+        
+        Let TransposeMatrix = TheResult
+        
+        Exit Function
+    End If
+    
+    ReDim TheResult(LBound(aMatrix, 2) To UBound(aMatrix, 2), LBound(aMatrix, 1) To UBound(aMatrix, 1))
+
+    For r = LBound(aMatrix, 1) To UBound(aMatrix, 1)
+        For c = LBound(aMatrix, 2) To UBound(aMatrix, 2)
+            Let TheResult(c, r) = aMatrix(r, c)
+        Next c
+    Next r
+    
+    Let TransposeMatrix = TheResult
+End Function
+
+' DESCRIPTION
+' This function computes the sum of the elements of the given array.  If a 2D array, this
+' function returns the sum of the columns.  This is equivalent to
+'
+' Total(AnArray, 1)
+'
+' To add the rows, use Total(AnArray, 2)
+'
+' PARAMETERS
+' 1. AnArray - a 1D or 2D numeric array
+' 2. DimensionalIndex (optional) - Set by default to 1, indicates whether to perform the operation
+'    along dimension 1 or 2
+'
+' RETURNED VALUE
+' The result of the operation the whole array for 1D arrays, the columns for 2D arrays, or the rows
+' if requested for a 2D array
+Public Function Total(AnArray As Variant, _
+                      Optional DimensionalIndex As Integer = 1, _
+                      Optional ParameterCheckQ As Boolean = True) As Variant
+    Dim var As Variant
+    Dim ResultArray As Variant
+    Dim i As Integer
+    Dim j As Integer
+    
+    Let Total = Null
+
+    If ParameterCheckQ Then
+       If Not DimensionedQ(AnArray) Then Exit Function
+       
+        If NumberOfDimensions(AnArray) < 1 Or NumberOfDimensions(AnArray) > 2 Then Exit Function
+        
+        For Each var In AnArray
+            If Not NumberQ(var) Then Exit Function
+        Next
+    End If
+    
+    If EmptyArrayQ(AnArray) Then
+        Let Total = 0
+        Exit Function
+    End If
+    
+    If DimensionalIndex = 2 Then
+        If NumberOfDimensions(AnArray) = 1 Then
+            Let ResultArray = AnArray
+        Else
+            ReDim ResultArray(1 To Length(AnArray))
+        
+            For i = 1 To Length(AnArray)
+                Let ResultArray(i) = Total(Part(AnArray, i))
+            Next i
+        End If
+    Else
+        If NumberOfDimensions(AnArray) = 1 Then
+            Let ResultArray = 0
+            For Each var In AnArray
+                Let ResultArray = ResultArray + var
+            Next
+        Else
+            ReDim ResultArray(1 To NumberOfColumns(AnArray))
+            
+            For j = 1 To NumberOfColumns(AnArray)
+                Let ResultArray(j) = Total(Part(AnArray, Span(1, -1), j))
+            Next
+        End If
+    End If
+    
+    Let Total = ResultArray
+End Function
+
+' DESCRIPTION
+' This function computes the product of the elements of the given array.  If a 2D array, this
+' function returns the product of the columns.  This is equivalent to
+'
+' Times(AnArray, 1)
+'
+' To add the rows, use Total(AnArray, 2)
+'
+' PARAMETERS
+' 1. AnArray - a 1D or 2D numeric array
+' 2. DimensionalIndex (optional) - Set by default to 1, indicates whether to perform the operation
+'    along dimension 1 or 2
+'
+' RETURNED VALUE
+' The result of the operation the whole array for 1D arrays, the columns for 2D arrays, or the rows
+' if requested for a 2D array
+Public Function Times(AnArray As Variant, _
+                      Optional DimensionalIndex As Integer = 1, _
+                      Optional ParameterCheckQ As Boolean = True) As Variant
+    Dim var As Variant
+    Dim ResultArray As Variant
+    Dim i As Integer
+    Dim j As Integer
+    
+    Let Times = Null
+
+    If ParameterCheckQ Then
+       If Not DimensionedQ(AnArray) Then Exit Function
+       
+        If NumberOfDimensions(AnArray) < 1 Or NumberOfDimensions(AnArray) > 2 Then Exit Function
+        
+        For Each var In AnArray
+            If Not NumberQ(var) Then Exit Function
+        Next
+    End If
+    
+    If EmptyArrayQ(AnArray) Then
+        Let Times = 1
+        Exit Function
+    End If
+    
+    If DimensionalIndex = 2 Then
+        If NumberOfDimensions(AnArray) = 1 Then
+            Let ResultArray = AnArray
+        Else
+            ReDim ResultArray(1 To Length(AnArray))
+        
+            For i = 1 To Length(AnArray)
+                Let ResultArray(i) = Times(Part(AnArray, i))
+            Next i
+        End If
+    Else
+        If NumberOfDimensions(AnArray) = 1 Then
+            Let ResultArray = 1
+            For Each var In AnArray
+                Let ResultArray = ResultArray * var
+            Next
+        Else
+            ReDim ResultArray(1 To NumberOfColumns(AnArray))
+            
+            For j = 1 To NumberOfColumns(AnArray)
+                Let ResultArray(j) = Times(Part(AnArray, Span(1, -1), j))
+            Next
+        End If
+    End If
+    
+    Let Times = ResultArray
+End Function
+
+' DESCRIPTION
+' This function computes the array that results from the successive addition of its elements. It
+' adds repeatedly along columns, returning a 1D array of 1D arrays.
+'
+' PARAMETERS
+' 1. AnArray - a 1D or 2D numeric array
+'
+' RETURNED VALUE
+' The array of successive sums of the elements of the array or the columns of the 2D array
+Public Function Accumulate(AnArray As Variant, _
+                           Optional DimensionalIndex As Integer = 1, _
+                           Optional ParameterCheckQ As Boolean = True) As Variant
+    Dim var As Variant
+    Dim ResultArray As Variant
+    Dim i As Integer
+    Dim j As Integer
+    
+    Let Accumulate = Null
+
+    If ParameterCheckQ Then
+       If Not DimensionedQ(AnArray) Then Exit Function
+       
+        If NumberOfDimensions(AnArray) < 1 Or NumberOfDimensions(AnArray) > 2 Then Exit Function
+        
+        For Each var In AnArray
+            If Not NumberQ(var) Then Exit Function
+        Next
+    End If
+    
+    If EmptyArrayQ(AnArray) Then
+        Let Accumulate = 0
+        
+        Exit Function
+    End If
+    
+    If NumberOfDimensions(AnArray) = 1 Then
+        ReDim ResultArray(1 To Length(AnArray))
+    
+        Let ResultArray(1) = First(AnArray)
+        For i = 2 To Length(AnArray)
+            Let ResultArray(i) = ResultArray(i - 1) + Part(AnArray, i)
+        Next
+    Else
+        ReDim ResultArray(1 To Length(AnArray), 1 To NumberOfColumns(AnArray))
+    
+        For i = 1 To Length(AnArray)
+            Let ResultArray(i, 1) = Part(AnArray, i, 1)
+        Next
+
+        For j = 2 To NumberOfColumns(AnArray)
+            For i = 1 To Length(AnArray)
+                 
+                Let ResultArray(i, j) = ResultArray(i, j - 1) + Part(AnArray, i, j)
+            Next
+        Next
+    End If
+    
+    Let Accumulate = ResultArray
+End Function
+
+' DESCRIPTION
 ' This function adds numbers, vectors or matrices elementwise, as long as it makes sense.
 ' Examples:
 
@@ -2153,183 +2415,28 @@ End Function
 ' PARAMETERS
 ' 1. Matrix1 - a scalar, vector, or matrix
 ' 2. Matrix2 -  a scalar, vector, or matrix
+' 3. ParamConsistencyChecksQ (optiomal) - If explicitly passed as False, this function performs no
+'    parameter consistency checks
 '
 ' RETURNED VALUE
-' The result of performing elementwise addition between the two arguments
-Public Function Add(Matrix1 As Variant, Matrix2 As Variant) As Variant
+' The result of performing elementwise addition on the last two arguments
+Public Function Add(Matrix1 As Variant, Matrix2 As Variant, Optional ParamConsistencyChecksQ = True) As Variant
     Dim Arg1 As Variant
     Dim Arg2 As Variant
-    Dim TmpSheet As Worksheet
-    Dim NumRows As Long
-    Dim numColumns As Long
-    Dim r As Long ' for number of rows
-    Dim c As Long ' for number of columns
-    Dim rOffset1 As Long
-    Dim cOffset1 As Long
-    Dim rOffset2 As Long
-    Dim cOffset2 As Long
-    Dim TheResults() As Double
-    Dim var As Variant
-    
-    ' Set default return value when encountering erros
-    Let Add = Null
-    
-    ' Check parameter consistency
-    If Not (IsNumeric(Matrix1) Or VectorQ(Matrix1) Or MatrixQ(Matrix1)) Then Exit Function
-    
-    If Not (IsNumeric(Matrix2) Or VectorQ(Matrix2) Or MatrixQ(Matrix2)) Then Exit Function
-    
-    If MatrixQ(Matrix1) And MatrixQ(Matrix2) Then
-        If GetNumberOfRows(Matrix1) <> GetNumberOfRows(Matrix2) Then Exit Function
 
-        If GetNumberOfColumns(Matrix1) <> GetNumberOfColumns(Matrix2) Then Exit Function
-        
-        Let Arg1 = Matrix1
-        Let Arg2 = Matrix2
-    End If
-    
-    If RowVectorQ(Matrix1) And MatrixQ(Matrix2) Then
-        If GetNumberOfColumns(Matrix1) <> GetNumberOfColumns(Matrix2) Then Exit Function
-        
-        Let Arg1 = Matrix1
-        Let Arg2 = Matrix2
-    End If
-    
-    If MatrixQ(Matrix1) And RowVectorQ(Matrix2) Then
-        If GetNumberOfColumns(Matrix1) <> GetNumberOfColumns(Matrix2) Then Exit Function
-        
-        Let Arg1 = Matrix2
-        Let Arg2 = Matrix1
-    End If
-    
-    If ColumnVectorQ(Matrix1) And MatrixQ(Matrix2) Then
-        If GetNumberOfRows(Matrix1) <> GetNumberOfRows(Matrix2) Then Exit Function
-        
-        Let Arg1 = Matrix1
-        Let Arg2 = Matrix2
-    End If
-    
-    If MatrixQ(Matrix1) And ColumnVectorQ(Matrix2) Then
-        If GetNumberOfRows(Matrix1) <> GetNumberOfRows(Matrix2) Then Exit Function
-
-        Let Arg1 = Matrix2
-        Let Arg2 = Matrix1
-    End If
-    
-    If IsNumeric(Matrix1) And (VectorQ(Matrix2) Or MatrixQ(Matrix2)) Then
-        Let Arg1 = Matrix1
-        Let Arg2 = Matrix2
-    End
-    
-    If IsNumeric(Matrix2) And (VectorQ(Matrix1) Or MatrixQ(Matrix1)) Then
-        Let Arg1 = Matrix2
-        Let Arg2 = Matrix1
-    End If
-        
-    If EmptyArrayQ(Matrix1) And EmptyArrayQ(Matrix2) Then
-        Let Add = EmptyArray()
-        Exit Function
+    If ParamConsistencyChecksQ Then
+        If Not ElementwiseArithmeticParameterConsistentQ(Matrix1, Matrix2) Then
+            Let Add = Null
+            Exit Function
+        End If
+            
+        If EmptyArrayQ(Matrix1) And EmptyArrayQ(Matrix2) Then
+            Let Add = EmptyArray()
+            Exit Function
+        End If
     End If
 
-    ' If the code gets here and one of the arrays is empty, there is a size mismatch
-    If EmptyArrayQ(Matrix1) Or EmptyArrayQ(Matrix2) Then Exit Function
-    
-    ' Perform the calculations
-    If IsNumeric(Arg1) And IsNumeric(Arg2) Then
-        Let TheResults = CDbl(Arg1) + CDbl(Arg2)
-    ElseIf IsNumeric(Arg1) And RowVectorQ(Arg2) Then
-        Let numColumns = GetNumberOfColumns(Arg2)
-        
-        ReDim TheResults(1 To numColumns)
-
-        ' Compute the r and c offsets due to differences in array starts
-        Let cOffset2 = IIf(LBound(Arg2, 1) = 0, 1, 0)
-        
-        For c = 1 To numColumns
-            Let TheResults(c) = CDbl(Arg1) + CDbl(Arg2(c + cOffset2))
-        Next
-    ElseIf IsNumeric(Arg1) And ColumnVectorQ(Arg2) Then
-        Let NumRows = GetNumberOfRows(Arg2)
-        
-        ReDim TheResults(1 To NumRows, 1 To 1)
-
-        ' Compute the r and c offsets due to differences in array starts
-        Let rOffset2 = IIf(LBound(Arg2, 1) = 0, 1, 0)
-        
-        For r = 1 To NumRows
-            Let TheResults(r, 1) = CDbl(Arg1) + CDbl(Arg2(r + rOffset2, 1))
-        Next
-    ElseIf IsNumeric(Arg1) And MatrixQ(Arg2) Then
-        Let NumRows = GetNumberOfRows(Arg2)
-        Let numColumns = GetNumberOfColumns(Arg2)
-        
-        ReDim TheResults(1 To NumRows, 1 To numColumns)
-    
-        ' Compute the r and c offsets due to differences in array starts
-        Let rOffset2 = IIf(LBound(Arg2, 1) = 0, 1, 0)
-        Let cOffset2 = IIf(LBound(Arg2, 2) = 0, 1, 0)
-        
-        For r = 1 To NumRows
-            For c = 1 To numColumns
-                Let TheResults(r, c) = CDbl(Arg1) + CDbl(Arg2(r + rOffset2, c + cOffset2))
-            Next
-        Next
-    ElseIf RowVectorQ(Arg1) And MatrixQ(Arg2) Then
-        ' If the code gets here, we are adding two 2D matrices of the same size
-        Let NumRows = GetNumberOfRows(Arg2)
-        Let numColumns = GetNumberOfColumns(Arg2)
-        
-        ReDim TheResults(1 To NumRows, 1 To numColumns)
-    
-        ' Compute the r and c offsets due to differences in array starts
-        Let rOffset2 = IIf(LBound(Arg2, 1) = 0, 1, 0)
-        Let cOffset1 = IIf(LBound(Arg1) = 0, 1, 0)
-        Let cOffset2 = IIf(LBound(Arg2, 2) = 0, 1, 0)
-        
-        For r = 1 To NumRows
-            For c = 1 To numColumns
-                Let TheResults(r, c) = CDbl(Arg1(c + cOffset1)) + CDbl(Arg2(r + rOffset2, c + cOffset2))
-            Next
-        Next
-    ElseIf ColumnVectorQ(Arg1) And MatrixQ(Arg2) Then
-        Let NumRows = GetNumberOfRows(Arg2)
-        Let numColumns = GetNumberOfColumns(Arg2)
-        
-        ReDim TheResults(1 To NumRows, 1 To numColumns)
-    
-        ' Compute the r and c offsets due to differences in array starts
-        Let rOffset1 = IIf(LBound(Arg1, 1) = 0, 1, 0)
-        Let rOffset2 = IIf(LBound(Arg2, 1) = 0, 1, 0)
-        Let cOffset1 = IIf(LBound(Arg1, 2) = 0, 1, 0)
-        Let cOffset2 = IIf(LBound(Arg2, 2) = 0, 1, 0)
-        
-        For r = 1 To NumRows
-            For c = 1 To numColumns
-                Let TheResults(r, c) = CDbl(Arg1(r + rOffset1, 1 + cOffset1)) + CDbl(Arg2(r + rOffset2, c + cOffset2))
-            Next
-        Next
-    ElseIf MatrixQ(Arg1) And MatrixQ(Arg2) Then
-        ' If the code gets here, we are adding two 2D matrices of the same size
-        Let NumRows = GetNumberOfRows(Arg1)
-        Let numColumns = GetNumberOfColumns(Arg1)
-        
-        ReDim TheResults(1 To NumRows, 1 To numColumns)
-    
-        ' Compute the r and c offsets due to differences in array starts
-        Let rOffset1 = IIf(LBound(Arg1, 1) = 0, 1, 0)
-        Let rOffset2 = IIf(LBound(Arg2, 1) = 0, 1, 0)
-        Let cOffset1 = IIf(LBound(Arg1, 2) = 0, 1, 0)
-        Let cOffset2 = IIf(LBound(Arg2, 2) = 0, 1, 0)
-        
-        For r = 1 To NumRows
-            For c = 1 To numColumns
-                Let TheResults(r, c) = CDbl(Arg1(r + rOffset1, c + cOffset1)) + CDbl(Arg2(r + rOffset2, c + cOffset2))
-            Next
-        Next
-    End If
-    
-    ' Return the result
-    Let Add = TheResults
+    Let Add = ApplyElementwiseArithmeticOperation("ADD", Matrix1, Matrix2)
 End Function
 
 ' DESCRIPTION
@@ -2348,183 +2455,28 @@ End Function
 ' PARAMETERS
 ' 1. Matrix1 - a scalar, vector, or matrix
 ' 2. Matrix2 -  a scalar, vector, or matrix
+' 3. ParamConsistencyChecksQ (optiomal) - If explicitly passed as False, this function performs no
+'    parameter consistency checks
 '
 ' RETURNED VALUE
-' The result of performing elementwise multiplication between the two arguments
-Public Function Multiply(Matrix1 As Variant, Matrix2 As Variant) As Variant
+' The result of performing elementwise multiplication on the last two arguments
+Public Function Multiply(Matrix1 As Variant, Matrix2 As Variant, Optional ParamConsistencyChecksQ = True) As Variant
     Dim Arg1 As Variant
     Dim Arg2 As Variant
-    Dim TmpSheet As Worksheet
-    Dim NumRows As Long
-    Dim numColumns As Long
-    Dim r As Long ' for number of rows
-    Dim c As Long ' for number of columns
-    Dim rOffset1 As Long
-    Dim cOffset1 As Long
-    Dim rOffset2 As Long
-    Dim cOffset2 As Long
-    Dim TheResults() As Double
-    Dim var As Variant
-    
-    ' Set default return value when encountering erros
-    Let Add = Null
-    
-    ' Check parameter consistency
-    If Not (IsNumeric(Matrix1) Or VectorQ(Matrix1) Or MatrixQ(Matrix1)) Then Exit Function
-    
-    If Not (IsNumeric(Matrix2) Or VectorQ(Matrix2) Or MatrixQ(Matrix2)) Then Exit Function
-    
-    If MatrixQ(Matrix1) And MatrixQ(Matrix2) Then
-        If GetNumberOfRows(Matrix1) <> GetNumberOfRows(Matrix2) Then Exit Function
 
-        If GetNumberOfColumns(Matrix1) <> GetNumberOfColumns(Matrix2) Then Exit Function
-        
-        Let Arg1 = Matrix1
-        Let Arg2 = Matrix2
+    If ParamConsistencyChecksQ Then
+        If Not ElementwiseArithmeticParameterConsistentQ(Matrix1, Matrix2) Then
+            Let Multiply = Null
+            Exit Function
+        End If
+            
+        If EmptyArrayQ(Matrix1) And EmptyArrayQ(Matrix2) Then
+            Let Multiply = EmptyArray()
+            Exit Function
+        End If
     End If
     
-    If RowVectorQ(Matrix1) And MatrixQ(Matrix2) Then
-        If GetNumberOfColumns(Matrix1) <> GetNumberOfColumns(Matrix2) Then Exit Function
-        
-        Let Arg1 = Matrix1
-        Let Arg2 = Matrix2
-    End If
-    
-    If MatrixQ(Matrix1) And RowVectorQ(Matrix2) Then
-        If GetNumberOfColumns(Matrix1) <> GetNumberOfColumns(Matrix2) Then Exit Function
-        
-        Let Arg1 = Matrix2
-        Let Arg2 = Matrix1
-    End If
-    
-    If ColumnVectorQ(Matrix1) And MatrixQ(Matrix2) Then
-        If GetNumberOfRows(Matrix1) <> GetNumberOfRows(Matrix2) Then Exit Function
-        
-        Let Arg1 = Matrix1
-        Let Arg2 = Matrix2
-    End If
-    
-    If MatrixQ(Matrix1) And ColumnVectorQ(Matrix2) Then
-        If GetNumberOfRows(Matrix1) <> GetNumberOfRows(Matrix2) Then Exit Function
-
-        Let Arg1 = Matrix2
-        Let Arg2 = Matrix1
-    End If
-    
-    If IsNumeric(Matrix1) And (VectorQ(Matrix2) Or MatrixQ(Matrix2)) Then
-        Let Arg1 = Matrix1
-        Let Arg2 = Matrix2
-    End
-    
-    If IsNumeric(Matrix2) And (VectorQ(Matrix1) Or MatrixQ(Matrix1)) Then
-        Let Arg1 = Matrix2
-        Let Arg2 = Matrix1
-    End If
-        
-    If EmptyArrayQ(Matrix1) And EmptyArrayQ(Matrix2) Then
-        Let Add = EmptyArray()
-        Exit Function
-    End If
-
-    ' If the code gets here and one of the arrays is empty, there is a size mismatch
-    If EmptyArrayQ(Matrix1) Or EmptyArrayQ(Matrix2) Then Exit Function
-    
-    ' Perform the calculations
-    If IsNumeric(Arg1) And IsNumeric(Arg2) Then
-        Let TheResults = CDbl(Arg1) * CDbl(Arg2)
-    ElseIf IsNumeric(Arg1) And RowVectorQ(Arg2) Then
-        Let numColumns = GetNumberOfColumns(Arg2)
-        
-        ReDim TheResults(1 To numColumns)
-
-        ' Compute the r and c offsets due to differences in array starts
-        Let cOffset2 = IIf(LBound(Arg2, 1) = 0, 1, 0)
-        
-        For c = 1 To numColumns
-            Let TheResults(c) = CDbl(Arg1) * CDbl(Arg2(c + cOffset2))
-        Next
-    ElseIf IsNumeric(Arg1) And ColumnVectorQ(Arg2) Then
-        Let NumRows = GetNumberOfRows(Arg2)
-        
-        ReDim TheResults(1 To NumRows, 1 To 1)
-
-        ' Compute the r and c offsets due to differences in array starts
-        Let rOffset2 = IIf(LBound(Arg2, 1) = 0, 1, 0)
-        
-        For r = 1 To NumRows
-            Let TheResults(r, 1) = CDbl(Arg1) * CDbl(Arg2(r + rOffset2, 1))
-        Next
-    ElseIf IsNumeric(Arg1) And MatrixQ(Arg2) Then
-        Let NumRows = GetNumberOfRows(Arg2)
-        Let numColumns = GetNumberOfColumns(Arg2)
-        
-        ReDim TheResults(1 To NumRows, 1 To numColumns)
-    
-        ' Compute the r and c offsets due to differences in array starts
-        Let rOffset2 = IIf(LBound(Arg2, 1) = 0, 1, 0)
-        Let cOffset2 = IIf(LBound(Arg2, 2) = 0, 1, 0)
-        
-        For r = 1 To NumRows
-            For c = 1 To numColumns
-                Let TheResults(r, c) = CDbl(Arg1) * CDbl(Arg2(r + rOffset2, c + cOffset2))
-            Next
-        Next
-    ElseIf RowVectorQ(Arg1) And MatrixQ(Arg2) Then
-        ' If the code gets here, we are adding two 2D matrices of the same size
-        Let NumRows = GetNumberOfRows(Arg2)
-        Let numColumns = GetNumberOfColumns(Arg2)
-        
-        ReDim TheResults(1 To NumRows, 1 To numColumns)
-    
-        ' Compute the r and c offsets due to differences in array starts
-        Let rOffset2 = IIf(LBound(Arg2, 1) = 0, 1, 0)
-        Let cOffset1 = IIf(LBound(Arg1) = 0, 1, 0)
-        Let cOffset2 = IIf(LBound(Arg2, 2) = 0, 1, 0)
-        
-        For r = 1 To NumRows
-            For c = 1 To numColumns
-                Let TheResults(r, c) = CDbl(Arg1(c + cOffset1)) * CDbl(Arg2(r + rOffset2, c + cOffset2))
-            Next
-        Next
-    ElseIf ColumnVectorQ(Arg1) And MatrixQ(Arg2) Then
-        Let NumRows = GetNumberOfRows(Arg2)
-        Let numColumns = GetNumberOfColumns(Arg2)
-        
-        ReDim TheResults(1 To NumRows, 1 To numColumns)
-    
-        ' Compute the r and c offsets due to differences in array starts
-        Let rOffset1 = IIf(LBound(Arg1, 1) = 0, 1, 0)
-        Let rOffset2 = IIf(LBound(Arg2, 1) = 0, 1, 0)
-        Let cOffset1 = IIf(LBound(Arg1, 2) = 0, 1, 0)
-        Let cOffset2 = IIf(LBound(Arg2, 2) = 0, 1, 0)
-        
-        For r = 1 To NumRows
-            For c = 1 To numColumns
-                Let TheResults(r, c) = CDbl(Arg1(r + rOffset1, 1 + cOffset1)) * CDbl(Arg2(r + rOffset2, c + cOffset2))
-            Next
-        Next
-    ElseIf MatrixQ(Arg1) And MatrixQ(Arg2) Then
-        ' If the code gets here, we are adding two 2D matrices of the same size
-        Let NumRows = GetNumberOfRows(Arg1)
-        Let numColumns = GetNumberOfColumns(Arg1)
-        
-        ReDim TheResults(1 To NumRows, 1 To numColumns)
-    
-        ' Compute the r and c offsets due to differences in array starts
-        Let rOffset1 = IIf(LBound(Arg1, 1) = 0, 1, 0)
-        Let rOffset2 = IIf(LBound(Arg2, 1) = 0, 1, 0)
-        Let cOffset1 = IIf(LBound(Arg1, 2) = 0, 1, 0)
-        Let cOffset2 = IIf(LBound(Arg2, 2) = 0, 1, 0)
-        
-        For r = 1 To NumRows
-            For c = 1 To numColumns
-                Let TheResults(r, c) = CDbl(Arg1(r + rOffset1, c + cOffset1)) * CDbl(Arg2(r + rOffset2, c + cOffset2))
-            Next
-        Next
-    End If
-    
-    ' Return the result
-    Let Multiply = TheResults
+    Let Multiply = ApplyElementwiseArithmeticOperation("MULTIPLY", Matrix1, Matrix2)
 End Function
 
 ' DESCRIPTION
@@ -2543,10 +2495,62 @@ End Function
 ' PARAMETERS
 ' 1. Matrix1 - a scalar, vector, or matrix
 ' 2. Matrix2 -  a scalar, vector, or matrix
+' 3. ParamConsistencyChecksQ (optiomal) - If explicitly passed as False, this function performs no
+'    parameter consistency checks
 '
 ' RETURNED VALUE
-' The result of performing elementwise division between the two arguments
-Public Function Divide(Matrix1 As Variant, Matrix2 As Variant) As Variant
+' The result of performing elementwise division on the last two arguments
+Public Function Divide(Matrix1 As Variant, Matrix2 As Variant, Optional ParamConsistencyChecksQ = True) As Variant
+    Dim Arg1 As Variant
+    Dim Arg2 As Variant
+    
+    If IsNumeric(Matrix2) Then
+        If Matrix2 = 0 Then
+            Let Divide = Null
+            Exit Function
+        End If
+    End If
+
+    If ParamConsistencyChecksQ Then
+        If Not ElementwiseArithmeticParameterConsistentQ(Matrix1, Matrix2) Then
+            Let Divide = Null
+            Exit Function
+        End If
+            
+        If EmptyArrayQ(Matrix1) And EmptyArrayQ(Matrix2) Then
+            Let Divide = EmptyArray()
+            Exit Function
+        End If
+    End If
+    
+    Let Divide = ApplyElementwiseArithmeticOperation("DIVIDE", Matrix1, Matrix2)
+End Function
+
+' DESCRIPTION
+' This function applies the given operation to numbers, vectors or matrices elementwise, as long as
+' it makes sense.  This function requires that the parameters are numeric.  No check is done here
+' for non-numeric values.
+'
+' Examples:
+
+'    1. scalars - The are added normally and returned as a scalar
+'    2. scalars and vectors/matrices - The scalar is added to each element of the other argument
+'    3. vectors - Two row or two column vectors of the same dimensions are added elementwise
+'    4. a row vector and matrix - are added elementwise for each row of the matrix. In other words,
+'       the row vector is added once to each row of the matrix. The result is returned as matrix.
+'    5. a column vector and matrix - are added elementwise for each column of the matrix. In other words,
+'       the column vector is added once to each column of the matrix. The result is returned as matrix.
+'    6. two matrices - Addition is performed elementwise and returned as a matrix
+'
+' PARAMETERS
+' 1. Matrix1 - a scalar, vector, or matrix
+' 2. Matrix2 -  a scalar, vector, or matrix
+'
+' RETURNED VALUE
+' The result of performing the given operation elementwise on the last two arguments
+Public Function ApplyElementwiseArithmeticOperation(TheOperation As String, _
+                                                    Matrix1 As Variant, _
+                                                    Matrix2 As Variant) As Variant
     Dim Arg1 As Variant
     Dim Arg2 As Variant
     Dim TmpSheet As Worksheet
@@ -2558,91 +2562,66 @@ Public Function Divide(Matrix1 As Variant, Matrix2 As Variant) As Variant
     Dim cOffset1 As Long
     Dim rOffset2 As Long
     Dim cOffset2 As Long
-    Dim TheResults() As Double
-    Dim var As Variant
+    Dim TheResults As Variant
     
-    ' Set default return value when encountering erros
-    Let Divide = Null
+    Let ApplyElementwiseArithmeticOperation = Null
     
-    ' Check parameter consistency
-    If IsNumeric(Matrix1) And IsNumeric(Matrix2) Then
-        If Matrix2 = 0 Then Exit Function
-    End If
+    If FreeQ(Array("ADD", "MULTIPLY", "DIVIDE"), Trim(UCase(TheOperation))) Then Exit Function
     
-    If Not (IsNumeric(Matrix1) Or VectorQ(Matrix1) Or MatrixQ(Matrix1)) Then Exit Function
-    
-    If Not (IsNumeric(Matrix2) Or VectorQ(Matrix2) Or MatrixQ(Matrix2)) Then Exit Function
-    
-    If MatrixQ(Matrix1) And MatrixQ(Matrix2) Then
-        If GetNumberOfRows(Matrix1) <> GetNumberOfRows(Matrix2) Then Exit Function
-
-        If GetNumberOfColumns(Matrix1) <> GetNumberOfColumns(Matrix2) Then Exit Function
-        
+    If IsNumeric(Matrix1) Then
         Let Arg1 = Matrix1
         Let Arg2 = Matrix2
-    End If
-    
-    If RowVectorQ(Matrix1) And MatrixQ(Matrix2) Then
-        If GetNumberOfColumns(Matrix1) <> GetNumberOfColumns(Matrix2) Then Exit Function
-        
-        Let Arg1 = Matrix1
-        Let Arg2 = Matrix2
-    End If
-    
-    If MatrixQ(Matrix1) And RowVectorQ(Matrix2) Then
-        If GetNumberOfColumns(Matrix1) <> GetNumberOfColumns(Matrix2) Then Exit Function
-        
+    ElseIf IsNumeric(Matrix2) Then
         Let Arg1 = Matrix2
         Let Arg2 = Matrix1
-    End If
-    
-    If ColumnVectorQ(Matrix1) And MatrixQ(Matrix2) Then
-        If GetNumberOfRows(Matrix1) <> GetNumberOfRows(Matrix2) Then Exit Function
-        
+    ElseIf NumberOfDimensions(Matrix1) = 1 And Not EmptyArrayQ(Matrix1) Then
+        Let Arg1 = Matrix1
+        Let Arg2 = Matrix2
+    ElseIf NumberOfDimensions(Matrix1) = 2 And NumberOfColumns(Matrix1) = 1 Then
+        Let Arg1 = Matrix1
+        Let Arg2 = Matrix2
+    ElseIf NumberOfDimensions(Matrix2) = 1 And Not EmptyArrayQ(Matrix2) Then
+        Let Arg1 = Matrix2
+        Let Arg2 = Matrix1
+    ElseIf NumberOfDimensions(Matrix2) = 2 And NumberOfColumns(Matrix2) = 1 Then
+        Let Arg1 = Matrix2
+        Let Arg2 = Matrix1
+    Else
         Let Arg1 = Matrix1
         Let Arg2 = Matrix2
     End If
-    
-    If MatrixQ(Matrix1) And ColumnVectorQ(Matrix2) Then
-        If GetNumberOfRows(Matrix1) <> GetNumberOfRows(Matrix2) Then Exit Function
-
-        Let Arg1 = Matrix2
-        Let Arg2 = Matrix1
-    End If
-    
-    If IsNumeric(Matrix1) And (VectorQ(Matrix2) Or MatrixQ(Matrix2)) Then
-        Let Arg1 = Matrix1
-        Let Arg2 = Matrix2
-    End
-    
-    If IsNumeric(Matrix2) And (VectorQ(Matrix1) Or MatrixQ(Matrix1)) Then
-        Let Arg1 = Matrix2
-        Let Arg2 = Matrix1
-    End If
-        
-    If EmptyArrayQ(Matrix1) And EmptyArrayQ(Matrix2) Then
-        Let Divide = EmptyArray()
-        Exit Function
-    End If
-
-    ' If the code gets here and one of the arrays is empty, there is a size mismatch
-    If EmptyArrayQ(Matrix1) Or EmptyArrayQ(Matrix2) Then Exit Function
     
     ' Perform the calculations
     If IsNumeric(Arg1) And IsNumeric(Arg2) Then
-        Let TheResults = CDbl(Arg1) / CDbl(Arg2)
-    ElseIf IsNumeric(Arg1) And RowVectorQ(Arg2) Then
+        If TheOperation = "ADD" Then
+            Let TheResults = Arg1 + Arg2
+        ElseIf TheOperation = "MULTIPLY" Then
+            Let TheResults = Arg1 * Arg2
+        Else
+            Let TheResults = Arg1 / Arg2
+        End If
+    ElseIf IsNumeric(Arg1) And NumberOfDimensions(Arg2) = 1 Then
         Let numColumns = GetNumberOfColumns(Arg2)
         
         ReDim TheResults(1 To numColumns)
 
         ' Compute the r and c offsets due to differences in array starts
         Let cOffset2 = IIf(LBound(Arg2, 1) = 0, 1, 0)
-        
-        For c = 1 To numColumns
-            Let TheResults(c) = CDbl(Arg1) / CDbl(Arg2(c + cOffset2))
-        Next
-    ElseIf IsNumeric(Arg1) And ColumnVectorQ(Arg2) Then
+
+        If TheOperation = "ADD" Then
+            For c = 1 To numColumns
+                Let TheResults(c) = Arg1 + Arg2(c + cOffset2)
+            Next
+        ElseIf TheOperation = "MULTIPLY" Then
+            For c = 1 To numColumns
+                Let TheResults(c) = Arg1 * Arg2(c + cOffset2)
+            Next
+        Else
+            For c = 1 To numColumns
+                Let TheResults(c) = Arg1 / Arg2(c + cOffset2)
+            Next
+        End If
+    ElseIf IsNumeric(Arg1) And NumberOfDimensions(Arg2) = 2 And NumberOfColumns(Arg2) = 1 Then
         Let NumRows = GetNumberOfRows(Arg2)
         
         ReDim TheResults(1 To NumRows, 1 To 1)
@@ -2650,10 +2629,20 @@ Public Function Divide(Matrix1 As Variant, Matrix2 As Variant) As Variant
         ' Compute the r and c offsets due to differences in array starts
         Let rOffset2 = IIf(LBound(Arg2, 1) = 0, 1, 0)
         
-        For r = 1 To NumRows
-            Let TheResults(r, 1) = CDbl(Arg1) / CDbl(Arg2(r + rOffset2, 1))
-        Next
-    ElseIf IsNumeric(Arg1) And MatrixQ(Arg2) Then
+        If TheOperation = "ADD" Then
+            For r = 1 To NumRows
+                Let TheResults(r, 1) = Arg1 + Arg2(r + rOffset2, 1)
+            Next
+        ElseIf TheOperation = "MULTIPLY" Then
+            For r = 1 To NumRows
+                Let TheResults(r, 1) = Arg1 * Arg2(r + rOffset2, 1)
+            Next
+        Else
+            For r = 1 To NumRows
+                Let TheResults(r, 1) = Arg1 / Arg2(r + rOffset2, 1)
+            Next
+        End If
+    ElseIf IsNumeric(Arg1) And NumberOfDimensions(Arg2) = 2 And NumberOfColumns(Arg2) > 1 Then
         Let NumRows = GetNumberOfRows(Arg2)
         Let numColumns = GetNumberOfColumns(Arg2)
         
@@ -2663,12 +2652,26 @@ Public Function Divide(Matrix1 As Variant, Matrix2 As Variant) As Variant
         Let rOffset2 = IIf(LBound(Arg2, 1) = 0, 1, 0)
         Let cOffset2 = IIf(LBound(Arg2, 2) = 0, 1, 0)
         
-        For r = 1 To NumRows
-            For c = 1 To numColumns
-                Let TheResults(r, c) = CDbl(Arg1) / CDbl(Arg2(r + rOffset2, c + cOffset2))
+        If TheOperation = "ADD" Then
+            For r = 1 To NumRows
+                For c = 1 To numColumns
+                    Let TheResults(r, c) = Arg1 + Arg2(r + rOffset2, c + cOffset2)
+                Next
             Next
-        Next
-    ElseIf RowVectorQ(Arg1) And MatrixQ(Arg2) Then
+        ElseIf TheOperation = "MULTIPLY" Then
+            For r = 1 To NumRows
+                For c = 1 To numColumns
+                    Let TheResults(r, c) = Arg1 * Arg2(r + rOffset2, c + cOffset2)
+                Next
+            Next
+        Else
+            For r = 1 To NumRows
+                For c = 1 To numColumns
+                    Let TheResults(r, c) = Arg1 / Arg2(r + rOffset2, c + cOffset2)
+                Next
+            Next
+        End If
+    ElseIf NumberOfDimensions(Arg1) = 1 And NumberOfDimensions(Arg2) = 2 And NumberOfColumns(Arg2) > 1 Then
         ' If the code gets here, we are adding two 2D matrices of the same size
         Let NumRows = GetNumberOfRows(Arg2)
         Let numColumns = GetNumberOfColumns(Arg2)
@@ -2680,12 +2683,26 @@ Public Function Divide(Matrix1 As Variant, Matrix2 As Variant) As Variant
         Let cOffset1 = IIf(LBound(Arg1) = 0, 1, 0)
         Let cOffset2 = IIf(LBound(Arg2, 2) = 0, 1, 0)
         
-        For r = 1 To NumRows
-            For c = 1 To numColumns
-                Let TheResults(r, c) = CDbl(Arg1(c + cOffset1)) / CDbl(Arg2(r + rOffset2, c + cOffset2))
+        If TheOperation = "ADD" Then
+            For r = 1 To NumRows
+                For c = 1 To numColumns
+                    Let TheResults(r, c) = Arg1(c + cOffset1) + Arg2(r + rOffset2, c + cOffset2)
+                Next
             Next
-        Next
-    ElseIf ColumnVectorQ(Arg1) And MatrixQ(Arg2) Then
+        ElseIf TheOperation = "MULTIPLY" Then
+            For r = 1 To NumRows
+                For c = 1 To numColumns
+                    Let TheResults(r, c) = Arg1(c + cOffset1) * Arg2(r + rOffset2, c + cOffset2)
+                Next
+            Next
+        Else
+            For r = 1 To NumRows
+                For c = 1 To numColumns
+                    Let TheResults(r, c) = Arg1(c + cOffset1) / Arg2(r + rOffset2, c + cOffset2)
+                Next
+            Next
+        End If
+    ElseIf NumberOfDimensions(Arg1) = 2 And NumberOfColumns(Arg1) = 1 And NumberOfDimensions(Arg2) = 2 And NumberOfColumns(Arg2) > 1 Then
         Let NumRows = GetNumberOfRows(Arg2)
         Let numColumns = GetNumberOfColumns(Arg2)
         
@@ -2696,13 +2713,27 @@ Public Function Divide(Matrix1 As Variant, Matrix2 As Variant) As Variant
         Let rOffset2 = IIf(LBound(Arg2, 1) = 0, 1, 0)
         Let cOffset1 = IIf(LBound(Arg1, 2) = 0, 1, 0)
         Let cOffset2 = IIf(LBound(Arg2, 2) = 0, 1, 0)
-        
-        For r = 1 To NumRows
-            For c = 1 To numColumns
-                Let TheResults(r, c) = CDbl(Arg1(r + rOffset1, 1 + cOffset1)) / CDbl(Arg2(r + rOffset2, c + cOffset2))
+
+        If TheOperation = "ADD" Then
+            For r = 1 To NumRows
+                For c = 1 To numColumns
+                    Let TheResults(r, c) = Arg1(r + rOffset1, 1 + cOffset1) + Arg2(r + rOffset2, c + cOffset2)
+                Next
             Next
-        Next
-    ElseIf MatrixQ(Arg1) And MatrixQ(Arg2) Then
+        ElseIf TheOperation = "MULTIPLY" Then
+            For r = 1 To NumRows
+                For c = 1 To numColumns
+                    Let TheResults(r, c) = Arg1(r + rOffset1, 1 + cOffset1) * Arg2(r + rOffset2, c + cOffset2)
+                Next
+            Next
+        Else
+            For r = 1 To NumRows
+                For c = 1 To numColumns
+                    Let TheResults(r, c) = Arg1(r + rOffset1, 1 + cOffset1) / Arg2(r + rOffset2, c + cOffset2)
+                Next
+            Next
+        End If
+    Else
         ' If the code gets here, we are adding two 2D matrices of the same size
         Let NumRows = GetNumberOfRows(Arg1)
         Let numColumns = GetNumberOfColumns(Arg1)
@@ -2714,16 +2745,340 @@ Public Function Divide(Matrix1 As Variant, Matrix2 As Variant) As Variant
         Let rOffset2 = IIf(LBound(Arg2, 1) = 0, 1, 0)
         Let cOffset1 = IIf(LBound(Arg1, 2) = 0, 1, 0)
         Let cOffset2 = IIf(LBound(Arg2, 2) = 0, 1, 0)
-        
-        For r = 1 To NumRows
-            For c = 1 To numColumns
-                Let TheResults(r, c) = CDbl(Arg1(r + rOffset1, c + cOffset1)) / CDbl(Arg2(r + rOffset2, c + cOffset2))
+
+        If TheOperation = "ADD" Then
+            For r = 1 To NumRows
+                For c = 1 To numColumns
+                    Let TheResults(r, c) = Arg1(r + rOffset1, c + cOffset1) + Arg2(r + rOffset2, c + cOffset2)
+                Next
             Next
-        Next
+        ElseIf TheOperation = "MULTIPLY" Then
+            For r = 1 To NumRows
+                For c = 1 To numColumns
+                    Let TheResults(r, c) = Arg1(r + rOffset1, c + cOffset1) * Arg2(r + rOffset2, c + cOffset2)
+                Next
+            Next
+        Else
+            For r = 1 To NumRows
+                For c = 1 To numColumns
+                    Let TheResults(r, c) = Arg1(r + rOffset1, c + cOffset1) / Arg2(r + rOffset2, c + cOffset2)
+                Next
+            Next
+        End If
     End If
     
     ' Return the result
-    Let Divide = TheResults
+    Let ApplyElementwiseArithmeticOperation = TheResults
+End Function
+
+' DESCRIPTION
+' Calculates the dot product of two vectors. Returns Null if the parameters are incompatible.
+'
+' PARAMETERS
+' 1. v1 - a vector
+' 2. v2 -  a vector
+' 3. ParamConsistencyChecksQ (optiomal) - If explicitly passed as False, this function performs no
+'    parameter consistency checks
+'
+' RETURNED VALUE
+' The dot product of given vectors
+Public Function DotProduct(v1 As Variant, v2 As Variant, Optional ParamConsistencyChecksQ = True) As Variant
+    Dim v1prime As Variant
+    Dim v2prime As Variant
+    Dim i As Long
+    Dim TheResult As Double
+
+    Let DotProduct = Null
+
+    If ParamConsistencyChecksQ Then
+        If Not (DimensionedQ(v1) And DimensionedQ(v2)) Then Exit Function
+    
+        If Length(v1) <> Length(v2) Then Exit Function
+    
+        If Not (VectorQ(v1) And VectorQ(v2)) Then Exit Function
+    End If
+    
+    Let v1prime = Flatten(v1)
+    Let v2prime = Flatten(v2)
+    
+    For i = 1 To Length(v1prime)
+        Let TheResult = TheResult + v1prime(i) * v2prime(i)
+    Next i
+    
+    Let DotProduct = TheResult
+End Function
+
+' DESCRIPTION
+' Calculates the matix product of the two matrices. Returns Null if the parameters are incompatible.
+'
+' PARAMETERS
+' 1. m1 - a matrix
+' 2. m2 -  a matrix
+' 3. ParamConsistencyChecksQ (optiomal) - If explicitly passed as False, this function performs no
+'    parameter consistency checks
+'
+' RETURNED VALUE
+' The matrix product of given vectors
+Public Function MatrixMultiply(m1 As Variant, m2 As Variant, Optional ParamConsistencyChecksQ = True) As Variant
+    Dim r As Long
+    Dim c As Long
+    Dim TheResult As Variant
+
+    Let MatrixMultiply = Null
+
+    If ParamConsistencyChecksQ Then
+        If Not (DimensionedQ(m1) And DimensionedQ(m2)) Then Exit Function
+        
+        If NumberOfColumns(m1) <> NumberOfRows(m2) Then Exit Function
+    
+        If Not (MatrixQ(m1) And MatrixQ(m2)) Then Exit Function
+    End If
+    
+    ReDim TheResult(1 To NumberOfRows(m1), 1 To NumberOfColumns(m2))
+    For r = 1 To NumberOfRows(m1)
+        For c = 1 To NumberOfColumns(m2)
+            Let TheResult(r, c) = DotProduct(Part(m1, r), Part(m2, Span(1, -1), c))
+        Next c
+    Next r
+    
+    Let MatrixMultiply = TheResult
+End Function
+
+' DESCRIPTION
+' Fills in the banks and replaced nulls in a 1D array with the last, non-empty and non-null value.
+' Repeats the value in the first cell until it finds a different value. It then repeats that one
+' until a new one is found.  And so forth.  Nulls appearing before non-empty, non-null values are
+' replaced with Empty.
+'
+' If the optional parameter FillValue is not missing, Empty and Null is replaced with FillValue.
+'
+' PARAMETERS
+' 1. AnArray - An array
+' 2. FillValue (optional) - Value to use for replacing Empty and Null
+'
+' RETURNED VALUE
+' The given array with Empty and Null replaced by either the last non-Empty, non-Null value or
+' the given optional value
+Public Function FillArrayBlanks(AnArray As Variant, Optional FillValue As Variant) As Variant
+    Dim CurrentValue As Variant
+    Dim c As Long
+
+     FillArrayBlanks = Null
+
+    If Not DimensionedQ(AnArray) Then Exit Function
+    
+    If EmptyArrayQ(AnArray) Then
+        Let FillArrayBlanks = EmptyArray()
+        Exit Function
+    End If
+
+    If IsNull(First(AnArray)) Or IsEmpty(First(AnArray)) Then
+        Let CurrentValue = Empty
+    Else
+        Let CurrentValue = First(AnArray)
+    End If
+    
+    For c = LBound(AnArray, 1) To UBound(AnArray, 1)
+        If IsNull(AnArray(c)) Or IsEmpty(AnArray(c)) Then
+            Let AnArray(c) = IIf(IsMissing(FillValue), CurrentValue, FillValue)
+        ElseIf CurrentValue <> AnArray(c) Then
+            Let CurrentValue = AnArray(c)
+        End If
+    Next c
+            
+    Let FillArrayBlanks = AnArray
+End Function
+
+' DESCRIPTION
+' This function return the given array with sequential repeatitions blanked out. It is
+' useful to turn arrays into columns for Pivot Table-like arrangements.  For example,
+' Array(Empty, Empty, 1, 1, 1, 2, 2, 3) turns into
+' Array(Empty, Empty, 1, Empty, Empty, 2, Empty, 3)
+' If AnArray fails Predicates.AtomicArrayQ, the fuction returns Null.  The same thing
+' happens whenever the parameter makes no sense.
+'
+' PARAMETERS
+' 1. AnArray       - An array satisfying Predicates.AtomicArrayQ
+'
+' RETURNED VALUE
+' AnAtomicArrayOrTable after blanking out sequential repetitions of its elements.
+Public Function BlankOutArraySequentialRepetitions(ByVal AnArray As Variant)
+    Dim CurrentValue As Variant
+    Dim c As Long
+
+    Let BlankOutArraySequentialRepetitions = Null
+
+    If Not DimensionedQ(AnArray) Then Exit Function
+    
+    If EmptyArrayQ(AnArray) Then
+        Let BlankOutArraySequentialRepetitions = EmptyArray()
+        Exit Function
+    End If
+    
+    If Not AtomicArrayQ(AnArray) Then Exit Function
+    
+    Let CurrentValue = First(AnArray)
+    For c = LBound(AnArray, 1) + 1 To UBound(AnArray, 1)
+        If IsEmpty(AnArray(c)) Or IsNull(AnArray(c)) Then
+            Let AnArray(c) = Empty
+        ElseIf CurrentValue = AnArray(c) Then
+            Let AnArray(c) = Empty
+        Else
+            Let CurrentValue = AnArray(c)
+        End If
+    Next c
+            
+    Let BlankOutArraySequentialRepetitions = AnArray
+End Function
+
+' DESCRIPTION
+' This function inserts new elements in a repeated fashion in between the elements of the
+' given array. It can take several forms:
+'
+'    1. Riffle(Array(e1, e2, ...), elt)
+'    2. Riffle(Array(e1, e2, ...), Array(elt1, elt2, ...))
+'    3. Riffle(Array(e1, e2, ...), elt, n)
+'    4. Riffle(Array(e1, e2, ...), elt, Array(imin, imax, n))
+'       This case requires assumes that 1 instead of 0 is the first array position.
+'       It also requires imin<=imax
+'
+' If there are fewer elements in Array(elt1, elt2, ...) than gaps between  in Riffle(Array(e1,e2,…),Array(x1,x2,…)),
+' the Array(elt1, elt2, ...) are used cyclically. Riffle(Array(e),x) gives Array(e). The specification  is of the
+' type used in Take. Negative indices count from the end of the list.
+'
+' In Riffle[list, xlist], if list and xlist are of the same length, then their elements are directly interleaved,
+' so that the last element of the result is the last element of xlist.
+'
+' When A1DArray is an empty array, the empty array is returned unchanged.  When the parameters are inconsistent,
+' the function returns Null.
+Public Function Riffle(A1DArray As Variant, Arg2 As Variant, Optional StepInterval As Variant) As Variant
+    Dim ResultsDict As Dictionary
+    Dim var As Dictionary
+    Dim r As Long
+    Dim s As Long
+    Dim c As Long
+
+    If Not DimensionedQ(A1DArray) Then
+        Let Riffle = Null
+        Exit Function
+    End If
+
+    If EmptyArrayQ(A1DArray) Then
+        Let Riffle = A1DArray
+        Exit Function
+    End If
+    
+    If Not AtomicArrayQ(A1DArray) Then
+        Let Riffle = Null
+        Exit Function
+    End If
+    
+    If Not IsMissing(StepInterval) Then
+        If Not (PositiveWholeNumberQ(StepInterval) Or IsArray(StepInterval)) Then
+            Let Riffle = Null
+            Exit Function
+        End If
+        
+        If IsArray(StepInterval) Then
+            If Not AtomicQ(Arg2) Then
+                Let Riffle = Null
+                Exit Function
+            End If
+            
+            If Not PositiveWholeNumberArrayQ(StepInterval) And GetArrayLength(StepInterval) <> 3 Then
+                Let Riffle = Null
+                Exit Function
+            End If
+            
+            If First(StepInterval) > First(Rest(StepInterval)) Then
+                Let Riffle = Null
+                Exit Function
+            End If
+        End If
+    End If
+    
+    If Not (AtomicQ(Arg2) Or AtomicArrayQ(Arg2)) Then
+        Let Riffle = Null
+        Exit Function
+    End If
+    
+    If IsArray(Arg2) Then
+        If Not DimensionedQ(Arg2) Then
+            Let Riffle = Null
+            Exit Function
+        End If
+
+        If EmptyArrayQ(Arg2) Then
+            Let Riffle = Null
+            Exit Function
+        End If
+        
+        If Not AtomicArrayQ(Arg2) Then
+            Let Riffle = Null
+            Exit Function
+        End If
+        
+        If Not IsMissing(StepInterval) Then
+            Let Riffle = Null
+            Exit Function
+        End If
+    End If
+    
+    ' Case Riffle(Array(e1, e2, ...), elt) and Riffle(Array(e1, e2, ...), elt, n)
+    If AtomicArrayQ(A1DArray) And AtomicQ(Arg2) Then
+        If IsMissing(StepInterval) Then
+            Let StepInterval = 1
+        End If
+        
+        Let s = 1
+        Set ResultsDict = New Dictionary
+        For r = LBound(A1DArray, 1) To UBound(A1DArray, 1) - 1
+            Call ResultsDict.Add(Key:=r, Item:=A1DArray(r))
+            
+            If s Mod StepInterval = 0 Then
+                Call ResultsDict.Add(Key:=r & "-separator", Item:=Arg2)
+                Let s = 1
+            Else
+                Let s = s + 1
+            End If
+        Next
+        Call ResultsDict.Add(Key:=UBound(A1DArray, 1), Item:=A1DArray(UBound(A1DArray, 1)))
+        
+        Let Riffle = ResultsDict.Items
+        Exit Function
+    End If
+    
+    ' Case Riffle(Array(e1, e2, ...), Array(elt1, elt2, ...))
+    If AtomicArrayQ(A1DArray) And AtomicArrayQ(Arg2) Then
+        Let s = LBound(Arg2, 1)
+        Let c = 1
+        
+        Set ResultsDict = New Dictionary
+        For r = LBound(A1DArray, 1) To UBound(A1DArray, 1) - 1
+            Call ResultsDict.Add(Key:=c, Item:=A1DArray(r))
+            Call ResultsDict.Add(Key:=c + 1, Item:=Arg2(s))
+                
+            If s = UBound(Arg2, 1) Then
+                Let s = LBound(Arg2, 1)
+            Else
+                Let s = s + 1
+            End If
+            
+            Let c = c + 2
+        Next
+        Call ResultsDict.Add(Key:=c, Item:=A1DArray(UBound(A1DArray, 1)))
+        If GetArrayLength(A1DArray) = GetArrayLength(Arg2) Then
+            Call ResultsDict.Add(Key:=c + 1, _
+                                 Item:=Arg2(UBound(Arg2, 1)))
+        End If
+        
+        Let Riffle = ResultsDict.Items
+        Exit Function
+    End If
+    
+    ' Case Riffle(Array(e1, e2, ...), elt, Array(imin, imax, n))
+    Let s = 1
+    '***HERE1for r =
 End Function
 
 ' This function sorts the given 2D matrix by the columns whose positions are given by
@@ -3106,61 +3461,6 @@ Public Function SwapMatrixRows(TheMatrix As Variant, FirstRowIndex As Long, Seco
     Let SwapMatrixRows = TempComputation.Range("A1").CurrentRegion.Value2
 End Function
 
-' This function transposes 1D or 2D arrays
-' This function uses the built-in transposition function unless the optional parameter
-' UseBuiltInQ is passed with a value of False.
-Public Function TransposeMatrix(aMatrix As Variant, _
-                                Optional UseBuiltInQ As Boolean = True, _
-                                Optional ParameterCheckQ As Boolean = True) As Variant
-    Dim r As Long
-    Dim c As Long
-    Dim TheResult() As Variant
-    
-    If ParameterCheckQ Then
-        If Not DimensionedQ(aMatrix) Then
-            Let TransposeMatrix = Null
-            Exit Function
-        End If
-        
-        If NumberOfDimensions(aMatrix) = 0 Then
-            Let TransposeMatrix = aMatrix
-            Exit Function
-        End If
-    End If
-    
-    If EmptyArrayQ(aMatrix) Then
-        Let TransposeMatrix = EmptyArray()
-        Exit Function
-    End If
-    
-    If UseBuiltInQ Then
-        Let TransposeMatrix = Application.Transpose(aMatrix)
-        Exit Function
-    End If
-    
-    If NumberOfDimensions(aMatrix) = 1 Then
-        ReDim TheResult(LBound(aMatrix) To UBound(aMatrix), 1)
-    
-        For c = LBound(aMatrix) To UBound(aMatrix)
-            Let TheResult(c, 1) = aMatrix(c)
-        Next c
-        
-        Let TransposeMatrix = TheResult
-        
-        Exit Function
-    End If
-    
-    ReDim TheResult(LBound(aMatrix, 2) To UBound(aMatrix, 2), LBound(aMatrix, 1) To UBound(aMatrix, 1))
-
-    For r = LBound(aMatrix, 1) To UBound(aMatrix, 1)
-        For c = LBound(aMatrix, 2) To UBound(aMatrix, 2)
-            Let TheResult(c, r) = aMatrix(r, c)
-        Next c
-    Next r
-    
-    Let TransposeMatrix = TheResult
-End Function
-
 ' This function transposes a 1D array of 1D arrays into a 1D array of 1D arrays.
 ' For instance,
 ' Array(Array(1,2,3), Array(10,20,30)) => Array(Array(1,10), Array(2, 20), Array(3, 30))
@@ -3529,42 +3829,6 @@ Public Function Convert2DArrayIntoListOfParentheticalExpressions(TheArray As Var
     Let Convert2DArrayIntoListOfParentheticalExpressions = TheList
 End Function
 
-' This function resizes a 2D array while preserving values.
-' This function returns a variant. AnArray must be a 2D array.
-' If either NRows and NCols is less than Ubound(AnArray,1) or Ubound(AnArray,2) then the resulting
-' matrix truncates the input matrix accordingly
-Public Function Redim2DArray(AnArray As Variant, NRows As Long, NCols As Long) As Variant
-    Dim NewArray() As Variant
-    Dim r As Long
-    Dim c As Long
-    
-    If NumberOfDimensions(AnArray) <> 2 Then
-        Let Redim2DArray = AnArray
-        Exit Function
-    End If
-    
-    If Not IsArray(AnArray) Then
-        Let Redim2DArray = AnArray
-        Exit Function
-    End If
-    
-    If NRows < LBound(AnArray, 1) Or NCols < LBound(AnArray, 2) Then
-        Let Redim2DArray = AnArray
-        Exit Function
-    End If
-            
-    ReDim NewArray(LBound(AnArray, 1) To IIf(LBound(AnArray, 1) = 0, NRows - 1, NRows), _
-                   LBound(AnArray, 2) To IIf(LBound(AnArray, 2) = 0, NCols - 1, NCols))
-                   
-    For r = LBound(AnArray, 1) To Application.Min(NRows + IIf(LBound(AnArray, 1) = 0, NRows - 1, NRows), UBound(AnArray, 1))
-        For c = LBound(AnArray, 2) To Application.Min(NCols + IIf(LBound(AnArray, 2) = 0, NCols - 1, NRows), UBound(AnArray, 2))
-            Let NewArray(r, c) = AnArray(r, c)
-        Next c
-    Next r
-    
-    Let Redim2DArray = NewArray
-End Function
-
 ' The purpose of this function is to extend a2Darray1 with data from a2Darray2 using
 ' equality on the given key columns.  The function returns the "left joined" 2D array.
 ' This means that all rows in array1 are included. The data from array2 is included
@@ -3896,288 +4160,6 @@ Public Function InnerJoin2DArraysOnKeyEquality(a2DArray1 As Variant, _
     Let InnerJoin2DArraysOnKeyEquality = Prepend(TheResults, JoinedHeadersRow)
 End Function
 
-' Calculates the dot product of two vectors. Returns Null if the parameters are incompatible.
-Public Function DotProduct(v1 As Variant, v2 As Variant) As Variant
-    Dim v1prime As Variant
-    Dim v2prime As Variant
-    Dim i As Long
-    Dim TheResult As Double
-
-    If Not (VectorQ(v1) And VectorQ(v2)) Then
-        Let DotProduct = Null
-        Exit Function
-    End If
-    
-    If Length(v1) <> Length(v2) Then
-        Let DotProduct = Null
-        Exit Function
-    End If
-    
-    Let v1prime = ConvertTo1DArray(v1)
-    Let v2prime = ConvertTo1DArray(v2)
-    
-    For i = 1 To Length(v1prime)
-        Let TheResult = TheResult + v1prime(i) * v2prime(i)
-    Next i
-    
-    Let DotProduct = TheResult
-End Function
-
-' Performs matrix multiplication. Both parameters must satisfy VectorQ() or MatrixQ() The function returns Null if the parameters are incompatible.
-Public Function MatrixMultiply(m1 As Variant, m2 As Variant) As Variant
-    Dim r As Long
-    Dim c As Long
-    Dim TheResult() As Double
-    
-    If Not (MatrixQ(m1) And MatrixQ(m2)) Then
-        Let MatrixMultiply = Null
-        Exit Function
-    End If
-    
-    If NumberOfColumns(m1) <> NumberOfRows(m2) Then
-        Let MatrixMultiply = Null
-        Exit Function
-    End If
-    
-    ReDim TheResult(1 To NumberOfRows(m1), 1 To NumberOfColumns(m2))
-    For r = 1 To NumberOfRows(m1)
-        For c = 1 To NumberOfColumns(m2)
-            Let TheResult(r, c) = DotProduct(Part(m1, r), Part(m2, Span(1, -1), c))
-        Next c
-    Next r
-    
-    Let MatrixMultiply = TheResult
-End Function
-
-' Fills in the banks in a 1D array.  Repeats the value in the first cell until it finds a different value.
-' It then repeats that one until a new one is found.  And so forth.
-Public Function FillArrayBlanks(ByVal AnArray As Variant) As Variant
-    Dim CurrentValue As Variant
-    Dim c As Long
-
-    If Not DimensionedQ(AnArray) Then
-        Let FillArrayBlanks = Null
-        Exit Function
-    End If
-    
-    If EmptyArrayQ(AnArray) Then
-        Let FillArrayBlanks = EmptyArray()
-        Exit Function
-    End If
-
-    If IsNull(First(AnArray)) Then
-        Let CurrentValue = Empty
-    Else
-        Let CurrentValue = First(AnArray)
-    End If
-    
-    For c = LBound(AnArray, 1) To UBound(AnArray, 1)
-        If IsEmpty(AnArray(c)) Or IsNull(AnArray(c)) Then
-            Let AnArray(c) = CurrentValue
-        ElseIf AnArray(c) = Empty Then
-            Let AnArray(c) = CurrentValue
-        ElseIf CurrentValue <> AnArray(c) Then
-            Let CurrentValue = AnArray(c)
-        End If
-    Next c
-            
-    Let FillArrayBlanks = AnArray
-End Function
-
-' DESCRIPTION
-' This function return the given array with sequential repeatitions blanked out. It is
-' useful to turn arrays into columns for Pivot Table-like arrangements.  For example,
-' Array(Empty, Empty, 1, 1, 1, 2, 2, 3) turns into
-' Array(Empty, Empty, 1, Empty, Empty, 2, Empty, 3)
-' If AnArray fails Predicates.AtomicArrayQ, the fuction returns Null.  The same thing
-' happens whenever the parameter makes no sense.
-'
-' PARAMETERS
-' 1. AnArray       - An array satisfying Predicates.AtomicArrayQ
-'
-' RETURNED VALUE
-' AnAtomicArrayOrTable after blanking out sequential repetitions of its elements.
-Public Function BlankOutArraySequentialRepetitions(ByVal AnArray As Variant)
-    Dim CurrentValue As Variant
-    Dim c As Long
-
-    If Not DimensionedQ(AnArray) Then
-        Let BlankOutArraySequentialRepetitions = Null
-        Exit Function
-    End If
-    
-    If EmptyArrayQ(AnArray) Then
-        Let BlankOutArraySequentialRepetitions = EmptyArray()
-        Exit Function
-    End If
-    
-    If Not AtomicArrayQ(AnArray) Then
-        Let BlankOutArraySequentialRepetitions = Null
-        Exit Function
-    End If
-    
-    Let CurrentValue = First(AnArray)
-    For c = LBound(AnArray, 1) + 1 To UBound(AnArray, 1)
-        If IsEmpty(AnArray(c)) Or IsNull(AnArray(c)) Then
-            Let AnArray(c) = Empty
-        ElseIf CurrentValue = AnArray(c) Then
-            Let AnArray(c) = Empty
-        Else
-            Let CurrentValue = AnArray(c)
-        End If
-    Next c
-            
-    Let BlankOutArraySequentialRepetitions = AnArray
-End Function
-
-' DESCRIPTION
-' This function inserts new elements in a repeated fashion in between the elements of the
-' given array. It can take several forms:
-' 1. Riffle(Array(e1, e2, ...), elt)
-' 2. Riffle(Array(e1, e2, ...), Array(elt1, elt2, ...))
-' 3. Riffle(Array(e1, e2, ...), elt, n)
-' 4. Riffle(Array(e1, e2, ...), elt, Array(imin, imax, n))
-'    This case requires assumes that 1 instead of 0 is the first array position.
-'    It also requires imin<=imax
-'
-' If there are fewer elements in Array(elt1, elt2, ...) than gaps between  in Riffle(Array(e1,e2,…),Array(x1,x2,…)),
-' the Array(elt1, elt2, ...) are used cyclically. Riffle(Array(e),x) gives Array(e). The specification  is of the
-' type used in Take. Negative indices count from the end of the list.
-'
-' In Riffle[list, xlist], if list and xlist are of the same length, then their elements are directly interleaved,
-' so that the last element of the result is the last element of xlist.
-'
-' When A1DArray is an empty array, the empty array is returned unchanged.  When the parameters are inconsistent,
-' the function returns Null.
-Public Function Riffle(A1DArray As Variant, Arg2 As Variant, Optional StepInterval As Variant) As Variant
-    Dim ResultsDict As Dictionary
-    Dim var As Dictionary
-    Dim r As Long
-    Dim s As Long
-    Dim c As Long
-
-    If Not DimensionedQ(A1DArray) Then
-        Let Riffle = Null
-        Exit Function
-    End If
-
-    If EmptyArrayQ(A1DArray) Then
-        Let Riffle = A1DArray
-        Exit Function
-    End If
-    
-    If Not AtomicArrayQ(A1DArray) Then
-        Let Riffle = Null
-        Exit Function
-    End If
-    
-    If Not IsMissing(StepInterval) Then
-        If Not (PositiveWholeNumberQ(StepInterval) Or IsArray(StepInterval)) Then
-            Let Riffle = Null
-            Exit Function
-        End If
-        
-        If IsArray(StepInterval) Then
-            If Not AtomicQ(Arg2) Then
-                Let Riffle = Null
-                Exit Function
-            End If
-            
-            If Not PositiveWholeNumberArrayQ(StepInterval) And GetArrayLength(StepInterval) <> 3 Then
-                Let Riffle = Null
-                Exit Function
-            End If
-            
-            If First(StepInterval) > First(Rest(StepInterval)) Then
-                Let Riffle = Null
-                Exit Function
-            End If
-        End If
-    End If
-    
-    If Not (AtomicQ(Arg2) Or AtomicArrayQ(Arg2)) Then
-        Let Riffle = Null
-        Exit Function
-    End If
-    
-    If IsArray(Arg2) Then
-        If Not DimensionedQ(Arg2) Then
-            Let Riffle = Null
-            Exit Function
-        End If
-
-        If EmptyArrayQ(Arg2) Then
-            Let Riffle = Null
-            Exit Function
-        End If
-        
-        If Not AtomicArrayQ(Arg2) Then
-            Let Riffle = Null
-            Exit Function
-        End If
-        
-        If Not IsMissing(StepInterval) Then
-            Let Riffle = Null
-            Exit Function
-        End If
-    End If
-    
-    ' Case Riffle(Array(e1, e2, ...), elt) and Riffle(Array(e1, e2, ...), elt, n)
-    If AtomicArrayQ(A1DArray) And AtomicQ(Arg2) Then
-        If IsMissing(StepInterval) Then
-            Let StepInterval = 1
-        End If
-        
-        Let s = 1
-        Set ResultsDict = New Dictionary
-        For r = LBound(A1DArray, 1) To UBound(A1DArray, 1) - 1
-            Call ResultsDict.Add(Key:=r, Item:=A1DArray(r))
-            
-            If s Mod StepInterval = 0 Then
-                Call ResultsDict.Add(Key:=r & "-separator", Item:=Arg2)
-                Let s = 1
-            Else
-                Let s = s + 1
-            End If
-        Next
-        Call ResultsDict.Add(Key:=UBound(A1DArray, 1), Item:=A1DArray(UBound(A1DArray, 1)))
-        
-        Let Riffle = ResultsDict.Items
-        Exit Function
-    End If
-    
-    ' Case Riffle(Array(e1, e2, ...), Array(elt1, elt2, ...))
-    If AtomicArrayQ(A1DArray) And AtomicArrayQ(Arg2) Then
-        Let s = LBound(Arg2, 1)
-        Let c = 1
-        
-        Set ResultsDict = New Dictionary
-        For r = LBound(A1DArray, 1) To UBound(A1DArray, 1) - 1
-            Call ResultsDict.Add(Key:=c, Item:=A1DArray(r))
-            Call ResultsDict.Add(Key:=c + 1, Item:=Arg2(s))
-                
-            If s = UBound(Arg2, 1) Then
-                Let s = LBound(Arg2, 1)
-            Else
-                Let s = s + 1
-            End If
-            
-            Let c = c + 2
-        Next
-        Call ResultsDict.Add(Key:=c, Item:=A1DArray(UBound(A1DArray, 1)))
-        If GetArrayLength(A1DArray) = GetArrayLength(Arg2) Then
-            Call ResultsDict.Add(Key:=c + 1, _
-                                 Item:=Arg2(UBound(Arg2, 1)))
-        End If
-        
-        Let Riffle = ResultsDict.Items
-        Exit Function
-    End If
-    
-    ' Case Riffle(Array(e1, e2, ...), elt, Array(imin, imax, n))
-    Let s = 1
-    '***HERE1for r =
-End Function
 
 
 

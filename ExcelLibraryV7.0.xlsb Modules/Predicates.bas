@@ -1461,3 +1461,62 @@ End Function
 Public Function TakeIndexArrayQ(arg As Variant) As Boolean
     Let TakeIndexArrayQ = AllTrueQ(arg, ThisWorkbook, "TakeIndexQ")
 End Function
+
+' DESCRIPTION
+' This function returns True if the two parameters are consistent so elementwise operations may be
+' perform on it (e.g. addition, multiplication, and division).
+'
+' PARAMETERS
+' 1. Matrix1 - a scalar, vector, or matrix
+' 2. Matrix2 -  a scalar, vector, or matrix
+'
+' RETURNED VALUE
+' True if the dimensions of the two arguments are consistent for elementwise operations. False
+' otherwise.
+Public Function ElementwiseArithmeticParameterConsistentQ(Arg1 As Variant, Arg2 As Variant)
+    ' Set default return value when encountering erros
+    Let ElementwiseArithmeticParameterConsistentQ = False
+    
+    ' Check parameter consistency
+    If Not (IsNumeric(Arg1) Or VectorQ(Arg1) Or MatrixQ(Arg1)) Then Exit Function
+    
+    If Not (IsNumeric(Arg2) Or VectorQ(Arg2) Or MatrixQ(Arg2)) Then Exit Function
+    
+    If RowVectorQ(Arg1) And MatrixQ(Arg2) And _
+       GetNumberOfColumns(Arg1) <> GetNumberOfColumns(Arg2) Then Exit Function
+    
+    If MatrixQ(Arg1) And RowVectorQ(Arg2) And _
+       GetNumberOfColumns(Arg1) <> GetNumberOfColumns(Arg2) Then Exit Function
+    
+    If ColumnVectorQ(Arg1) And MatrixQ(Arg2) Then
+        If GetNumberOfRows(Arg1) <> GetNumberOfRows(Arg2) Then
+            Exit Function
+        Else
+            Let ElementwiseArithmeticParameterConsistentQ = True
+            Exit Function
+        End If
+    End If
+
+    If ColumnVectorQ(Arg2) And MatrixQ(Arg1) Then
+        If GetNumberOfRows(Arg1) <> GetNumberOfRows(Arg2) Then
+            Exit Function
+        Else
+            Let ElementwiseArithmeticParameterConsistentQ = True
+            Exit Function
+        End If
+    End If
+    
+    If MatrixQ(Arg1) And ColumnVectorQ(Arg2) And _
+       GetNumberOfRows(Arg1) <> GetNumberOfRows(Arg2) Then Exit Function
+       
+    If MatrixQ(Arg1) And MatrixQ(Arg2) Then
+        If GetNumberOfRows(Arg1) <> GetNumberOfRows(Arg2) Or _
+           GetNumberOfColumns(Arg1) <> GetNumberOfColumns(Arg2) Then Exit Function
+    End If
+        
+    If EmptyArrayQ(Arg1) And Not EmptyArrayQ(Arg2) Then Exit Function
+    
+    If EmptyArrayQ(Arg2) And Not EmptyArrayQ(Arg1) Then Exit Function
+    
+    Let ElementwiseArithmeticParameterConsistentQ = True
+End Function
