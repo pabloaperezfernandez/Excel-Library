@@ -4160,7 +4160,3 @@ Public Function InnerJoin2DArraysOnKeyEquality(a2DArray1 As Variant, _
     Let InnerJoin2DArraysOnKeyEquality = Prepend(TheResults, JoinedHeadersRow)
 End Function
 
-
-
-
-

@@ -162,13 +162,13 @@ End Function
 
 ' This function takes a string expected to be a 7-character SEDOL that may have dropped leading zeroes.
 ' It returns a seven character SEDOL, with as many zeroes as necessary on the left.
-Public Function AddLeadingZeroesTo7CharacterSedol(arg As Variant) As String
+Public Function AddLeadingZeroesTo7CharacterSedol(Arg As Variant) As String
     Dim TempString As String
 
-    If Len(CStr(arg)) < 7 Then
-        Let TempString = Application.Rept("0", 7 - Len(CStr(arg))) & CStr(arg)
+    If Len(CStr(Arg)) < 7 Then
+        Let TempString = Application.Rept("0", 7 - Len(CStr(Arg))) & CStr(Arg)
     Else
-        Let TempString = CStr(arg)
+        Let TempString = CStr(Arg)
     End If
         
         ' Pull the Bloomberg ticker corresponding to this 7-char SEDOL from the master file
@@ -178,13 +178,13 @@ End Function
 ' This one takes a string that may be interpreted as a 6-character SEDOL.  It pads it on the left
 ' with as many zeroes as needed, and adds the checksum character on the right, returning a valid
 ' character 7-character SEDOL.
-Public Function Make7CharacterSedol(arg As Variant) As String
+Public Function Make7CharacterSedol(Arg As Variant) As String
     Dim TempString As String
 
-    If Len(CStr(arg)) < 6 Then
-        Let TempString = Application.Rept("0", 6 - Len(CStr(arg))) & CStr(arg)
+    If Len(CStr(Arg)) < 6 Then
+        Let TempString = Application.Rept("0", 6 - Len(CStr(Arg))) & CStr(Arg)
     Else
-        Let TempString = CStr(arg)
+        Let TempString = CStr(Arg)
     End If
 
     If Len(TempString) < 7 Then

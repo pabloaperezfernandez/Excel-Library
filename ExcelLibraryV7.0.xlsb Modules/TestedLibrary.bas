@@ -2149,11 +2149,11 @@ Public Sub TestArraysAccumulate()
 End Sub
 
 Public Sub TestFunctionalProgrammingArrayMapThread()
-    PrintArray ArrayMapThread("StringJoin", ThisWorkbook, Array("1", "2", "3"), Array("One", "Two", "Three"))
+    PrintArray ArrayMapThread("StringJoin", Array("1", "2", "3"), Array("One", "Two", "Three"))
     
-    PrintArray ArrayMapThread("Total", ThisWorkbook, Array(1, 2, 3), Array(10, 20, 30), Array(100, 200, 300))
+    PrintArray ArrayMapThread("Total", Array(1, 2, 3), Array(10, 20, 30), Array(100, 200, 300))
 
-    PrintArray ArrayMapThread("Times", ThisWorkbook, Array(1, 2, 3), Array(10, 20, 30), Array(100, 200, 300))
+    PrintArray ArrayMapThread("Times", Array(1, 2, 3), Array(10, 20, 30), Array(100, 200, 300))
 End Sub
 
 Public Sub TestConnectAndSelect()

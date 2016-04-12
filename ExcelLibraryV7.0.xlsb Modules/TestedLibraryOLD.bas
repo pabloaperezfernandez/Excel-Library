@@ -2865,8 +2865,8 @@ Public Sub TestSelectFromArrayWithFunction()
     PrintArray SelectFromArrayWithFunction(AnArray, "HelperForTestSelectFromArrayWithFunction")
 End Sub
 
-Private Function HelperForTestSelectFromArrayWithFunction(arg As Integer) As Boolean
-    If arg <> Abs(arg) Then
+Private Function HelperForTestSelectFromArrayWithFunction(Arg As Integer) As Boolean
+    If Arg <> Abs(Arg) Then
         Let HelperForTestSelectFromArrayWithFunction = False
     Else
         Let HelperForTestSelectFromArrayWithFunction = True
@@ -2986,9 +2986,9 @@ Public Sub TestArrayMap()
     Debug.Print "a is:"
     PrintArray Pack2DArray(A)
     
-    Let A = ArrayMap("StringConcatenate", ThisWorkbook, A)
+    Let A = ArrayMap("StringConcatenate", A)
     Debug.Print "Let a = TransposeMatrix(Pack2DArray(Array(Array("; 1; ", "; 2; ", "; 3; "), Array("; 4; ", "; 5; ", "; 6; ")))"
-    Debug.Print "Let a = ArrayMap(""StringConcatenate"", ThisWorkbook, a)"
+    Debug.Print "Let a = ArrayMap(""StringConcatenate"", a)"
     PrintArray A
     
     Debug.Print "We are showing how to do MapThread using ArrayMap."
@@ -2998,7 +2998,7 @@ Public Sub TestArrayMap()
     Debug.Print "StringArray is:"
     PrintArray Pack2DArray(VariantArrayOfStringArrays)
     
-    PrintArray ArrayMap("StringConcatenate", ThisWorkbook, VariantArrayOfStringArrays)
+    PrintArray ArrayMap("StringConcatenate", VariantArrayOfStringArrays)
 End Sub
 
 Public Sub TestCreateDictionary1()
@@ -3111,7 +3111,7 @@ Public Sub TestStringJoin()
 End Sub
 
 Public Sub TestArrayMapThread()
-    PrintArray ArrayMapThread("StringJoin", ThisWorkbook, Array(Array("1", "2", "3"), Array("10", "20", "30")))
+    PrintArray ArrayMapThread("StringJoin", Array(Array("1", "2", "3"), Array("10", "20", "30")))
 End Sub
 
 Public Sub TestLeftJoin2DArraysOnKeyEquality()

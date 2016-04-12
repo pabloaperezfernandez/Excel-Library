@@ -10,15 +10,13 @@ Option Base 1
 '
 ' PARAMETERS
 ' 1. AFunctionNameArray - An array of function names
-' 2. CallingWorkbook - A reference to the workbook where the functions in AFunctionNameArray are located
-' 3. AnElement - Any atomic value to which each of the functions will be applied
-' 4. ParameterCheckQ (optional) - If this explicitly set to False, no parameter consistency checks are
+' 2. AnElement - Any atomic value to which each of the functions will be applied
+' 3. ParameterCheckQ (optional) - If this explicitly set to False, no parameter consistency checks are
 '    perform.
 '
 ' RETURNED VALUE
 ' An array with the results of applying a sequence of the functions to an element.
 Public Function Through(AFunctionNameArray As Variant, _
-                        CallingWorkbook As Workbook, _
                         AnElement As Variant, _
                         Optional ParameterCheckQ As Boolean = True) As Variant
     Dim ReturnArray() As Variant
@@ -48,7 +46,7 @@ Public Function Through(AFunctionNameArray As Variant, _
     
     ' Compute values from applying each function to AnElement
     For c = 1 To Length(AFunctionNameArray)
-        Let ReturnArray(c) = Run("'" & CallingWorkbook.Name & "'!" & AFunctionNameArray(c + LBound(AFunctionNameArray) - 1), _
+        Let ReturnArray(c) = Run(AFunctionNameArray(c + LBound(AFunctionNameArray) - 1), _
                                  AnElement)
     Next
     
@@ -64,13 +62,11 @@ End Function
 '
 ' PARAMETERS
 ' 1. AFunctionName - The name of the function to apply to each of the elements in the array
-' 2. CallingWorkbook - A reference to the workbook where the function is located
-' 3. A1DArray - An array of atomic elements
+' 2. A1DArray - An array of atomic elements
 '
 ' RETURNED VALUE
 ' An array with the results of applying a sequence of the functions to an element.
 Public Function ArrayMap(AFunctionName As String, _
-                         CallingWorkbook As Workbook, _
                          A1DArray As Variant) As Variant
     Dim ReturnArray As Variant
     Dim c As Long
@@ -94,7 +90,7 @@ Public Function ArrayMap(AFunctionName As String, _
     
     ' Compute the values from mapping the function over the array
     For c = 1 To Length(A1DArray)
-        Let ReturnArray(c) = Run("'" & CallingWorkbook.Name & "'!" & AFunctionName, _
+        Let ReturnArray(c) = Run(AFunctionName, _
                                  Part(A1DArray, c))
     Next c
 
@@ -109,15 +105,13 @@ End Function
 '
 ' PARAMETERS
 ' 1. AnArray - An array of atomic elements
-' 2. CallingWorkbook - A reference to the workbook where the function is located
-' 3. AFunctionName - The name of the function to apply to each of the elements in the array
-' 4. ParameterCheckQ (optional) - If this explicitly set to False, no parameter consistency checks are
+' 2. AFunctionName - The name of the function to apply to each of the elements in the array
+' 3. ParameterCheckQ (optional) - If this explicitly set to False, no parameter consistency checks are
 '    perform.
 '
 ' RETURNED VALUE
 ' An array with the results of applying a sequence of the functions to an element.
 Public Function ArraySelect(AnArray As Variant, _
-                            CallingWorkbook, _
                             AFunctionName As String) As Variant
     Dim ReturnArray As Variant
     Dim i As Long
@@ -143,7 +137,7 @@ Public Function ArraySelect(AnArray As Variant, _
     
     ' Cycle through the array, adding to the return array those elements yielding True
     For i = 1 To Length(AnArray)
-        If Run("'" & CallingWorkbook.Name & "'!" & AFunctionName, Part(AnArray, i)) Then
+        If Run(AFunctionName, Part(AnArray, i)) Then
             Let ReturnArray(i) = var
             Let c = c + 1
         End If
@@ -166,18 +160,16 @@ End Function
 '
 ' If the parameters are compatible with expectations, the function returns Null
 '
-' Example: ArrayMapThread("StringJoin", ThisWorkbook, array(1,2,3), array(10,20,30)) returns
+' Example: ArrayMapThread("StringJoin", array(1,2,3), array(10,20,30)) returns
 '          ("110", "220", "330")
 '
 ' PARAMETERS
 ' 1. AFunctionName - Name of the function to apply
-' 2. CallingWorkbook - A reference to the workbook where the function is located
-' 3. ArrayOfEqualLength1DArrays - A sequence of equal-length, atomic arrays
+' 2. ArrayOfEqualLength1DArrays - A sequence of equal-length, atomic arrays
 '
 ' RETURNED VALUE
 ' An array with the results of applying the given function to the threading of the parameter arrays
 Public Function ArrayMapThread(AFunctionName As String, _
-                               CallingWorkbook As Workbook, _
                                ParamArray ArrayOfEqualLength1DArrays() As Variant) As Variant
     Dim var As Variant
     Dim N As Long
@@ -223,7 +215,7 @@ Public Function ArrayMapThread(AFunctionName As String, _
             Let CallArray(c) = Part(Part(ParamsArray, c), r)
         Next
         
-        Let ReturnArray(r) = Run("'" & CallingWorkbook.Name & "'!" & AFunctionName, CallArray)
+        Let ReturnArray(r) = Run(AFunctionName, CallArray)
     Next
     
     ' Return the array used
@@ -231,50 +223,107 @@ Public Function ArrayMapThread(AFunctionName As String, _
 End Function
 
 ' DESCRIPTION
-' Returns the result of performing a Mathematica-like MapThread.  It returns an array with the same
-' length as any of the array elements of parameter ArrayOfEqualLength1DArrays after the sequential
-' application of the function with name AFunctionName to the arrays resulting from packing the ith
-' element of each of the arrays in ArrayOfEqualLength1DArrays.
+' Return the result of applying the given function N times iteratively to the given argument.
+' Returns the argument when N = 0.  Returns Null when N<0.
 '
-' If the parameters are compatible with expectations, the function returns Null
-'
-' Example: ArrayMapThread("StringJoin", ThisWorkbook, array(1,2,3), array(10,20,30)) returns
+' Example: ArrayMapThread("StringJoin", array(1,2,3), array(10,20,30)) returns
 '          ("110", "220", "330")
 '
 ' PARAMETERS
 ' 1. AFunctionName - Name of the function to apply
-' 2. CallingWorkbook - A reference to the workbook where the function is located
-' 3. ArrayOfEqualLength1DArrays - A sequence of equal-length, atomic arrays
+' 2. Arg - Initial value for initial function call
+' 3. N - Number of times to apply functional nesting
 '
 ' RETURNED VALUE
-' An array with the results of applying the given function to the threading of the parameter arrays
+' Returns the Nth iteration of a function to an argument
 Public Function Nest(AFunctionName As String, _
-                     CallingWorkbook As Workbook, _
+                     Arg As Variant, _
                      N As Long) As Variant
-'***HERE
+    If N < 0 Then
+        Let Nest = Null
+    ElseIf N = 0 Then
+        Let Nest = Arg
+    Else
+        Let Nest = Nest(AFunctionName, Run(AFunctionName, Arg), N - 1)
+    End If
 End Function
 
 ' DESCRIPTION
-' Returns the result of performing a Mathematica-like MapThread.  It returns an array with the same
-' length as any of the array elements of parameter ArrayOfEqualLength1DArrays after the sequential
-' application of the function with name AFunctionName to the arrays resulting from packing the ith
-' element of each of the arrays in ArrayOfEqualLength1DArrays.
+' Return the result of applying the given function N times iteratively to the given argument.
+' Returns the argument when N = 0.  Returns Null when N<0.
 '
-' If the parameters are compatible with expectations, the function returns Null
-'
-' Example: ArrayMapThread("StringJoin", ThisWorkbook, array(1,2,3), array(10,20,30)) returns
+' Example: ArrayMapThread("StringJoin", array(1,2,3), array(10,20,30)) returns
 '          ("110", "220", "330")
 '
 ' PARAMETERS
 ' 1. AFunctionName - Name of the function to apply
-' 2. CallingWorkbook - A reference to the workbook where the function is located
-' 3. ArrayOfEqualLength1DArrays - A sequence of equal-length, atomic arrays
+' 2. Arg - Initial value for initial function call
+' 3. N - Number of times to apply functional nesting
 '
 ' RETURNED VALUE
-' An array with the results of applying the given function to the threading of the parameter arrays
+' Returns the Nth iteration of a function to an argument
+Public Function Fold(AFunctionName As String, _
+                     FirstArg As Variant, _
+                     AnArrayForSecondArgs As Variant) As Variant
+    Dim ReturnArray As Variant
+    Dim CurrentValue As Variant
+    Dim i As Long
+                     
+    ' Set default return value for errors
+    Let Fold = Null
+    
+    ' Exit with Null if AnArrayForSecordArgs is not dimensioned
+    If Not DimensionedQ(AnArrayForSecondArgs) Then Exit Function
+    
+    ' Return an empty list if AnArrayForSecondArgs is empty
+    If EmptyArrayQ(AnArrayForSecondArgs) Then
+        Let Fold = FirstArg
+        
+        Exit Function
+    End If
+    
+    ReDim ReturnArray(1 To Length(AnArrayForSecondArgs) + 1)
+    For i = 1 To Length(AnArrayForSecondArgs) + 1
+    '***HERE
+    Next
+End Function
+
+' DESCRIPTION
+' Return an array recording the result of applying the given function iterativesly N
+' times to the given argument. Returns the argument when N = 0.  Returns Null when N<0.
+'
+' Example: ArrayMapThread("StringJoin", array(1,2,3), array(10,20,30)) returns
+'          ("110", "220", "330")
+'
+' PARAMETERS
+' 1. AFunctionName - Name of the function to apply
+' 2. Arg - Initial value for initial function call
+' 3. N - Number of times to apply functional nesting
+'
+' RETURNED VALUE
+' Returns array with the iterative application of a function to an argument
 Public Function NestList(AFunctionName As String, _
-                         CallingWorkbook As Workbook, _
+                         Arg As Variant, _
                          N As Long) As Variant
-'***HERE
+    Dim ResultArray As Variant
+    Dim i As Long
+    Dim CurrentValue As Variant
+    
+    If N < 0 Then
+        Let ResultArray = Null
+    ElseIf N = 0 Then
+        Let ResultArray = Array(Arg)
+    Else
+        ReDim ResultArray(1 To N + 1)
+        
+        Let ResultArray(1) = Arg
+        Let CurrentValue = Arg
+        For i = 2 To N + 1
+            Let ResultArray(i) = Run(AFunctionName, CurrentValue)
+            Let CurrentValue = ResultArray(i)
+        Next
+    End If
+    
+    Let NestList = ResultArray
 End Function
 

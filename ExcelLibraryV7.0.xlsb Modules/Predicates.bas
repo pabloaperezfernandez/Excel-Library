@@ -51,13 +51,13 @@ End Function
 '
 ' RETURNED VALUE
 ' True when arg is a dimensioned array. False otherwise.
-Public Function DimensionedQ(arg As Variant) As Boolean
+Public Function DimensionedQ(Arg As Variant) As Boolean
     Dim i As Long
     
     On Error Resume Next
     
     ' Exit with False
-    If Not IsArray(arg) Then
+    If Not IsArray(Arg) Then
         Let DimensionedQ = False
         Exit Function
     End If
@@ -65,7 +65,7 @@ Public Function DimensionedQ(arg As Variant) As Boolean
     ' If arg has not been dimensioned, this following line will raise an error.
     ' Due to On Error Resume Next, the code will resume in the next line, which
     ' will then check if an error has been raised.
-    Let i = UBound(arg, 1)
+    Let i = UBound(Arg, 1)
     
     Let DimensionedQ = Err.Number = 0
 End Function
@@ -79,13 +79,13 @@ End Function
 '
 ' RETURNED VALUE
 ' True when arg is a dimensioned, 1D, empty array.  Returns False otherwise
-Public Function EmptyArrayQ(arg As Variant) As Boolean
+Public Function EmptyArrayQ(Arg As Variant) As Boolean
     ' Exit with False if AnArray is not an array or has not been dimensioned
-    If Not DimensionedQ(arg) Then
+    If Not DimensionedQ(Arg) Then
         Let EmptyArrayQ = False
     ' Return True if we have an array with lower Ubound than LBound
     Else
-        Let EmptyArrayQ = UBound(arg, 1) - LBound(arg, 1) < 0
+        Let EmptyArrayQ = UBound(Arg, 1) - LBound(Arg, 1) < 0
     End If
 End Function
 
@@ -97,8 +97,8 @@ End Function
 '
 ' RETURNED VALUE
 ' True when arg is a non-empty array.  Returns False otherwise
-Public Function NonEmptyArrayQ(arg As Variant) As Boolean
-    Let NonEmptyArrayQ = IsArray(arg) And Not EmptyArrayQ(arg)
+Public Function NonEmptyArrayQ(Arg As Variant) As Boolean
+    Let NonEmptyArrayQ = IsArray(Arg) And Not EmptyArrayQ(Arg)
 End Function
 
 ' DESCRIPTION
@@ -123,13 +123,13 @@ End Function
 '
 ' RETURNED VALUE
 ' True when arg has one of the types detailed above. Returns False otherwise
-Public Function AtomicQ(arg As Variant) As Boolean
+Public Function AtomicQ(Arg As Variant) As Boolean
     Dim var As Variant
     
     Let AtomicQ = True
     
     For Each var In GetAtomicTypePredicateNames()
-        If Run(var, arg) Then Exit Function
+        If Run(var, Arg) Then Exit Function
     Next
     
     Let AtomicQ = False
@@ -160,10 +160,10 @@ End Function
 ' True when arg is byte, integer, long, single, double, or currency. LongLong
 ' is available on 64-bit systems exclusively, and Decimal is not found in
 ' my systems.  Returns False otherwise.
-Public Function NumberQ(arg As Variant) As Boolean
+Public Function NumberQ(Arg As Variant) As Boolean
     Dim TheVarType As VbVarType
 
-    Let TheVarType = VarType(arg)
+    Let TheVarType = VarType(Arg)
 
     If TheVarType = vbByte Or TheVarType = vbCurrency Or TheVarType = vbDecimal Or _
        TheVarType = vbDouble Or TheVarType = vbInteger Or TheVarType = vbLong Or _
@@ -183,8 +183,8 @@ End Function
 '
 ' RETURNED VALUE
 ' True or False depending on whether arg is dimensioned, non-empty and all its elements satisfy Predicates.NumberQ
-Public Function NumberArrayQ(arg As Variant) As Boolean
-    Let NumberArrayQ = AllTrueQ(arg, ThisWorkbook, "NumberQ")
+Public Function NumberArrayQ(Arg As Variant) As Boolean
+    Let NumberArrayQ = AllTrueQ(Arg, ThisWorkbook, "NumberQ")
 End Function
 
 ' DESCRIPTION
@@ -195,10 +195,10 @@ End Function
 '
 ' RETURNED VALUE
 ' True or False depending on whether or not its argument is a whole number.
-Public Function WholeNumberQ(arg As Variant) As Boolean
+Public Function WholeNumberQ(Arg As Variant) As Boolean
     Dim TheVarType As VbVarType
 
-    Let TheVarType = VarType(arg)
+    Let TheVarType = VarType(Arg)
 
     If TheVarType = vbByte Or TheVarType = vbInteger Or TheVarType = vbLong Then
         Let WholeNumberQ = True
@@ -206,7 +206,7 @@ Public Function WholeNumberQ(arg As Variant) As Boolean
     ' double.  Don't know why.  Makes no sense.  In any case, all we care about is that
     ' this have no nonzero decimal part.
     ElseIf TheVarType = vbDecimal Or TheVarType = vbDouble Or TheVarType = vbDouble Then
-        Let WholeNumberQ = CLng(arg) = arg
+        Let WholeNumberQ = CLng(Arg) = Arg
     Else
         Let WholeNumberQ = False
     End If
@@ -222,8 +222,8 @@ End Function
 ' RETURNED VALUE
 ' True or False depending on whether arg is dimensioned, non-empty and all its elements satisfy
 ' Predicates.WholeNumberQ
-Public Function WholeNumberArrayQ(arg As Variant) As Boolean
-    Let WholeNumberArrayQ = AllTrueQ(arg, ThisWorkbook, "WholeNumberQ")
+Public Function WholeNumberArrayQ(Arg As Variant) As Boolean
+    Let WholeNumberArrayQ = AllTrueQ(Arg, ThisWorkbook, "WholeNumberQ")
 End Function
 
 ' DESCRIPTION
@@ -235,9 +235,9 @@ End Function
 '
 ' RETURNED VALUE
 ' True or False depending on whether or not its argument is a positive whole number.
-Public Function PositiveWholeNumberQ(arg As Variant) As Boolean
-    If WholeNumberQ(arg) Then
-        Let PositiveWholeNumberQ = arg > 0
+Public Function PositiveWholeNumberQ(Arg As Variant) As Boolean
+    If WholeNumberQ(Arg) Then
+        Let PositiveWholeNumberQ = Arg > 0
     Else
         Let PositiveWholeNumberQ = False
     End If
@@ -253,8 +253,8 @@ End Function
 ' RETURNED VALUE
 ' True or False depending on whether or not its argument is dimensioned, non-empty and all
 ' its elements satisfy Predicates.PositiveWholeNumberQ
-Public Function PositiveWholeNumberArrayQ(arg As Variant) As Boolean
-    Let PositiveWholeNumberArrayQ = AllTrueQ(arg, ThisWorkbook, "PositiveWholeNumberQ")
+Public Function PositiveWholeNumberArrayQ(Arg As Variant) As Boolean
+    Let PositiveWholeNumberArrayQ = AllTrueQ(Arg, ThisWorkbook, "PositiveWholeNumberQ")
 End Function
 
 ' DESCRIPTION
@@ -266,9 +266,9 @@ End Function
 '
 ' RETURNED VALUE
 ' True or False depending on whether or not its argument is a negative whole number.
-Public Function NegativeWholeNumberQ(arg As Variant) As Boolean
-    If WholeNumberQ(arg) Then
-        Let NegativeWholeNumberQ = arg < 0
+Public Function NegativeWholeNumberQ(Arg As Variant) As Boolean
+    If WholeNumberQ(Arg) Then
+        Let NegativeWholeNumberQ = Arg < 0
     Else
         Let NegativeWholeNumberQ = False
     End If
@@ -284,8 +284,8 @@ End Function
 ' RETURNED VALUE
 ' True or False depending on whether arg is dimensioned, non-empty and all its elements satisfy
 ' Predicates.NegativeWholeNumberQ
-Public Function NegativeWholeNumberArrayQ(arg As Variant) As Boolean
-    Let NegativeWholeNumberArrayQ = AllTrueQ(arg, "NegativeWholeNumberQ")
+Public Function NegativeWholeNumberArrayQ(Arg As Variant) As Boolean
+    Let NegativeWholeNumberArrayQ = AllTrueQ(Arg, "NegativeWholeNumberQ")
 End Function
 
 ' DESCRIPTION
@@ -297,9 +297,9 @@ End Function
 '
 ' RETURNED VALUE
 ' True or False depending on whether or not its argument is a non-negative whole number.
-Public Function NonNegativeWholeNumberQ(arg As Variant) As Boolean
-    If WholeNumberQ(arg) Then
-        Let NonNegativeWholeNumberQ = arg >= 0
+Public Function NonNegativeWholeNumberQ(Arg As Variant) As Boolean
+    If WholeNumberQ(Arg) Then
+        Let NonNegativeWholeNumberQ = Arg >= 0
     Else
         Let NonNegativeWholeNumberQ = False
     End If
@@ -315,8 +315,8 @@ End Function
 ' RETURNED VALUE
 ' True or False depending on whether arg is dimensioned, non-empty and all its elements satisfy
 ' Predicates.NonNegativeWholeNumberQ
-Public Function NonNegativeWholeNumberArrayQ(arg As Variant) As Boolean
-    Let NonNegativeWholeNumberArrayQ = AllTrueQ(arg, ThisWorkbook, "NonNegativeWholeNumberQ")
+Public Function NonNegativeWholeNumberArrayQ(Arg As Variant) As Boolean
+    Let NonNegativeWholeNumberArrayQ = AllTrueQ(Arg, ThisWorkbook, "NonNegativeWholeNumberQ")
 End Function
 
 ' DESCRIPTION
@@ -327,9 +327,9 @@ End Function
 '
 ' RETURNED VALUE
 ' True or False depending on whether or not its argument is a nonzero, whole number.
-Public Function NonzeroWholeNumberQ(arg As Variant) As Boolean
-    If WholeNumberQ(arg) Then
-        Let NonzeroWholeNumberQ = arg <> 0
+Public Function NonzeroWholeNumberQ(Arg As Variant) As Boolean
+    If WholeNumberQ(Arg) Then
+        Let NonzeroWholeNumberQ = Arg <> 0
     Else
         Let NonzeroWholeNumberQ = False
     End If
@@ -345,8 +345,8 @@ End Function
 ' RETURNED VALUE
 ' True or False depending on whether or not its argument is dimensioned, non-empty and all
 ' its elements satisfy Predicates.NonzeroWholeNumberQ
-Public Function NonzeroWholeNumberArrayQ(arg As Variant) As Boolean
-    Let NonzeroWholeNumberArrayQ = AllTrueQ(arg, ThisWorkbook, "NonzeroWholeNumberQ")
+Public Function NonzeroWholeNumberArrayQ(Arg As Variant) As Boolean
+    Let NonzeroWholeNumberArrayQ = AllTrueQ(Arg, ThisWorkbook, "NonzeroWholeNumberQ")
 End Function
 
 ' DESCRIPTION
@@ -383,8 +383,8 @@ End Function
 '
 ' RETURNED VALUE
 ' True or False depending on whether or not its argument string or a whole number.
-Public Function WholeNumberOrStringQ(arg As Variant) As Boolean
-    Let WholeNumberOrStringQ = WholeNumberQ(arg) Or StringQ(arg)
+Public Function WholeNumberOrStringQ(Arg As Variant) As Boolean
+    Let WholeNumberOrStringQ = WholeNumberQ(Arg) Or StringQ(Arg)
 End Function
 
 ' DESCRIPTION
@@ -409,8 +409,8 @@ End Function
 '
 ' RETURNED VALUE
 ' True or False depending on whether or not its argument string or a number.
-Public Function NumberOrStringQ(arg As Variant) As Boolean
-    Let NumberOrStringQ = NumberQ(arg) Or StringQ(arg)
+Public Function NumberOrStringQ(Arg As Variant) As Boolean
+    Let NumberOrStringQ = NumberQ(Arg) Or StringQ(Arg)
 End Function
 
 ' DESCRIPTION
@@ -435,8 +435,8 @@ End Function
 '
 ' RETURNED VALUE
 ' True or False depending on whether arg its argument is an initialized workbook reference.
-Public Function WorkbookQ(arg As Variant) As Boolean
-    Let WorkbookQ = TypeName(arg) = TypeName(ThisWorkbook)
+Public Function WorkbookQ(Arg As Variant) As Boolean
+    Let WorkbookQ = TypeName(Arg) = TypeName(ThisWorkbook)
 End Function
 
 ' DESCRIPTION
@@ -461,8 +461,8 @@ End Function
 '
 ' RETURNED VALUE
 ' True or False depending on whether arg its argument is an initialized worksheet reference.
-Public Function WorksheetQ(arg As Variant) As Boolean
-    Let WorksheetQ = TypeName(arg) = TypeName(ThisWorkbook.Worksheets(1))
+Public Function WorksheetQ(Arg As Variant) As Boolean
+    Let WorksheetQ = TypeName(Arg) = TypeName(ThisWorkbook.Worksheets(1))
 End Function
 
 ' DESCRIPTION
@@ -487,8 +487,8 @@ End Function
 '
 ' RETURNED VALUE
 ' True or False depending on whether arg its argument is an initialized ListObject reference.
-Public Function ListObjectQ(arg As Variant) As Boolean
-    Let ListObjectQ = TypeName(arg) = "ListObject"
+Public Function ListObjectQ(Arg As Variant) As Boolean
+    Let ListObjectQ = TypeName(Arg) = "ListObject"
 End Function
 
 ' DESCRIPTION
@@ -865,15 +865,15 @@ End Function
 '
 ' RETURNED VALUE
 ' Returns True or False depending on whether or not its argument can be considered a numerical matrix.
-Public Function MatrixQ(arg As Variant) As Boolean
+Public Function MatrixQ(Arg As Variant) As Boolean
     Dim var As Variant
     
     Let MatrixQ = False
     
     ' Not necessary to test for DimensionedQ since NumberOfDimensions returns 0 for none arrays
-    If NumberOfDimensions(arg) <> 2 Then Exit Function
+    If NumberOfDimensions(Arg) <> 2 Then Exit Function
 
-    If Not NumberArrayQ(arg) Then Exit Function
+    If Not NumberArrayQ(Arg) Then Exit Function
     
     Let MatrixQ = True
 End Function
@@ -886,8 +886,8 @@ End Function
 '
 ' RETURNED VALUE
 ' Returns True or False depending on whether or not its argument can be considered a numerical matrix.
-Public Function BooleanQ(arg As Variant) As Boolean
-    Let BooleanQ = VarType(arg) = vbBoolean
+Public Function BooleanQ(Arg As Variant) As Boolean
+    Let BooleanQ = VarType(Arg) = vbBoolean
 End Function
 
 ' DESCRIPTION
@@ -912,8 +912,8 @@ End Function
 '
 ' RETURNED VALUE
 ' Returns True or False depending on whether or not its argument can be considered a table.
-Public Function AtomicTableQ(arg As Variant) As Boolean
-    Let AtomicTableQ = NumberOfDimensions(arg) = 2 And AtomicArrayQ(Flatten(arg))
+Public Function AtomicTableQ(Arg As Variant) As Boolean
+    Let AtomicTableQ = NumberOfDimensions(Arg) = 2 And AtomicArrayQ(Flatten(Arg))
 End Function
 
 ' DESCRIPTION
@@ -925,8 +925,8 @@ End Function
 '
 ' RETURNED VALUE
 ' Returns True or False depending on whether or not its argument can be considered a printable
-Public Function PrintableQ(arg As Variant) As Boolean
-    Let PrintableQ = AnyTrueQ(Through(GetPrintableTypePredicateNames(), arg))
+Public Function PrintableQ(Arg As Variant) As Boolean
+    Let PrintableQ = AnyTrueQ(Through(GetPrintableTypePredicateNames(), Arg))
 End Function
 
 ' DESCRIPTION
@@ -951,8 +951,8 @@ End Function
 '
 ' RETURNED VALUE
 ' Returns True or False depending on whether or not its argument can be considered a printable table.
-Public Function PrintableTableQ(arg As Variant) As Boolean
-    Let PrintableTableQ = NumberOfDimensions(arg) = 2 And PrintableArrayQ(Flatten(arg))
+Public Function PrintableTableQ(Arg As Variant) As Boolean
+    Let PrintableTableQ = NumberOfDimensions(Arg) = 2 And PrintableArrayQ(Flatten(Arg))
 End Function
 
 ' DESCRIPTION
@@ -964,8 +964,8 @@ End Function
 '
 ' RETURNED VALUE
 ' Returns True or False depending on whether or not its argument can be considered a vector.
-Function VectorQ(arg As Variant) As Boolean
-    Let VectorQ = RowVectorQ(arg) Or ColumnVectorQ(arg)
+Function VectorQ(Arg As Variant) As Boolean
+    Let VectorQ = RowVectorQ(Arg) Or ColumnVectorQ(Arg)
 End Function
 
 ' DESCRIPTION
@@ -978,24 +978,24 @@ End Function
 '
 ' RETURNED VALUE
 ' Returns True or False depending on whether or not its argument is a column vector.
-Public Function ColumnVectorQ(arg As Variant) As Boolean
+Public Function ColumnVectorQ(Arg As Variant) As Boolean
     Dim var As Variant
     
     Let ColumnVectorQ = False
     
-    If Not DimensionedQ(arg) Then Exit Function
+    If Not DimensionedQ(Arg) Then Exit Function
     
     ' Returning True for an empty array is necesary recursion to work properly on column vectors
-    If EmptyArrayQ(arg) Then
+    If EmptyArrayQ(Arg) Then
         Let ColumnVectorQ = True
         Exit Function
     End If
     
-    If NumberOfDimensions(arg) <> 2 Then Exit Function
+    If NumberOfDimensions(Arg) <> 2 Then Exit Function
     
-    If LBound(arg, 2) <> UBound(arg, 2) Then Exit Function
+    If LBound(Arg, 2) <> UBound(Arg, 2) Then Exit Function
     
-    If Not NumberArrayQ(arg) Then Exit Function
+    If Not NumberArrayQ(Arg) Then Exit Function
 
     Let ColumnVectorQ = True
 End Function
@@ -1009,22 +1009,22 @@ End Function
 '
 ' RETURNED VALUE
 ' Returns True or False depending on whether or not its argument is a row vector.
-Public Function RowVectorQ(arg As Variant) As Boolean
+Public Function RowVectorQ(Arg As Variant) As Boolean
     Dim var As Variant
     
     Let RowVectorQ = False
     
-    If Not DimensionedQ(arg) Then Exit Function
+    If Not DimensionedQ(Arg) Then Exit Function
     
     ' Returning True for an empty array is necesary recursion to work properly on row vectors
-    If EmptyArrayQ(arg) Then
+    If EmptyArrayQ(Arg) Then
         Let RowVectorQ = True
         Exit Function
     End If
     
-    If NumberOfDimensions(arg) <> 1 Then Exit Function
+    If NumberOfDimensions(Arg) <> 1 Then Exit Function
     
-    If Not NumberArrayQ(arg) Then Exit Function
+    If Not NumberArrayQ(Arg) Then Exit Function
     
     Let RowVectorQ = True
 End Function
@@ -1039,22 +1039,22 @@ End Function
 '
 ' RETURNED VALUE
 ' Returns True or False depending on whether or not its argument is a column vector.
-Public Function ColumnArrayQ(arg As Variant) As Boolean
+Public Function ColumnArrayQ(Arg As Variant) As Boolean
     Dim var As Variant
     
     Let ColumnArrayQ = False
     
     ' Returning True for an empty array is necesary recursion to work properly on column vectors
-    If EmptyArrayQ(arg) Then
+    If EmptyArrayQ(Arg) Then
         Let ColumnArrayQ = True
         Exit Function
     End If
     
-    If NumberOfDimensions(arg) <> 2 Then Exit Function
+    If NumberOfDimensions(Arg) <> 2 Then Exit Function
     
-    If LBound(arg, 2) <> UBound(arg, 2) Then Exit Function
+    If LBound(Arg, 2) <> UBound(Arg, 2) Then Exit Function
     
-    If Not AtomicArrayQ(arg) Then Exit Function
+    If Not AtomicArrayQ(Arg) Then Exit Function
 
     Let ColumnArrayQ = True
 End Function
@@ -1068,8 +1068,8 @@ End Function
 '
 ' RETURNED VALUE
 ' Returns True or False depending on whether or not its argument is a row vector.
-Public Function RowArrayQ(arg As Variant) As Boolean
-    Let RowArrayQ = AtomicArrayQ(arg)
+Public Function RowArrayQ(Arg As Variant) As Boolean
+    Let RowArrayQ = AtomicArrayQ(Arg)
 End Function
 
 ' DESCRIPTION
@@ -1081,8 +1081,8 @@ End Function
 ' RETURNED VALUE
 ' Returns True or False depending on whether or not its argument can be considered a row or column
 ' array.
-Function RowOrColumnArrayQ(arg As Variant) As Boolean
-    Let RowOrColumnArrayQ = RowArrayQ(arg) Or ColumnArrayQ(arg)
+Function RowOrColumnArrayQ(Arg As Variant) As Boolean
+    Let RowOrColumnArrayQ = RowArrayQ(Arg) Or ColumnArrayQ(Arg)
 End Function
 
 ' DESCRIPTION
@@ -1324,9 +1324,9 @@ End Function
 '
 ' RETURNED VALUE
 ' Returns True or False depending on whether or not its argument is zero
-Public Function ZeroQ(arg As Variant) As Boolean
-    If NumberQ(arg) Then
-        Let ZeroQ = arg = 0
+Public Function ZeroQ(Arg As Variant) As Boolean
+    If NumberQ(Arg) Then
+        Let ZeroQ = Arg = 0
     Else
         Let ZeroQ = False
     End If
@@ -1342,7 +1342,7 @@ End Function
 ' RETURNED VALUE
 ' Returns True or False depending on whether or not all the elements in the 1D, dimensioned
 ' array arg satisfy ZeroQ
-Public Function ZeroArrayQ(arg As Variant) As Boolean
+Public Function ZeroArrayQ(Arg As Variant) As Boolean
     Let ZeroArrayQ = AllTrueQ(AnArray, ThisWorkbook, "ZeroQ")
 End Function
 
@@ -1354,9 +1354,9 @@ End Function
 '
 ' RETURNED VALUE
 ' Returns True or False depending on whether or not its argument is 1
-Public Function OneQ(arg As Variant) As Boolean
-    If NumberQ(arg) Then
-        Let OneQ = arg = 1
+Public Function OneQ(Arg As Variant) As Boolean
+    If NumberQ(Arg) Then
+        Let OneQ = Arg = 1
     Else
         Let OneQ = False
     End If
@@ -1372,7 +1372,7 @@ End Function
 ' RETURNED VALUE
 ' Returns True or False depending on whether or not all the elements in the 1D, dimensioned
 ' array arg satisfy ZeroQ
-Public Function OneArrayQ(arg As Variant) As Boolean
+Public Function OneArrayQ(Arg As Variant) As Boolean
     Let OneArrayQ = AllTrueQ(AnArray, ThisWorkbook, "OneQ")
 End Function
 
@@ -1389,10 +1389,10 @@ End Function
 '
 ' RETURNED VALUE
 ' Returns True or False depending on whether or not the given parameter has one of the acceptable forms
-Public Function PartIndexQ(arg As Variant) As Boolean
-    Let PartIndexQ = NonzeroWholeNumberQ(arg) Or _
-                     (NonEmptyArrayQ(arg) And NonzeroWholeNumberArrayQ(arg)) Or _
-                     SpanQ(arg)
+Public Function PartIndexQ(Arg As Variant) As Boolean
+    Let PartIndexQ = NonzeroWholeNumberQ(Arg) Or _
+                     (NonEmptyArrayQ(Arg) And NonzeroWholeNumberArrayQ(Arg)) Or _
+                     SpanQ(Arg)
 End Function
 
 ' DESCRIPTION
@@ -1405,8 +1405,8 @@ End Function
 ' RETURNED VALUE
 ' Returns True or False depending on whether or not all the elements in the 1D, dimensioned
 ' array arg satisfy PartIndexQ
-Public Function PartIndexArrayQ(arg As Variant) As Boolean
-    Let PartIndexArrayQ = AllTrueQ(arg, ThisWorkbook, "PartIndexQ")
+Public Function PartIndexArrayQ(Arg As Variant) As Boolean
+    Let PartIndexArrayQ = AllTrueQ(Arg, ThisWorkbook, "PartIndexQ")
 End Function
 
 ' DESCRIPTION
@@ -1417,8 +1417,8 @@ End Function
 '
 ' RETURNED VALUE
 ' Returns True or False depending on whether or not its argument is an instance of class Span
-Public Function SpanQ(arg As Variant) As Boolean
-    Let SpanQ = TypeName(arg) = TypeName(ClassConstructors.Span(1, 1))
+Public Function SpanQ(Arg As Variant) As Boolean
+    Let SpanQ = TypeName(Arg) = TypeName(ClassConstructors.Span(1, 1))
 End Function
 
 ' DESCRIPTION
@@ -1429,8 +1429,8 @@ End Function
 '
 ' RETURNED VALUE
 ' Returns True or False depending on whether or not its argument is an array of class Soab instances
-Public Function SpanArrayQ(arg As Variant) As Boolean
-    Let SpanArrayQ = AllTrueQ(arg, ThisWorkbook, "SpanQ")
+Public Function SpanArrayQ(Arg As Variant) As Boolean
+    Let SpanArrayQ = AllTrueQ(Arg, ThisWorkbook, "SpanQ")
 End Function
 
 ' DESCRIPTION
@@ -1458,8 +1458,8 @@ End Function
 ' RETURNED VALUE
 ' Returns True or False depending on whether or not all the elements in the 1D, dimensioned
 ' array arg satisfy TakeIndexQ
-Public Function TakeIndexArrayQ(arg As Variant) As Boolean
-    Let TakeIndexArrayQ = AllTrueQ(arg, ThisWorkbook, "TakeIndexQ")
+Public Function TakeIndexArrayQ(Arg As Variant) As Boolean
+    Let TakeIndexArrayQ = AllTrueQ(Arg, ThisWorkbook, "TakeIndexQ")
 End Function
 
 ' DESCRIPTION
