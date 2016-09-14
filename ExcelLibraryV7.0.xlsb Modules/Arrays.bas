@@ -391,7 +391,7 @@ Public Function NormalizeIndex(AnArray As Variant, _
         If EmptyArrayQ(AnArray) Then Exit Function
             
         ' Exit with Null if TheIndex is not a positive integer
-        If Not NonzeroWholeNumberQ(TheIndex) Then Exit Function
+        If Not NonZeroWholeNumberQ(TheIndex) Then Exit Function
         
         ' Exit with Null if TheIndex is outside of acceptable bounds
         If DimensionIndexRelativeTo > NumberOfDimensions(AnArray) Then Exit Function
@@ -665,7 +665,7 @@ Public Function Part(AnArray As Variant, ParamArray Indices() As Variant) As Var
         End If
     
         ' Compute indices sequence for this dimension (e.g. r) from its specification
-        If NonzeroWholeNumberQ(AnIndex) Then
+        If NonZeroWholeNumberQ(AnIndex) Then
             Let IndicesCopy(IndexIndex) = NormalizeIndex(AnArray, AnIndex, r)
         ElseIf NonzeroWholeNumberArrayQ(AnIndex) And NonEmptyArrayQ(AnIndex) Then
             Let IndicesCopy(IndexIndex) = NormalizeIndexArray(AnArray, AnIndex, r, False)
@@ -795,7 +795,7 @@ Public Function Take(AnArray As Variant, Indices As Variant) As Variant
     
     If Not DimensionedQ(AnArray) Then Exit Function
     
-    If Not (NonzeroWholeNumberQ(Indices) Or NonzeroWholeNumberArrayQ(Indices)) Then Exit Function
+    If Not (NonZeroWholeNumberQ(Indices) Or NonzeroWholeNumberArrayQ(Indices)) Then Exit Function
     
     If WholeNumberArrayQ(Indices) And (Length(Indices) < 1 Or Length(Indices) > 3) Then Exit Function
     
