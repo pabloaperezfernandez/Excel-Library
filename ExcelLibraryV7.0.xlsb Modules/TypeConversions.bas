@@ -508,7 +508,7 @@ End Function
 '
 ' This function is deprecated in favor of ToStrings(), etc.  It is kept here for
 ' backward compatibility reasons.
-Public Function Cast(Arg As Variant, TheDataType As XlParameterDataType) As Variant
+Public Function Cast(arg As Variant, TheDataType As XlParameterDataType) As Variant
     Dim IntegerArray() As Integer
     Dim LongArray() As Integer
     Dim DoubleArray() As Double
@@ -525,45 +525,45 @@ Public Function Cast(Arg As Variant, TheDataType As XlParameterDataType) As Vari
         Exit Function
     End If
 
-    If IsArray(Arg) Then
+    If IsArray(arg) Then
         Select Case TheDataType
             Case xlParamTypeInteger
-                ReDim IntegerArray(LBound(Arg) To UBound(Arg))
+                ReDim IntegerArray(LBound(arg) To UBound(arg))
                 
-                For c = LBound(Arg) To UBound(Arg)
-                    Let IntegerArray(c) = CInt(Arg(c))
+                For c = LBound(arg) To UBound(arg)
+                    Let IntegerArray(c) = CInt(arg(c))
                 Next
                 
                 Let Cast = IntegerArray
             Case xlParamTypeLongVarBinary
-                ReDim LongArray(LBound(Arg) To UBound(Arg))
+                ReDim LongArray(LBound(arg) To UBound(arg))
                 
-                For c = LBound(Arg) To UBound(Arg)
-                    Let IntegerArray(c) = CLng(Arg(c))
+                For c = LBound(arg) To UBound(arg)
+                    Let IntegerArray(c) = CLng(arg(c))
                 Next
                 
                 Let Cast = LongArray
             Case xlParamTypeDouble
-                ReDim DoubleArray(LBound(Arg) To UBound(Arg))
+                ReDim DoubleArray(LBound(arg) To UBound(arg))
                 
-                For c = LBound(Arg) To UBound(Arg)
-                    Let DoubleArray(c) = CDbl(Arg(c))
+                For c = LBound(arg) To UBound(arg)
+                    Let DoubleArray(c) = CDbl(arg(c))
                 Next
                 
                 Let Cast = DoubleArray
             Case xlParamTypeChar
-                ReDim StringArray(LBound(Arg) To UBound(Arg))
+                ReDim StringArray(LBound(arg) To UBound(arg))
                 
-                For c = LBound(Arg) To UBound(Arg)
-                    Let StringArray(c) = CStr(Arg(c))
+                For c = LBound(arg) To UBound(arg)
+                    Let StringArray(c) = CStr(arg(c))
                 Next
                 
                 Let Cast = StringArray
             Case xlParamTypeBinary
-                ReDim BooleanArray(LBound(Arg) To UBound(Arg))
+                ReDim BooleanArray(LBound(arg) To UBound(arg))
                 
-                For c = LBound(Arg) To UBound(Arg)
-                    Let BooleanArray(c) = CBool(Arg(c))
+                For c = LBound(arg) To UBound(arg)
+                    Let BooleanArray(c) = CBool(arg(c))
                 Next
                 
                 Let Cast = BooleanArray
@@ -574,15 +574,15 @@ Public Function Cast(Arg As Variant, TheDataType As XlParameterDataType) As Vari
     
     Select Case TheDataType
         Case xlParamTypeInteger
-            Let Cast = CInt(Arg)
+            Let Cast = CInt(arg)
         Case xlParamTypeLongVarBinary
-            Let Cast = CLng(Arg)
+            Let Cast = CLng(arg)
         Case xlParamTypeDouble
-            Let Cast = CDbl(Arg)
+            Let Cast = CDbl(arg)
         Case xlParamTypeChar
-            Let Cast = CStr(Arg)
+            Let Cast = CStr(arg)
         Case xlParamTypeBinary
-            Let Cast = CBool(Arg)
+            Let Cast = CBool(arg)
     End Select
 End Function
 

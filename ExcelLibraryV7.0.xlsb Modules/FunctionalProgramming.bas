@@ -237,14 +237,14 @@ End Function
 ' RETURNED VALUE
 ' Returns the Nth iteration of a function to an argument
 Public Function Nest(AFunctionName As String, _
-                     Arg As Variant, _
+                     arg As Variant, _
                      N As Long) As Variant
     If N < 0 Then
         Let Nest = Null
     ElseIf N = 0 Then
-        Let Nest = Arg
+        Let Nest = arg
     Else
-        Let Nest = Nest(AFunctionName, Run(AFunctionName, Arg), N - 1)
+        Let Nest = Nest(AFunctionName, Run(AFunctionName, arg), N - 1)
     End If
 End Function
 
@@ -303,7 +303,7 @@ End Function
 ' RETURNED VALUE
 ' Returns array with the iterative application of a function to an argument
 Public Function NestList(AFunctionName As String, _
-                         Arg As Variant, _
+                         arg As Variant, _
                          N As Long) As Variant
     Dim ResultArray As Variant
     Dim i As Long
@@ -312,12 +312,12 @@ Public Function NestList(AFunctionName As String, _
     If N < 0 Then
         Let ResultArray = Null
     ElseIf N = 0 Then
-        Let ResultArray = Array(Arg)
+        Let ResultArray = Array(arg)
     Else
         ReDim ResultArray(1 To N + 1)
         
-        Let ResultArray(1) = Arg
-        Let CurrentValue = Arg
+        Let ResultArray(1) = arg
+        Let CurrentValue = arg
         For i = 2 To N + 1
             Let ResultArray(i) = Run(AFunctionName, CurrentValue)
             Let CurrentValue = ResultArray(i)

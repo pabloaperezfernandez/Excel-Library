@@ -15,13 +15,24 @@ Public Function GetAtomicTypePredicateNames() As Variant
                                             "DateQ", _
                                             "DictionaryQ", _
                                             "ListObjectQ", _
-                                            "NumberQ", _
                                             "StringQ", _
                                             "WorkbookQ", _
                                             "WorksheetQ", _
                                             "EmptyQ", _
                                             "ErrorQ", _
-                                            "NullQ")
+                                            "NullQ", _
+                                            "NumberQ", _
+                                            "PositiveQ", _
+                                            "NegativeQ", _
+                                            "NonPositiveQ", _
+                                            "NonNegativeQ", _
+                                            "NonWholeNumberQ", _
+                                            "WholeNumberQ", _
+                                            "PositiveWholeNumberQ", _
+                                            "NegativeWholeNumberQ", _
+                                            "NonPositiveWholeNumberQ", _
+                                            "NonNegativeWholeNumberQ", _
+                                            "NonZeroWholeNumberQ")
 End Function
 
 ' DESCRIPTION
@@ -69,13 +80,13 @@ End Function
 '
 ' RETURNED VALUE
 ' True when arg has one of the types detailed above. Returns False otherwise
-Public Function AtomicQ(Arg As Variant) As Boolean
+Public Function AtomicQ(arg As Variant) As Boolean
     Dim var As Variant
     
     Let AtomicQ = True
     
     For Each var In GetAtomicTypePredicateNames()
-        If Run(var, Arg) Then Exit Function
+        If Run(var, arg) Then Exit Function
     Next
     
     Let AtomicQ = False
@@ -125,10 +136,10 @@ End Function
 '
 ' RETURNED VALUE
 ' Returns True or False depending on whether or not its argument is zero
-Public Function ZeroQ(Arg As Variant) As Boolean
+Public Function ZeroQ(arg As Variant) As Boolean
     Let ZeroQ = False
 
-    If NumberQ(Arg) Then Let ZeroQ = Arg = 0
+    If NumberQ(arg) Then Let ZeroQ = arg = 0
 End Function
 
 ' DESCRIPTION
@@ -139,10 +150,10 @@ End Function
 '
 ' RETURNED VALUE
 ' True or False depending on whether or not its argument is a nonzero number.
-Public Function NonZeroQ(Arg As Variant) As Boolean
+Public Function NonZeroQ(arg As Variant) As Boolean
     Let NonZeroQ = False
     
-    If NumberQ(Arg) Then Let NonZeroQ = Arg <> 0
+    If NumberQ(arg) Then Let NonZeroQ = arg <> 0
 End Function
 
 ' DESCRIPTION
@@ -154,10 +165,10 @@ End Function
 ' RETURNED VALUE
 ' Returns True or False depending on whether or not its argument is a number equal
 ' to 1
-Public Function OneQ(Arg As Variant) As Boolean
+Public Function OneQ(arg As Variant) As Boolean
     Let OneQ = False
 
-    If NumberQ(Arg) Then Let OneQ = Arg = 1
+    If NumberQ(arg) Then Let OneQ = arg = 1
 End Function
 
 ' DESCRIPTION
@@ -168,10 +179,10 @@ End Function
 '
 ' RETURNED VALUE
 ' True or False depending on whether or not its argument is a number not equal to 1.
-Public Function NonOneQ(Arg As Variant) As Boolean
+Public Function NonOneQ(arg As Variant) As Boolean
     Let NonOneQ = False
     
-    If NumberQ(Arg) Then Let NonOneQ = Arg <> 1
+    If NumberQ(arg) Then Let NonOneQ = arg <> 1
 End Function
 
 ' DESCRIPTION
@@ -184,13 +195,13 @@ End Function
 ' True when arg is byte, integer, long, single, double, or currency. LongLong
 ' is available on 64-bit systems exclusively, and Decimal is not found in
 ' my systems.  Returns False otherwise.
-Public Function NumberQ(Arg As Variant) As Boolean
+Public Function NumberQ(arg As Variant) As Boolean
     Dim var As Variant
     
     Let NumberQ = True
     
     For Each var In GetNumericVarTypes()
-        If var = VarType(Arg) Then Exit Function
+        If var = VarType(arg) Then Exit Function
     Next
     
     Let NumberQ = False
@@ -205,10 +216,10 @@ End Function
 '
 ' RETURNED VALUE
 ' True or False depending on whether or not its argument is positive.
-Public Function PositiveQ(Arg As Variant) As Boolean
+Public Function PositiveQ(arg As Variant) As Boolean
     Let PositiveQ = False
 
-    If NumberQ(Arg) Then Let PositiveQ = Arg > 0
+    If NumberQ(arg) Then Let PositiveQ = arg > 0
 End Function
 
 ' DESCRIPTION
@@ -220,10 +231,10 @@ End Function
 '
 ' RETURNED VALUE
 ' True or False depending on whether or not its argument is negative.
-Public Function NegativeQ(Arg As Variant) As Boolean
+Public Function NegativeQ(arg As Variant) As Boolean
     Let NegativeQ = False
 
-    If NumberQ(Arg) Then Let NegativeQ = Arg < 0
+    If NumberQ(arg) Then Let NegativeQ = arg < 0
 End Function
 
 ' DESCRIPTION
@@ -235,10 +246,10 @@ End Function
 '
 ' RETURNED VALUE
 ' True or False depending on whether or not its argument is non-positive.
-Public Function NonPositiveQ(Arg As Variant) As Boolean
+Public Function NonPositiveQ(arg As Variant) As Boolean
     Let NonPositiveQ = False
 
-    If NumberQ(Arg) Then Let NonPositiveQ = Arg <= 0
+    If NumberQ(arg) Then Let NonPositiveQ = arg <= 0
 End Function
 
 ' DESCRIPTION
@@ -250,10 +261,10 @@ End Function
 '
 ' RETURNED VALUE
 ' True or False depending on whether or not its argument is non-negative.
-Public Function NonNegativeQ(Arg As Variant) As Boolean
+Public Function NonNegativeQ(arg As Variant) As Boolean
     Let NonNegativeQ = False
 
-    If NumberQ(Arg) Then Let NonNegativeQ = Arg >= 0
+    If NumberQ(arg) Then Let NonNegativeQ = arg >= 0
 End Function
 
 ' DESCRIPTION
@@ -265,14 +276,14 @@ End Function
 '
 ' RETURNED VALUE
 ' True or False depending on whether or not its argument is a non-whole number.
-Public Function NonWholeNumberQ(Arg As Variant) As Boolean
+Public Function NonWholeNumberQ(arg As Variant) As Boolean
     Let NonWholeNumberQ = False
 
-    If Not NumberQ(Arg) Then Exit Function
+    If Not NumberQ(arg) Then Exit Function
     
-    If CLng(Arg) = Arg Then Exit Function
+    If CLng(arg) = arg Then Exit Function
     
-    Let NonWholeNumber = True
+    Let NonWholeNumberQ = True
 End Function
 
 ' DESCRIPTION
@@ -283,10 +294,10 @@ End Function
 '
 ' RETURNED VALUE
 ' True or False depending on whether or not its argument is a whole number.
-Public Function WholeNumberQ(Arg As Variant) As Boolean
+Public Function WholeNumberQ(arg As Variant) As Boolean
     Dim TheVarType As VbVarType
 
-    Let TheVarType = VarType(Arg)
+    Let TheVarType = VarType(arg)
 
     If TheVarType = vbByte Or TheVarType = vbInteger Or TheVarType = vbLong Then
         Let WholeNumberQ = True
@@ -294,7 +305,7 @@ Public Function WholeNumberQ(Arg As Variant) As Boolean
     ' double.  Don't know why.  Makes no sense.  In any case, all we care about is that
     ' this have no nonzero decimal part.
     ElseIf TheVarType = vbDecimal Or TheVarType = vbDouble Or TheVarType = vbDouble Then
-        Let WholeNumberQ = CLng(Arg) = Arg
+        Let WholeNumberQ = CLng(arg) = arg
     Else
         Let WholeNumberQ = False
     End If
@@ -309,10 +320,10 @@ End Function
 '
 ' RETURNED VALUE
 ' True or False depending on whether or not its argument is a positive whole number.
-Public Function PositiveWholeNumberQ(Arg As Variant) As Boolean
+Public Function PositiveWholeNumberQ(arg As Variant) As Boolean
     Let PositiveWholeNumberQ = False
     
-    If WholeNumberQ(Arg) Then Let PositiveWholeNumberQ = Arg > 0
+    If WholeNumberQ(arg) Then Let PositiveWholeNumberQ = arg > 0
 End Function
 
 ' DESCRIPTION
@@ -324,10 +335,10 @@ End Function
 '
 ' RETURNED VALUE
 ' True or False depending on whether or not its argument is a negative whole number.
-Public Function NegativeWholeNumberQ(Arg As Variant) As Boolean
+Public Function NegativeWholeNumberQ(arg As Variant) As Boolean
     Let NegativeWholeNumberQ = False
     
-    If WholeNumberQ(Arg) Then Let NegativeWholeNumberQ = Arg < 0
+    If WholeNumberQ(arg) Then Let NegativeWholeNumberQ = arg < 0
 End Function
 
 ' DESCRIPTION
@@ -339,10 +350,10 @@ End Function
 '
 ' RETURNED VALUE
 ' True or False depending on whether or not its argument is a non-positive whole number.
-Public Function NonPositiveWholeNumberQ(Arg As Variant) As Boolean
+Public Function NonPositiveWholeNumberQ(arg As Variant) As Boolean
     Let NonPositiveWholeNumberQ = False
     
-    If WholeNumberQ(Arg) Then Let NonPositiveWholeNumberQ = Arg <= 0
+    If WholeNumberQ(arg) Then Let NonPositiveWholeNumberQ = arg <= 0
 End Function
 
 ' DESCRIPTION
@@ -354,10 +365,10 @@ End Function
 '
 ' RETURNED VALUE
 ' True or False depending on whether or not its argument is a non-negative whole number.
-Public Function NonNegativeWholeNumberQ(Arg As Variant) As Boolean
+Public Function NonNegativeWholeNumberQ(arg As Variant) As Boolean
     Let NonNegativeWholeNumberQ = False
     
-    If WholeNumberQ(Arg) Then Let NonNegativeWholeNumberQ = Arg >= 0
+    If WholeNumberQ(arg) Then Let NonNegativeWholeNumberQ = arg >= 0
 End Function
 
 ' DESCRIPTION
@@ -368,10 +379,22 @@ End Function
 '
 ' RETURNED VALUE
 ' True or False depending on whether or not its argument is a nonzero, whole number.
-Public Function NonZeroWholeNumberQ(Arg As Variant) As Boolean
+Public Function NonZeroWholeNumberQ(arg As Variant) As Boolean
     Let NonZeroWholeNumberQ = False
     
-    If WholeNumberQ(Arg) Then Let NonZeroWholeNumberQ = Arg <> 0
+    If WholeNumberQ(arg) Then Let NonZeroWholeNumberQ = arg <> 0
+End Function
+
+' DESCRIPTION
+' Boolean function returns True if Returns True is its argument is 2D matrix with numeric entries.
+'
+' PARAMETERS
+' 1. arg - Any Excel value or reference
+'
+' RETURNED VALUE
+' Returns True or False depending on whether or not its argument can be considered a numerical matrix.
+Public Function BooleanQ(arg As Variant) As Boolean
+    Let BooleanQ = VarType(arg) = vbBoolean
 End Function
 
 ' DESCRIPTION
@@ -394,8 +417,8 @@ End Function
 '
 ' RETURNED VALUE
 ' True or False depending on whether arg its argument is an initialized workbook reference.
-Public Function WorkbookQ(Arg As Variant) As Boolean
-    Let WorkbookQ = TypeName(Arg) = TypeName(ThisWorkbook)
+Public Function WorkbookQ(arg As Variant) As Boolean
+    Let WorkbookQ = TypeName(arg) = TypeName(ThisWorkbook)
 End Function
 
 ' DESCRIPTION
@@ -406,8 +429,8 @@ End Function
 '
 ' RETURNED VALUE
 ' True or False depending on whether arg its argument is an initialized worksheet reference.
-Public Function WorksheetQ(Arg As Variant) As Boolean
-    Let WorksheetQ = TypeName(Arg) = TypeName(ThisWorkbook.Worksheets(1))
+Public Function WorksheetQ(arg As Variant) As Boolean
+    Let WorksheetQ = TypeName(arg) = TypeName(ThisWorkbook.Worksheets(1))
 End Function
 
 ' DESCRIPTION
@@ -444,8 +467,8 @@ End Function
 '
 ' RETURNED VALUE
 ' True or False depending on whether arg its argument is an initialized ListObject reference.
-Public Function ListObjectQ(Arg As Variant) As Boolean
-    Let ListObjectQ = TypeName(Arg) = "ListObject"
+Public Function ListObjectQ(arg As Variant) As Boolean
+    Let ListObjectQ = TypeName(arg) = "ListObject"
 End Function
 
 ' DESCRIPTION
@@ -461,10 +484,10 @@ End Function
 '
 ' RETURNED VALUE
 ' Returns True or False depending on whether or not the given parameter has one of the acceptable forms
-Public Function PartIndexQ(Arg As Variant) As Boolean
-    Let PartIndexQ = NonZeroWholeNumberQ(Arg) Or _
-                     (NonEmptyArrayQ(Arg) And NonzeroWholeNumberArrayQ(Arg)) Or _
-                     SpanQ(Arg)
+Public Function PartIndexQ(arg As Variant) As Boolean
+    Let PartIndexQ = NonZeroWholeNumberQ(arg) Or _
+                     (NonEmptyArrayQ(arg) And NonzeroWholeNumberArrayQ(arg)) Or _
+                     SpanQ(arg)
 End Function
 
 ' DESCRIPTION
@@ -490,8 +513,8 @@ End Function
 '
 ' RETURNED VALUE
 ' Returns True or False depending on whether or not its argument is an instance of class Span
-Public Function SpanQ(Arg As Variant) As Boolean
-    Let SpanQ = TypeName(Arg) = TypeName(ClassConstructors.Span(1, 1))
+Public Function SpanQ(arg As Variant) As Boolean
+    Let SpanQ = TypeName(arg) = TypeName(ClassConstructors.Span(1, 1))
 End Function
 
 ' DESCRIPTION
@@ -502,8 +525,8 @@ End Function
 '
 ' RETURNED VALUE
 ' True or False depending on whether or not its argument string or a number.
-Public Function NumberOrStringQ(Arg As Variant) As Boolean
-    Let NumberOrStringQ = NumberQ(Arg) Or StringQ(Arg)
+Public Function NumberOrStringQ(arg As Variant) As Boolean
+    Let NumberOrStringQ = NumberQ(arg) Or StringQ(arg)
 End Function
 
 ' DESCRIPTION
@@ -514,8 +537,8 @@ End Function
 '
 ' RETURNED VALUE
 ' True or False depending on whether or not its argument string or a whole number.
-Public Function WholeNumberOrStringQ(Arg As Variant) As Boolean
-    Let WholeNumberOrStringQ = WholeNumberQ(Arg) Or StringQ(Arg)
+Public Function WholeNumberOrStringQ(arg As Variant) As Boolean
+    Let WholeNumberOrStringQ = WholeNumberQ(arg) Or StringQ(arg)
 End Function
 
 ' DESCRIPTION

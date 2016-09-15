@@ -213,7 +213,11 @@ Public Function First(AnArray As Variant) As Variant
         If EmptyArrayQ(AnArray) Then
             Exit Function
         Else
-            Let First = AnArray(LBound(AnArray))
+            If IsObject(AnArray(LBound(AnArray))) Then
+                Set First = AnArray(LBound(AnArray))
+            Else
+                Let First = AnArray(LBound(AnArray))
+            End If
         End If
     ElseIf NumberOfDimensions(AnArray) = 2 Then
         Let First = Part(AnArray, 1)
@@ -241,7 +245,11 @@ Public Function Last(AnArray As Variant) As Variant
         If EmptyArrayQ(AnArray) Then
             Exit Function
         Else
-            Let Last = AnArray(UBound(AnArray))
+            If IsObject(AnArray(UBound(AnArray))) Then
+                Set Last = AnArray(UBound(AnArray))
+            Else
+                Let Last = AnArray(UBound(AnArray))
+            End If
         End If
     ElseIf NumberOfDimensions(AnArray) = 2 Then
         Let Last = Part(AnArray, -1)
@@ -591,9 +599,10 @@ Public Function CreateIndexSequenceFromSpan(AnArray As Variant, _
 End Function
 
 ' DESCRIPTION
-' This function returns the requested part of an array.  It works just like Mathematica's Part[].  The returned
-' value depends on the form of parameter Indices.  Works on 1D and 2D arrays.  Use the function
-' ClassConstructors.Span() wherever you would use Mathematica Span such as All, 1;;2,
+' This function returns the requested part of an array.  It works just like Mathematica's Part[].
+' The returned value depends on the form of parameter Indices.  Works on 1D and 2D arrays.  Use
+' the function ClassConstructors.Span() wherever you would use Mathematica Span such as All
+' and 1;;2.
 '
 ' PARAMETERS
 ' 1. AnArray - A dimensioned array
@@ -679,7 +688,7 @@ Public Function Part(AnArray As Variant, ParamArray Indices() As Variant) As Var
         If NullQ(IndicesCopy(IndexIndex)) Then Exit Function
         
         If IsArray(IndicesCopy) Then
-            If AnyTrueQ(IndicesCopy(IndexIndex), ThisWorkbook, "NullQ") Then Exit Function
+            If AnyTrueQ(IndicesCopy(IndexIndex), "NullQ") Then Exit Function
         End If
     Next
     
@@ -691,7 +700,11 @@ Public Function Part(AnArray As Variant, ParamArray Indices() As Variant) As Var
         
             ' A single element was requested
             If WholeNumberQ(ColumnIndices) Then
-                Let ReturnArray = AnArray(ColumnIndices)
+                If IsObject(AnArray(ColumnIndices)) Then
+                    Set ReturnArray = AnArray(ColumnIndices)
+                Else
+                    Let ReturnArray = AnArray(ColumnIndices)
+                End If
             ' A sequence of elements was requested
             Else
                 ' Pre-allocate a 1D array since AnArray is one-dimensional
@@ -700,7 +713,11 @@ Public Function Part(AnArray As Variant, ParamArray Indices() As Variant) As Var
                 ' Extract the requested elements from AnArray
                 For c = 1 To Length(ColumnIndices)
                     Let ic = NormalizeIndex(ColumnIndices, c)
-                    Let ReturnArray(c) = AnArray(ColumnIndices(ic))
+                    If IsObject(AnArray(ColumnIndices(ic))) Then
+                        Set ReturnArray(c) = AnArray(ColumnIndices(ic))
+                    Else
+                        Let ReturnArray(c) = AnArray(ColumnIndices(ic))
+                    End If
                 Next
             End If
             
@@ -715,7 +732,12 @@ Public Function Part(AnArray As Variant, ParamArray Indices() As Variant) As Var
                     ReDim ReturnArray(1 To NumberOfColumns(AnArray))
                     For c = 1 To NumberOfColumns(AnArray)
                         Let ic = NormalizeIndex(AnArray, c, 2)
-                        Let ReturnArray(c) = AnArray(RowIndices, ic)
+                        
+                        If IsObject(AnArray(RowIndices, ic)) Then
+                            Set ReturnArray(c) = AnArray(RowIndices, ic)
+                        Else
+                            Let ReturnArray(c) = AnArray(RowIndices, ic)
+                        End If
                     Next
                 Else
                     ReDim ReturnArray(1 To Length(RowIndices), 1 To NumberOfColumns(AnArray))
@@ -724,7 +746,11 @@ Public Function Part(AnArray As Variant, ParamArray Indices() As Variant) As Var
                             Let ir = NormalizeIndex(RowIndices, r)
                             Let ic = NormalizeIndex(AnArray, c, 2)
                         
-                            Let ReturnArray(r, c) = AnArray(RowIndices(ir), ic)
+                            If IsObject(AnArray(RowIndices(ir), ic)) Then
+                                Set ReturnArray(r, c) = AnArray(RowIndices(ir), ic)
+                            Else
+                                Let ReturnArray(r, c) = AnArray(RowIndices(ir), ic)
+                            End If
                         Next
                     Next
                 End If
@@ -739,20 +765,36 @@ Public Function Part(AnArray As Variant, ParamArray Indices() As Variant) As Var
                     ReDim ReturnArray(1 To Length(ColumnIndices))
                     For c = 1 To Length(ColumnIndices)
                         Let ic = ColumnIndices(NormalizeIndex(ColumnIndices, c))
-                        Let ReturnArray(c) = AnArray(RowIndices, ic)
+                        
+                        If IsObject(AnArray(RowIndices, ic)) Then
+                            Set ReturnArray(c) = AnArray(RowIndices, ic)
+                        Else
+                            Let ReturnArray(c) = AnArray(RowIndices, ic)
+                        End If
                     Next
                 ElseIf IsArray(RowIndices) And WholeNumberQ(ColumnIndices) Then
                     ReDim ReturnArray(1 To Length(RowIndices))
                     For r = 1 To Length(RowIndices)
                         Let ir = RowIndices(NormalizeIndex(RowIndices, r))
-                        Let ReturnArray(r) = AnArray(ir, ColumnIndices)
+                        
+                        If IsObject(AnArray(ir, ColumnIndices)) Then
+                            Set ReturnArray(r) = AnArray(ir, ColumnIndices)
+                        Else
+                            Let ReturnArray(r) = AnArray(ir, ColumnIndices)
+                        End If
                     Next
                 Else
                     ReDim ReturnArray(1 To Length(RowIndices), 1 To Length(ColumnIndices))
                     For ir = 1 To Length(RowIndices)
                         For ic = 1 To Length(ColumnIndices)
-                            Let ReturnArray(ir, ic) = AnArray(RowIndices(NormalizeIndex(RowIndices, ir)), _
-                                                              ColumnIndices(NormalizeIndex(ColumnIndices, ic)))
+                            If IsObject(AnArray(RowIndices(NormalizeIndex(RowIndices, ir)), _
+                                                ColumnIndices(NormalizeIndex(ColumnIndices, ic)))) Then
+                                Set ReturnArray(ir, ic) = AnArray(RowIndices(NormalizeIndex(RowIndices, ir)), _
+                                                                  ColumnIndices(NormalizeIndex(ColumnIndices, ic)))
+                            Else
+                                Let ReturnArray(ir, ic) = AnArray(RowIndices(NormalizeIndex(RowIndices, ir)), _
+                                                                  ColumnIndices(NormalizeIndex(ColumnIndices, ic)))
+                            End If
                         Next
                     Next
                 End If
@@ -761,7 +803,11 @@ Public Function Part(AnArray As Variant, ParamArray Indices() As Variant) As Var
             Exit Function
     End Select
     
-    Let Part = ReturnArray
+    If IsObject(ReturnArray) Then
+        Set Part = ReturnArray
+    Else
+        Let Part = ReturnArray
+    End If
 End Function
 
 ' DESCRIPTION

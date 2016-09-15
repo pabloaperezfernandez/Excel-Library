@@ -2865,8 +2865,8 @@ Public Sub TestSelectFromArrayWithFunction()
     PrintArray SelectFromArrayWithFunction(AnArray, "HelperForTestSelectFromArrayWithFunction")
 End Sub
 
-Private Function HelperForTestSelectFromArrayWithFunction(Arg As Integer) As Boolean
-    If Arg <> Abs(Arg) Then
+Private Function HelperForTestSelectFromArrayWithFunction(arg As Integer) As Boolean
+    If arg <> Abs(arg) Then
         Let HelperForTestSelectFromArrayWithFunction = False
     Else
         Let HelperForTestSelectFromArrayWithFunction = True

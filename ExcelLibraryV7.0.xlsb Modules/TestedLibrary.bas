@@ -6,7 +6,7 @@ Option Base 1
 ' Miscellaneous VBA
 '********************************************************************************************
 Public Sub TestArrayParamUsage()
-    Debug.Print "Call VarParamFunction"
+    Debug.Print "Call VarParamFunction()"
     Call VarParamFunction
     Debug.Print
     Debug.Print "Call VarParamFunction(0)"
@@ -60,6 +60,59 @@ End Sub
 '********************************************************************************************
 ' Predicates
 '********************************************************************************************
+Public Sub TestPredicatesAtomicQ()
+    Dim anInteger As Integer
+    Dim aDouble As Double
+    Dim aDate As Date
+    Dim aBoolean As Boolean
+    Dim aString As String
+    Dim aWorksheet As Worksheet
+    Dim aWorkbook As Workbook
+    Dim aListObject As ListObject
+    Dim aDictionary As Dictionary
+    Dim aVariant As Variant
+    Dim AnArray(1 To 2) As Integer
+    Dim var1 As Variant
+    Dim var2 As Variant
+    
+    Set aWorksheet = ActiveSheet
+    Set aWorkbook = ThisWorkbook
+    Set aListObject = AddListObject(TempComputation.Range("A1"))
+    Set aDictionary = New Dictionary
+    Let aVariant = 1
+    
+    For Each var1 In GetAtomicTypePredicateNames()
+        Debug.Print "Testing " & var1
+    
+        For Each var2 In Array(Array("aDate", aDate), _
+                               Array("1", 1), _
+                               Array("-1", -1), _
+                               Array("1.1", 1.1), _
+                               Array("-1.1", -1.1), _
+                               Array("0", 0), _
+                               Array("aDouble", aDouble), _
+                               Array("aBoolean", aBoolean), _
+                               Array("aString", aString), _
+                               Array("CVErr(1)", CVErr(1)), _
+                               Array("aWorksheet", aWorksheet), _
+                               Array("aWorkbook", aWorkbook), _
+                               Array("aListObject", aListObject), _
+                               Array("aVariant", aVariant), _
+                               Array("AnArray", AnArray), _
+                               Array("aDictionary", aDictionary), _
+                               Array("Empty", Empty), _
+                               Array("Null", Null))
+            Debug.Print "    - " & var1 & "(" & First(var2) & ") = " & Run(var1, Last(var2))
+        Next
+        
+        Debug.Assert (1 = 2) ' Using this to pause between tests
+        
+        Debug.Print
+    Next
+
+    Call aListObject.Delete
+End Sub
+
 Public Sub TestPredicatesAllTrueQ()
     Dim UndimensionedArray() As Variant
 
@@ -126,39 +179,6 @@ Public Sub TestPredicatesEmptyArrayQ()
     Debug.Print "b(1 To 2) is EmptyArrayQ is " & EmptyArrayQ(B)
     Debug.Print "c is an integer is EmptyArrayQ is " & EmptyArrayQ(c)
     Debug.Print "wbk is EmptyArrayQ is " & EmptyArrayQ(wbk)
-End Sub
-
-Public Sub TestPredicatesAtomicQ()
-    Dim anInteger As Integer
-    Dim aDouble As Double
-    Dim aDate As Date
-    Dim aBoolean As Boolean
-    Dim aString As String
-    Dim aWorksheet As Worksheet
-    Dim aWorkbook As Workbook
-    Dim aListObject As ListObject
-    Dim aVariant As Variant
-    Dim AnArray(1 To 2) As Integer
-    
-    Set aWorksheet = ActiveSheet
-    Set aWorkbook = ThisWorkbook
-    Set aListObject = AddListObject(TempComputation.Range("A1"))
-    
-    Let aVariant = 1
-    
-    Debug.Print "anInteger is AtomicQ is " & AtomicQ(anInteger)
-    Debug.Print "aDouble is AtomicQ is " & AtomicQ(aDouble)
-    Debug.Print "aDate is AtomicQ is " & AtomicQ(aDate)
-    Debug.Print "aBoolean is AtomicQ is " & AtomicQ(aBoolean)
-    Debug.Print "aString is AtomicQ is " & AtomicQ(aString)
-    Debug.Print "CVErr(1) is AtomicQ is " & AtomicQ(CVErr(1))
-    Debug.Print "aWorksheet is AtomicQ is " & AtomicQ(aWorksheet)
-    Debug.Print "aWorkbook is AtomicQ is " & AtomicQ(aWorkbook)
-    Debug.Print "aListObject is AtomicQ is " & AtomicQ(aListObject)
-    Debug.Print "aVariant is AtomicQ is " & AtomicQ(aVariant)
-    Debug.Print "anArray is AtomicQ is " & AtomicQ(AnArray)
-
-    Call aListObject.Delete
 End Sub
 
 Public Sub TestPredicatesAtomicArrayQ()
