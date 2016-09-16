@@ -299,12 +299,12 @@ End Function
 ' Boolean function returns True if Returns True is its argument is 2D matrix with Atomic entries.
 '
 ' PARAMETERS
-' 1. arg - Any Excel value or reference
+' 1. arg - a 2D array all of whose elements satisfy AtomicQ
 '
 ' RETURNED VALUE
 ' Returns True or False depending on whether or not its argument can be considered a table.
 Public Function AtomicTableQ(arg As Variant) As Boolean
-    Let AtomicTableQ = NumberOfDimensions(arg) = 2 And AtomicArrayQ(Flatten(arg))
+    Let AtomicTableQ = NumberOfDimensions(arg) = 2 And AllTrueQ(arg, "AtomicQ")
 End Function
 
 ' DESCRIPTION
@@ -330,7 +330,7 @@ End Function
 ' RETURNED VALUE
 ' Returns True or False depending on whether or not its argument can be considered a printable table.
 Public Function PrintableTableQ(arg As Variant) As Boolean
-    Let PrintableTableQ = NumberOfDimensions(arg) = 2 And PrintableArrayQ(Flatten(arg))
+    Let PrintableTableQ = NumberOfDimensions(arg) = 2 And AllTrueQ(arg, "PrintableQ")
 End Function
 
 ' DESCRIPTION

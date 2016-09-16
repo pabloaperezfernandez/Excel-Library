@@ -173,6 +173,10 @@ Public Sub ExportAllComponents(TheWorkbook As Workbook)
     Next VBComp
 End Sub
 
+' Calls ExportAllComponents(ThisWorkbook)
+Public Sub BackUp()
+    Call ExportAllComponents(ThisWorkbook)
+End Sub
 
 ' The purpose of this function is to dump in the immediate console a
 ' function to draw this application's UI.  This function should be run

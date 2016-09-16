@@ -602,17 +602,17 @@ End Function
 ' This function returns the requested part of an array.  It works just like Mathematica's Part[].
 ' The returned value depends on the form of parameter Indices.  Works on 1D and 2D arrays.  Use
 ' the function ClassConstructors.Span() wherever you would use Mathematica Span such as All
-' and 1;;2.
+' and 1;;2, ;;2, 3;;.  For example, to get every index from the last to the 2 use 2;;-1
 '
 ' PARAMETERS
 ' 1. AnArray - A dimensioned array
-' 2. Indices - a sequence of indices (with at least one supplied) of the forms below, with each one
+' 2. Indices - a sequence of indices (with at least one supplied) using the forms below, with each one
 '    referring to a different dimension of the array. At the moment we process only 1D and 2D arrays.
 '    So, Indices can only be one or two of the forms below.
 '
 ' Indices can take any of the following forms:
 ' 1. n - to get element n.  If given a 2D array, n refers to the row number
-' 2. n_1, n_2, ..., n_k - to get element with index (n_1, n_2, ..., n_k)
+' 2. n_1, n_2 - to get element with index (n_1, n_2)
 ' 3. Array() - A dimensioned, non-empty array of indices
 ' 4. Array1, Array2 - Two arrays of the type in #3, one for each dimension
 ' 5. Span - An instance of class Span, which can be conveniently generated using
@@ -628,6 +628,16 @@ End Function
 '
 ' RETURNED VALUE
 ' The requested slice or element of the array.
+'
+' Examples:
+'
+' 1. Part(anArray, n) - Returns the nth element of the array
+' 2. Part(anArray, n1, n2) - Returns element (n1,n2) from 2D array anArray
+' 3. Part(anArray, Array(n1,n2, ..., n_m)) - Returns an array with elements
+'    n1, n2, ..., n_m of anArray
+' 4. Part(anArray, Span(1,-2)) - Returns array with elements 1 through first before the last
+' 5. Part([{1,2,3;4,5,6;7,8,9}], Span(1,3), Array(1,3)) - Returns a matrix with columns 1 and 3
+'    of all rows.
 Public Function Part(AnArray As Variant, ParamArray Indices() As Variant) As Variant
     Dim IndicesCopy As Variant
     Dim IndexIndex As Variant
@@ -2184,13 +2194,13 @@ Public Function ComplementOfSets(A As Variant, B As Variant) As Variant
 End Function
 
 ' DESCRIPTION
-' This function returns the set-theoretic complement of the atomic values in the leaves of first tree
-' with respect to the leaves of the other tree.  The function's name is a bit of a misnomer.  It will
-' traspose an array or table even if the entries are not numeric.
+' This function returns the transpose the given 1D or rectangular table. The elements of the
+' array or table need not be atomic.  It currently processes 1D, 2D arrays, and 1D array of
+' arrays.
 '
 ' PARAMETERS
-' 1. Set1 - A dimensioned array
-' 2. Set1 -  A dimensioned array
+' 1. aMatrix - The array to transpose
+' 2. UseBuiltInQ -  Uses Application.Transpose when explicitly set to True
 ' 3. ParamConsistencyChecksQ (optiomal) - If explicitly passed as False, this function performs no
 '    parameter consistency checks
 '

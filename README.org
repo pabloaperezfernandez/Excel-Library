@@ -20,10 +20,21 @@
 
    Once predicates are defined, the entire library is built on top of them.
 
-   The library makes a distinction between numeric and non-numeric arrays, as well as "true" 2D arrays and
-   matrices/tables (1D array of arrays).  Numeric arrays and matrices used standard mathematical names like
-   vector, row vector, column vector, and matrix.  On the other hand, a non-numeric vector is called row or
-   column.  A numeric matrix is a matrix, but a non-numeric "matrix" is called a table.
+   The library makes a distinction between numeric and non-numeric arrays, as well as "true" 2D arrays
+   (e.g. matrix/table) and rectangular 1D array of arrays.  All matrix arithmetic functions expect 2D
+   arrays. Numeric arrays and matrices used standard mathematical names like vector, row vector, column
+   vector, and matrix.  On the other hand, a non-numeric vector is called row or column.  A numeric matrix is
+   a matrix, but a non-numeric "matrix" is called a table.  We provide functions to convert back and forth
+   between rectangular 1D arrays of 1D arrays and standard 2D arrays.
+
+   Array indices have been greatly simplified:
+   1. All arrays begin with index 1, regardless of what LBound is for the array.
+   2. The 1D array is the most fundamental data structure.  Matrices are represented as 1D arrays of 1D.
+      arrays.  Asking for the 5th element of a matrix returns the 5th row.
+   3. First, Most, Rest, and Last return the first, all but the last, all but the first, and the last element
+      of an array.  First and Last return single elements.  Most and Rest rest return arrays.
+   4. Negative indices, starting with -1, point to the end of the array.  For instance, -1 is the last
+      element of an array.  -2 is the element before the last.
 ** REQUIREMENTS and INSTALLATION
    This library was written under 32-bit Excel 2010.  It may work in later version since I tend to use
    standard VBA functionality.  To use the library, copy it to some directory and add a VBA project reference
@@ -31,6 +42,8 @@
    save it as an XLSB (smaller and faster to load) or XLSM file.
 ** FUNCTIONAL OVERVIEW
    This section categorizes the library's functions and provides a simple description of their purpose.
+
+   
 *** PREDICATES
     These functions return Booleans.  Their names all end in Q --for question.
 

@@ -472,7 +472,8 @@ Public Function ListObjectQ(arg As Variant) As Boolean
 End Function
 
 ' DESCRIPTION
-' Boolean function returning True if its parameter any of the following forms:
+' Boolean function returning True if its parameter satisfies the requirements to be considered
+' an index for Arrays.Part()
 '
 ' PARAMETERS
 ' 1. arg - Expressions with of the following forms:
@@ -491,7 +492,8 @@ Public Function PartIndexQ(arg As Variant) As Boolean
 End Function
 
 ' DESCRIPTION
-' Boolean function returning True if its parameter any of the following forms:
+' Boolean function returning True if its parameter satisfies the requirements to be considered
+' an index for Take.
 '
 ' PARAMETERS
 ' 1. TheIndex - Any Excel expression with of the following forms:
@@ -502,7 +504,8 @@ End Function
 ' RETURNED VALUE
 ' Returns True or False depending on whether or not the given parameter has one of the acceptable forms
 Public Function TakeIndexQ(TheIndex As Variant) As Boolean
-    Let TakeIndexQ = NonZeroWholeNumberQ(TheIndex) Or (NonzeroWholeNumberArrayQ(TheIndex) And Length(TheIndex) = 2)
+    Let TakeIndexQ = NonZeroWholeNumberQ(TheIndex) Or _
+                    (NonzeroWholeNumberArrayQ(TheIndex) And Length(TheIndex) = 2)
 End Function
 
 ' DESCRIPTION
