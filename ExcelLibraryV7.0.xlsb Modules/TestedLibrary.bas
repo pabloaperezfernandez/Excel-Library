@@ -191,7 +191,7 @@ Public Sub TestPredicatesSpanQ()
     Call aListObject.Delete
 End Sub
 
-Public Sub TestPredicatesAllTrueQ()
+Public Sub TestFunctionalPredicatesAllTrueQ()
     Dim UndimensionedArray() As Variant
 
     Debug.Assert AllTrueQ(Array(1, 2, 4), "WholeNumberQ")
@@ -215,7 +215,7 @@ Public Sub TestPredicatesAllTrueQ()
     Debug.Assert Not AllTrueQ(Array(True, True, False))
 End Sub
 
-Public Sub TestPredicatesAnyTrueQ()
+Public Sub TestFunctionalPredicatesAnyTrueQ()
     Dim UndimensionedArray() As Variant
     Dim var As Variant
     
@@ -235,7 +235,7 @@ Public Sub TestPredicatesAnyTrueQ()
     Debug.Assert AnyTrueQ(Array(True, True, False))
 End Sub
 
-Public Sub TestPredicatesNoneTrueQ()
+Public Sub TestFunctionalPredicatesNoneTrueQ()
     Dim UndimensionedArray() As Variant
 
     Debug.Assert Not NoneTrueQ(Array(1, 2, 4), "WholeNumberQ")
@@ -252,29 +252,32 @@ Public Sub TestPredicatesNoneTrueQ()
     Debug.Assert Not NoneTrueQ(Array(True, True, False))
     Debug.Assert NoneTrueQ(Array(False, False, False))
 End Sub
-'***HERE
-Public Sub TestPredicatesAllFalseQ()
+
+Public Sub TestFunctionalPredicatesAllFalseQ()
     Dim UndimensionedArray() As Variant
 
-    Debug.Assert AllFalseQ(Array(1, 2, 4), "WholeNumberQ")
-    Debug.Assert AllFalseQ(Array(1, 2, 4#), "WholeNumberQ")
-    Debug.Assert AllFalseQ(Array(1, 2, 4), "NumberQ")
-    Debug.Assert AllFalseQ(Array(1, 2, 4#), "NumberQ")
-    Debug.Assert Not AllFalseQ(Array(1, 2, 4#), "StringQ")
+    Debug.Assert Not AllFalseQ(Array(1, 2, 4), "WholeNumberQ")
+    Debug.Assert Not AllFalseQ(Array(1, 2, 4#), "WholeNumberQ")
+    Debug.Assert Not AllFalseQ(Array(1, 2, 4), "NumberQ")
+    Debug.Assert Not AllFalseQ(Array(1, 2, 4#), "NumberQ")
+    Debug.Assert AllFalseQ(Array(1, 2, 4#), "StringQ")
     Debug.Assert Not AllFalseQ(Array("a", "b", Empty), "StringQ")
-    Debug.Assert AllFalseQ(Array("a", "b"), "StringQ")
+    Debug.Assert Not AllFalseQ(Array("a", "b"), "StringQ")
     Debug.Assert AllFalseQ(EmptyArray(), "StringQ")
     Debug.Assert Not AllFalseQ(UndimensionedArray, "StringQ")
-    Debug.Assert AllFalseQ(Array(1.1, 2#, 4.2), "NumberOrStringQ")
-    Debug.Assert AllFalseQ(Array(#1/1/2000#), "DateQ")
+    Debug.Assert Not AllFalseQ(Array(1.1, 2#, 4.2), "NumberOrStringQ")
+    Debug.Assert Not AllFalseQ(Array(#1/1/2000#), "DateQ")
     Debug.Assert Not AllFalseQ(Array(#1/1/2000#, 1), "DateQ")
-    Debug.Assert AllFalseQ(Array(ThisWorkbook), "WorkbookQ")
-    Debug.Assert Not AllFalseQ(Array(ThisWorkbook.Worksheets(1)), "WorkbookQ")
-    Debug.Assert AllFalseQ(Array(ThisWorkbook.Worksheets(1)), "WorksheetQ")
-    Debug.Assert AllFalseQ(Array([{1,2;3,4}], [{1;2}]), "MatrixQ")
+    Debug.Assert Not AllFalseQ(Array(ThisWorkbook), "WorkbookQ")
+    Debug.Assert AllFalseQ(Array(ThisWorkbook.Worksheets(1)), "WorkbookQ")
+    Debug.Assert Not AllFalseQ(Array(ThisWorkbook.Worksheets(1)), "WorksheetQ")
+    Debug.Assert Not AllFalseQ(Array([{1,2;3,4}], [{1;2}]), "MatrixQ")
     Debug.Assert Not AllFalseQ(Array([{1,2;3,4}], Array(Array(1, 2), Array(3, 5))), "MatrixQ")
-    Debug.Assert AllFalseQ(Array(True, True, True))
+    Debug.Assert AllFalseQ(Array(Array(1, 2), Array(3, 5)), "MatrixQ")
+    Debug.Assert Not AllFalseQ(Array(True, True, True))
     Debug.Assert Not AllFalseQ(Array(True, True, False))
+    Debug.Assert AllFalseQ(Array(False, False, False))
+    Debug.Assert Not AllFalseQ(Empty)
 End Sub
 
 Public Sub TestPredicatesAnyFalseQ()
@@ -283,36 +286,36 @@ Public Sub TestPredicatesAnyFalseQ()
     
     Let var = TransposeMatrix(Array(Array(1, 2), Array(3, 4)))
 
-    Debug.Assert AnyTrueQ(Array(1, 2, 4), "WholeNumberQ")
-    Debug.Assert AnyTrueQ(Array(1, 2, 4#), "WholeNumberQ")
-    Debug.Assert AnyTrueQ(Array(1, 2, 4), "NumberQ")
-    Debug.Assert AnyTrueQ(Array(1, 2, 4#), "NumberQ")
-    Debug.Assert Not AnyTrueQ(Array(1, 2, 4#), "StringQ")
-    Debug.Assert AnyTrueQ(Array("a", "b", Empty), "StringQ")
-    Debug.Assert AnyTrueQ(Array("a", "b"), "StringQ")
-    Debug.Assert Not AnyTrueQ(EmptyArray(), "StringQ")
-    Debug.Assert AnyTrueQ(Array(EmptyArray(), "a"), "StringQ")
-    Debug.Assert Not AnyTrueQ(UndimensionedArray, "StringQ")
-    Debug.Assert AnyTrueQ(Array(True, True, True))
-    Debug.Assert AnyTrueQ(Array(True, True, False))
+    Debug.Assert Not AnyFalseQ(Array(1, 2, 4), "WholeNumberQ")
+    Debug.Assert Not AnyFalseQ(Array(1, 2, 4#), "WholeNumberQ")
+    Debug.Assert Not AnyFalseQ(Array(1, 2, 4), "NumberQ")
+    Debug.Assert Not AnyFalseQ(Array(1, 2, 4#), "NumberQ")
+    Debug.Assert AnyFalseQ(Array(1, 2, 4#), "StringQ")
+    Debug.Assert AnyFalseQ(Array("a", "b", Empty), "StringQ")
+    Debug.Assert Not AnyFalseQ(Array("a", "b"), "StringQ")
+    Debug.Assert Not AnyFalseQ(EmptyArray(), "StringQ")
+    Debug.Assert AnyFalseQ(Array(EmptyArray(), "a"), "StringQ")
+    Debug.Assert Not AnyFalseQ(UndimensionedArray, "StringQ")
+    Debug.Assert Not AnyFalseQ(Array(True, True, True))
+    Debug.Assert AnyFalseQ(Array(True, True, False))
 End Sub
 
 Public Sub TestPredicatesNoneFalseQ()
     Dim UndimensionedArray() As Variant
 
-    Debug.Assert Not NoneTrueQ(Array(1, 2, 4), "WholeNumberQ")
-    Debug.Assert Not NoneTrueQ(Array(1, 2, 4#), "WholeNumberQ")
-    Debug.Assert Not NoneTrueQ(Array(1, 2, 4), "NumberQ")
-    Debug.Assert Not NoneTrueQ(Array(1, 2, 4#), "NumberQ")
-    Debug.Assert NoneTrueQ(Array(1, 2, 4#), "StringQ")
-    Debug.Assert Not NoneTrueQ(Array("a", "b", Empty), "StringQ")
-    Debug.Assert Not NoneTrueQ(Array("a", "b"), "StringQ")
-    Debug.Assert NoneTrueQ(EmptyArray(), "StringQ")
-    Debug.Assert Not NoneTrueQ(UndimensionedArray, "StringQ")
-    Debug.Assert Not NoneTrueQ(UndimensionedArray, "StringQ")
-    Debug.Assert Not NoneTrueQ(Array(True, True, True))
-    Debug.Assert Not NoneTrueQ(Array(True, True, False))
-    Debug.Assert NoneTrueQ(Array(False, False, False))
+    Debug.Assert Not NoneFalseQ(Array(1, 2, 4), "WholeNumberQ")
+    Debug.Assert Not NoneFalseQ(Array(1, 2, 4#), "WholeNumberQ")
+    Debug.Assert Not NoneFalseQ(Array(1, 2, 4), "NumberQ")
+    Debug.Assert Not NoneFalseQ(Array(1, 2, 4#), "NumberQ")
+    Debug.Assert NoneFalseQ(Array(1, 2, 4#), "StringQ")
+    Debug.Assert Not NoneFalseQ(Array("a", "b", Empty), "StringQ")
+    Debug.Assert Not NoneFalseQ(Array("a", "b"), "StringQ")
+    Debug.Assert NoneFalseQ(EmptyArray(), "StringQ")
+    Debug.Assert Not NoneFalseQ(UndimensionedArray, "StringQ")
+    Debug.Assert Not NoneFalseQ(UndimensionedArray, "StringQ")
+    Debug.Assert Not NoneFalseQ(Array(True, True, True))
+    Debug.Assert Not NoneFalseQ(Array(True, True, False))
+    Debug.Assert NoneFalseQ(Array(False, False, False))
 End Sub
 
 Public Sub TestPredicatesDimensionedQ()
@@ -321,11 +324,11 @@ Public Sub TestPredicatesDimensionedQ()
     Dim c As Integer
     Dim wbk As Workbook
     
-    Debug.Print "EmptyArray() is dimensioned is " & DimensionedQ(EmptyArray())
-    Debug.Print "a() is dimensioned is " & DimensionedQ(A)
-    Debug.Print "b(1 To 2) is dimensioned is " & DimensionedQ(B)
-    Debug.Print "c is an integer is dimensioned is " & DimensionedQ(c)
-    Debug.Print "wbk is dimensioned is " & DimensionedQ(wbk)
+    Debug.Assert DimensionedQ(EmptyArray())
+    Debug.Assert Not DimensionedQ(A)
+    Debug.Assert DimensionedQ(B)
+    Debug.Assert Not DimensionedQ(c)
+    Debug.Assert Not DimensionedQ(wbk)
 End Sub
 
 Public Sub TestPredicatesEmptyArrayQ()
@@ -334,11 +337,11 @@ Public Sub TestPredicatesEmptyArrayQ()
     Dim c As Integer
     Dim wbk As Workbook
     
-    Debug.Print "EmptyArray() is EmptyArrayQ is " & EmptyArrayQ(EmptyArray())
-    Debug.Print "a() is EmptyArrayQ is " & EmptyArrayQ(A)
-    Debug.Print "b(1 To 2) is EmptyArrayQ is " & EmptyArrayQ(B)
-    Debug.Print "c is an integer is EmptyArrayQ is " & EmptyArrayQ(c)
-    Debug.Print "wbk is EmptyArrayQ is " & EmptyArrayQ(wbk)
+    Debug.Assert EmptyArrayQ(EmptyArray())
+    Debug.Assert Not EmptyArrayQ(A)
+    Debug.Assert Not EmptyArrayQ(B)
+    Debug.Assert Not EmptyArrayQ(c)
+    Debug.Assert Not EmptyArrayQ(wbk)
 End Sub
 
 Public Sub TestPredicatesAtomicArrayQ()
@@ -357,16 +360,45 @@ Public Sub TestPredicatesAtomicArrayQ()
     Set aWorkbook = ThisWorkbook
     Set aListObject = AddListObject(TempComputation.Range("A1"))
     
-    For Each aVariant In Array(Array(anInteger, aDouble), _
-                               Array(aDate, aString), _
-                               Array(EmptyArray(), 1), _
-                               EmptyArray(), _
-                               Array(Null, Empty), _
-                               Array(Nothing, 1))
-        Debug.Print "Test is " & AtomicArrayQ(aVariant)
-    Next
+    Debug.Assert AtomicArrayQ(Array(anInteger, aDouble))
+    Debug.Assert AtomicArrayQ(Array(aDate, aString))
+    Debug.Assert Not AtomicArrayQ(Array(EmptyArray(), 1))
+    Debug.Assert AtomicArrayQ(EmptyArray())
+    Debug.Assert AtomicArrayQ(Array(Null, Empty))
+    Debug.Assert Not AtomicArrayQ(Array(Nothing, 1))
+    Debug.Assert Not AtomicArrayQ(1)
+    Debug.Assert AtomicArrayQ([{1,2;3,4}])
+    Debug.Assert Not AtomicArrayQ(Array(Array(1, 2), 2))
+    Debug.Assert Not AtomicArrayQ(Null)
 
     Call aListObject.Delete
+End Sub
+
+Public Sub TestPredicatesFileExistsQ()
+    Debug.Assert FileExistsQ(ThisWorkbook.Path & "\ExcelLibraryV6.0.xlsb")
+    Debug.Assert FileExistsQ(ThisWorkbook.Path & "\ExcelLibraryV6.2.xlsb")
+    Debug.Assert Not FileExistsQ(ThisWorkbook.Path & "\ExcelLibraryV-1.xlsb")
+End Sub
+
+Public Sub TestPredicatesListObjectExistsQ()
+    Dim aListObject As ListObject
+    
+    Set aListObject = AddListObject(TempComputation.Range("A1"), "MyListObject")
+   
+    Debug.Assert ListObjectExistsQ(TempComputation, "MyListObject")
+    Debug.Assert Not ListObjectExistsQ(TempComputation, "ASecondListObject")
+    
+    Call aListObject.Delete
+End Sub
+
+Public Sub TestPredicatesWorksheetExistsQ()
+    Debug.Assert WorksheetExistsQ(ThisWorkbook, "TempComputation")
+    Debug.Assert Not WorksheetExistsQ(ThisWorkbook, "NoneExistingWorksheet")
+End Sub
+
+Public Sub TestPredicatesSheetExistsQ()
+    Debug.Assert SheetExistsQ(ThisWorkbook, "TempComputation")
+    Debug.Assert Not SheetExistsQ(ThisWorkbook, "NoneExistingWorksheet")
 End Sub
 
 Public Sub TestPredicatesNumberQ()

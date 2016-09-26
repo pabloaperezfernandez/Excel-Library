@@ -9,7 +9,7 @@ Option Base 1
 ' string. Returns True for an empty array.
 '
 ' PARAMETERS
-' 1. AnArray - A dimensioned 1D array
+' 1. AnArray - A dimensioned 1D or 2D array
 ' 2. PredicateName (optional) - A string representing the predicates name
 '
 ' RETURNED VALUE

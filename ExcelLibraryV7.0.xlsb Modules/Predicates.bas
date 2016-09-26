@@ -81,6 +81,7 @@ End Function
 ' RETURNED VALUE
 ' True when arg has one of the types detailed above. Returns False otherwise
 Public Function AtomicQ(arg As Variant) As Boolean
+Attribute AtomicQ.VB_Description = "This is the documentation"
     Dim var As Variant
     
     Let AtomicQ = True
