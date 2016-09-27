@@ -295,6 +295,45 @@ Public Function Nest(aFunctionName As String, _
 End Function
 
 ' DESCRIPTION
+' Return an array recording the result of applying the given function iterativesly N
+' times to the given argument. Returns the argument when N = 0.  Returns Null when N<0.
+'
+' Example: ArrayMapThread("StringJoin", array(1,2,3), array(10,20,30)) returns
+'          ("110", "220", "330")
+'
+' PARAMETERS
+' 1. AFunctionName - Name of the function to apply
+' 2. Arg - Initial value for initial function call
+' 3. N - Number of times to apply functional nesting
+'
+' RETURNED VALUE
+' Returns array with the iterative application of a function to an argument
+Public Function NestList(aFunctionName As String, _
+                         arg As Variant, _
+                         N As Long) As Variant
+    Dim ResultArray As Variant
+    Dim i As Long
+    Dim CurrentValue As Variant
+    
+    If N < 0 Then
+        Let ResultArray = Null
+    ElseIf N = 0 Then
+        Let ResultArray = Array(arg)
+    Else
+        ReDim ResultArray(1 To N + 1)
+        
+        Let ResultArray(1) = arg
+        Let CurrentValue = arg
+        For i = 2 To N + 1
+            Let ResultArray(i) = Run(aFunctionName, CurrentValue)
+            Let CurrentValue = ResultArray(i)
+        Next
+    End If
+    
+    Let NestList = ResultArray
+End Function
+
+' DESCRIPTION
 ' Return the result of applying the given function N times iteratively to the given argument.
 ' Returns the argument when N = 0.  Returns Null when N<0.
 '
@@ -332,44 +371,5 @@ Public Function Fold(aFunctionName As String, _
     For i = 1 To Length(AnArrayForSecondArgs) + 1
     '***HERE
     Next
-End Function
-
-' DESCRIPTION
-' Return an array recording the result of applying the given function iterativesly N
-' times to the given argument. Returns the argument when N = 0.  Returns Null when N<0.
-'
-' Example: ArrayMapThread("StringJoin", array(1,2,3), array(10,20,30)) returns
-'          ("110", "220", "330")
-'
-' PARAMETERS
-' 1. AFunctionName - Name of the function to apply
-' 2. Arg - Initial value for initial function call
-' 3. N - Number of times to apply functional nesting
-'
-' RETURNED VALUE
-' Returns array with the iterative application of a function to an argument
-Public Function NestList(aFunctionName As String, _
-                         arg As Variant, _
-                         N As Long) As Variant
-    Dim ResultArray As Variant
-    Dim i As Long
-    Dim CurrentValue As Variant
-    
-    If N < 0 Then
-        Let ResultArray = Null
-    ElseIf N = 0 Then
-        Let ResultArray = Array(arg)
-    Else
-        ReDim ResultArray(1 To N + 1)
-        
-        Let ResultArray(1) = arg
-        Let CurrentValue = arg
-        For i = 2 To N + 1
-            Let ResultArray(i) = Run(aFunctionName, CurrentValue)
-            Let CurrentValue = ResultArray(i)
-        Next
-    End If
-    
-    Let NestList = ResultArray
 End Function
 

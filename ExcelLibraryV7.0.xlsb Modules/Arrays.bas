@@ -135,13 +135,13 @@ End Function
 '
 ' RETURNED VALUE
 ' Length of the given array.  Dimensioned arrays are the only expressions returning non-zero.
-Public Function GetNumberOfRows(aMatrix As Variant) As Long
-    If Not DimensionedQ(aMatrix) Then
+Public Function GetNumberOfRows(AMatrix As Variant) As Long
+    If Not DimensionedQ(AMatrix) Then
         Let GetNumberOfRows = 0
-    ElseIf NumberOfDimensions(aMatrix) = 1 Then
+    ElseIf NumberOfDimensions(AMatrix) = 1 Then
         Let GetNumberOfRows = 1
     Else
-        Let GetNumberOfRows = UBound(aMatrix, 1) - LBound(aMatrix, 1) + 1
+        Let GetNumberOfRows = UBound(AMatrix, 1) - LBound(AMatrix, 1) + 1
     End If
 End Function
 
@@ -168,13 +168,13 @@ End Function
 '
 ' RETURNED VALUE
 ' Number of columns of the given array.  Dimensioned arrays are the only expressions returning non-zero.
-Public Function GetNumberOfColumns(aMatrix As Variant) As Long
-    If Not DimensionedQ(aMatrix) Then
+Public Function GetNumberOfColumns(AMatrix As Variant) As Long
+    If Not DimensionedQ(AMatrix) Then
         Let GetNumberOfColumns = 0
-    ElseIf NumberOfDimensions(aMatrix) = 1 Then
-        Let GetNumberOfColumns = UBound(aMatrix, 1) - LBound(aMatrix, 1) + 1
+    ElseIf NumberOfDimensions(AMatrix) = 1 Then
+        Let GetNumberOfColumns = UBound(AMatrix, 1) - LBound(AMatrix, 1) + 1
     Else
-        Let GetNumberOfColumns = UBound(aMatrix, 2) - LBound(aMatrix, 2) + 1
+        Let GetNumberOfColumns = UBound(AMatrix, 2) - LBound(AMatrix, 2) + 1
     End If
 End Function
 
@@ -2206,7 +2206,7 @@ End Function
 '
 ' RETURNED VALUE
 ' The set complement of one set with respect to another
-Public Function TransposeMatrix(aMatrix As Variant, _
+Public Function TransposeMatrix(AMatrix As Variant, _
                                 Optional UseBuiltInQ As Boolean = False, _
                                 Optional ParameterCheckQ As Boolean = True) As Variant
     Dim r As Long
@@ -2216,29 +2216,29 @@ Public Function TransposeMatrix(aMatrix As Variant, _
     Let TransposeMatrix = Null
 
     If ParameterCheckQ Then
-        If Not DimensionedQ(aMatrix) Then Exit Function
+        If Not DimensionedQ(AMatrix) Then Exit Function
         
-        If NumberOfDimensions(aMatrix) = 0 Then
-            Let TransposeMatrix = aMatrix
+        If NumberOfDimensions(AMatrix) = 0 Then
+            Let TransposeMatrix = AMatrix
             Exit Function
         End If
     End If
     
-    If EmptyArrayQ(aMatrix) Then
+    If EmptyArrayQ(AMatrix) Then
         Let TransposeMatrix = EmptyArray()
         Exit Function
     End If
     
     If UseBuiltInQ Then
-        Let TransposeMatrix = Application.Transpose(aMatrix)
+        Let TransposeMatrix = Application.Transpose(AMatrix)
         Exit Function
     End If
     
-    If NumberOfDimensions(aMatrix) = 1 Then
-        ReDim TheResult(LBound(aMatrix) To UBound(aMatrix), 1)
+    If NumberOfDimensions(AMatrix) = 1 Then
+        ReDim TheResult(LBound(AMatrix) To UBound(AMatrix), 1)
     
-        For c = LBound(aMatrix) To UBound(aMatrix)
-            Let TheResult(c, 1) = aMatrix(c)
+        For c = LBound(AMatrix) To UBound(AMatrix)
+            Let TheResult(c, 1) = AMatrix(c)
         Next c
         
         Let TransposeMatrix = TheResult
@@ -2246,11 +2246,11 @@ Public Function TransposeMatrix(aMatrix As Variant, _
         Exit Function
     End If
     
-    ReDim TheResult(LBound(aMatrix, 2) To UBound(aMatrix, 2), LBound(aMatrix, 1) To UBound(aMatrix, 1))
+    ReDim TheResult(LBound(AMatrix, 2) To UBound(AMatrix, 2), LBound(AMatrix, 1) To UBound(AMatrix, 1))
 
-    For r = LBound(aMatrix, 1) To UBound(aMatrix, 1)
-        For c = LBound(aMatrix, 2) To UBound(aMatrix, 2)
-            Let TheResult(c, r) = aMatrix(r, c)
+    For r = LBound(AMatrix, 1) To UBound(AMatrix, 1)
+        For c = LBound(AMatrix, 2) To UBound(AMatrix, 2)
+            Let TheResult(c, r) = AMatrix(r, c)
         Next c
     Next r
     
@@ -2875,7 +2875,7 @@ End Function
 '
 ' RETURNED VALUE
 ' The matrix product of given vectors
-Public Function MatrixMultiply(m1 As Variant, m2 As Variant, Optional ParamConsistencyChecksQ = True) As Variant
+Public Function MatrixMultiply(M1 As Variant, M2 As Variant, Optional ParamConsistencyChecksQ = True) As Variant
     Dim r As Long
     Dim c As Long
     Dim TheResult As Variant
@@ -2883,17 +2883,17 @@ Public Function MatrixMultiply(m1 As Variant, m2 As Variant, Optional ParamConsi
     Let MatrixMultiply = Null
 
     If ParamConsistencyChecksQ Then
-        If Not (DimensionedQ(m1) And DimensionedQ(m2)) Then Exit Function
+        If Not (DimensionedQ(M1) And DimensionedQ(M2)) Then Exit Function
         
-        If NumberOfColumns(m1) <> NumberOfRows(m2) Then Exit Function
+        If NumberOfColumns(M1) <> NumberOfRows(M2) Then Exit Function
     
-        If Not (MatrixQ(m1) And MatrixQ(m2)) Then Exit Function
+        If Not (MatrixQ(M1) And MatrixQ(M2)) Then Exit Function
     End If
     
-    ReDim TheResult(1 To NumberOfRows(m1), 1 To NumberOfColumns(m2))
-    For r = 1 To NumberOfRows(m1)
-        For c = 1 To NumberOfColumns(m2)
-            Let TheResult(r, c) = DotProduct(Part(m1, r), Part(m2, Span(1, -1), c))
+    ReDim TheResult(1 To NumberOfRows(M1), 1 To NumberOfColumns(M2))
+    For r = 1 To NumberOfRows(M1)
+        For c = 1 To NumberOfColumns(M2)
+            Let TheResult(r, c) = DotProduct(Part(M1, r), Part(M2, Span(1, -1), c))
         Next c
     Next r
     

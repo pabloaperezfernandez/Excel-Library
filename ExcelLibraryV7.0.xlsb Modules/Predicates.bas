@@ -53,6 +53,20 @@ Public Function GetPrintableTypePredicateNames() As Variant
 End Function
 
 ' DESCRIPTION
+' Boolean function returning True if its argument is printable (e.g. numeric, string, date, Boolean,
+' Empty or Null).  It returns False even if its argument is a printable array or table.  This is used
+' to detect printable atomic elements.
+'
+' PARAMETERS
+' 1. arg - Any Excel value or reference
+'
+' RETURNED VALUE
+' Returns True or False depending on whether or not its argument can be considered a printable atom.
+Public Function PrintableQ(arg As Variant) As Boolean
+    Let PrintableQ = AnyTrueQ(Through(GetPrintableTypePredicateNames(), arg))
+End Function
+
+' DESCRIPTION
 ' This function returns an array of intergers with the VB values for the various
 ' vartypes representing integers.  These are the values returned by VarType() and
 ' come from enumeration

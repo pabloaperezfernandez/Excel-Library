@@ -63,6 +63,21 @@ Public Function NonEmptyArrayQ(arg As Variant) As Boolean
 End Function
 
 ' DESCRIPTION
+' Boolean function returning True if its argument is array all of whose elements satisfy Predicates.AtomicQ
+' The function returns False if arg fails Predicates.DimensionedQ or satisfying Predicates.EmptyArrayQ.
+' Returns False otherwise
+'
+' PARAMETERS
+' 1. arg - any value or object reference
+'
+' RETURNED VALUE
+' True when arg is a dimensioned, non-empty array all of whose elements satisfy Predicates.AtomicQ.
+' Returns False otherwise
+Public Function AtomicArrayQ(AnArray As Variant) As Boolean
+    Let AtomicArrayQ = AllTrueQ(AnArray, "AtomicQ")
+End Function
+
+' DESCRIPTION
 ' Boolean function returns True if Returns True is its argument is 2D matrix with numeric entries.
 '
 ' PARAMETERS
@@ -84,23 +99,8 @@ Public Function MatrixQ(arg As Variant) As Boolean
 End Function
 
 ' DESCRIPTION
-' Boolean function returning True if its argument is array all of whose elements satisfy Predicates.AtomicQ
-' The function returns False if arg fails Predicates.DimensionedQ or satisfying Predicates.EmptyArrayQ.
-' Returns False otherwise
-'
-' PARAMETERS
-' 1. arg - any value or object reference
-'
-' RETURNED VALUE
-' True when arg is a dimensioned, non-empty array all of whose elements satisfy Predicates.AtomicQ.
-' Returns False otherwise
-Public Function AtomicArrayQ(AnArray As Variant) As Boolean
-    Let AtomicArrayQ = AllTrueQ(AnArray, "AtomicQ")
-End Function
-
-' DESCRIPTION
 ' Boolean function returning True if its argument is a dimensioned, non-empty array all of whose elements satisfy
-' Predicates.NumberQ.  Returns False otherwise.
+' Predicates.NumberQ.  The array can have any number of dimensions.  Returns False otherwise.
 '
 ' PARAMETERS
 ' 1. arg - any value or object reference
@@ -279,8 +279,6 @@ Public Function DateArrayQ(AnArray As Variant) As Boolean
     Let DateArrayQ = AllTrueQ(AnArray, "ErrorQ")
 End Function
 
-
-
 ' DESCRIPTION
 ' Boolean function returning True if its argument is a dimensioned array all of whose elements
 ' satisfy Predicates.BooleanQ.  Returns False otherwise.
@@ -308,16 +306,16 @@ Public Function AtomicTableQ(arg As Variant) As Boolean
 End Function
 
 ' DESCRIPTION
-' Boolean function returns True if Returns True is its argument is either an empty array or a 1D all of
-' whose elements satisfy PrintableQ
+' Boolean function returns True if Returns True is its argument is either an empty array or a 1D array
+' all of whose elements satisfy PrintableQ
 '
 ' PARAMETERS
 ' 1. AnArray - Any Excel value or reference
 '
 ' RETURNED VALUE
-' Returns True or False depending on whether or not its arguments is a printable array
+' Returns True or False depending on whether or not its arguments is a printable empty or 1D array
 Public Function PrintableArrayQ(AnArray As Variant) As Boolean
-    Let PrintableArrayQ = AllTrueQ(AnArray, "PrintableQ")
+    Let PrintableArrayQ = NumberOfDimensions(arg) = 1 And AllTrueQ(AnArray, "PrintableQ")
 End Function
 
 ' DESCRIPTION
@@ -746,17 +744,5 @@ Public Function InterpretableAsColumnArrayQ(A As Variant) As Boolean
     End If
 End Function
 
-' DESCRIPTION
-' Boolean function returning True if its argument is printable (e.g. numeric, string, date, Boolean,
-' Empty or Null)
-'
-' PARAMETERS
-' 1. arg - Any Excel value or reference
-'
-' RETURNED VALUE
-' Returns True or False depending on whether or not its argument can be considered a printable
-Public Function PrintableQ(arg As Variant) As Boolean
-    Let PrintableQ = AnyTrueQ(Through(GetPrintableTypePredicateNames(), arg))
-End Function
 
 

@@ -1238,7 +1238,7 @@ End Sub
 
 Public Sub TestStack2DArrayAs1DArray()
     Dim m As Variant
-    Dim m2(0 To 3) As Variant
+    Dim M2(0 To 3) As Variant
     Dim m3(0 To 3, 0 To 1) As Variant
     
     Let m = Array(1, 2, 3, 4)
@@ -1262,14 +1262,14 @@ Public Sub TestStack2DArrayAs1DArray()
     PrintArray Stack2DArrayAs1DArray(m)
     Debug.Print
 
-    Let m2(0) = 0
-    Let m2(1) = 1
-    Let m2(2) = 2
-    Let m2(3) = 3
+    Let M2(0) = 0
+    Let M2(1) = 1
+    Let M2(2) = 2
+    Let M2(3) = 3
     Debug.Print "Testing a 1D array indexed at 0:"
-    PrintArray m2
+    PrintArray M2
     Debug.Print "We get:"
-    PrintArray Stack2DArrayAs1DArray(m2)
+    PrintArray Stack2DArrayAs1DArray(M2)
     Debug.Print
 
     Let m3(0, 0) = 0
@@ -3559,246 +3559,246 @@ Public Sub TestAddColumnsToListObject()
 End Sub
 
 Public Sub TestDivide()
-    Dim m1 As Variant
-    Dim m2 As Variant
+    Dim M1 As Variant
+    Dim M2 As Variant
     
-    Let m1 = Array(1, 2, 3)
-    Let m2 = 2
+    Let M1 = Array(1, 2, 3)
+    Let M2 = 2
     Debug.Print "Let m1 = Array(1, 2, 3)"
     Debug.Print "Let m2 = 2"
-    PrintArray Divide(m1, m2)
+    PrintArray Divide(M1, M2)
     
     Debug.Print
-    Let m1 = 2
-    Let m2 = Array(1, 2, 3)
+    Let M1 = 2
+    Let M2 = Array(1, 2, 3)
     Debug.Print "Let m1 = 2"
     Debug.Print "Let m2 = Array(1, 2, 3)"
-    PrintArray Divide(m1, m2)
+    PrintArray Divide(M1, M2)
 
     Debug.Print
-    Let m1 = [{1, 2, 3}]
-    Let m2 = 2
+    Let M1 = [{1, 2, 3}]
+    Let M2 = 2
     Debug.Print "Let m1 = [{1, 2, 3}]"
     Debug.Print "Let m2 = 2"
-    PrintArray Divide(m1, m2)
+    PrintArray Divide(M1, M2)
     
     Debug.Print
-    Let m1 = 2
-    Let m2 = [{1, 2, 3}]
+    Let M1 = 2
+    Let M2 = [{1, 2, 3}]
     Debug.Print "Let m1 = 2"
     Debug.Print "Let m2 = [{1, 2, 3}]"
-    PrintArray Divide(m1, m2)
+    PrintArray Divide(M1, M2)
 
     Debug.Print
-    Let m1 = [{1; 2; 3}]
-    Let m2 = 2
+    Let M1 = [{1; 2; 3}]
+    Let M2 = 2
     Debug.Print "Let m1 = [{1; 2; 3}]"
     Debug.Print "Let m2 = 2"
-    PrintArray Divide(m1, m2)
+    PrintArray Divide(M1, M2)
     
     Debug.Print
-    Let m1 = 2
-    Let m2 = [{1; 2; 3}]
+    Let M1 = 2
+    Let M2 = [{1; 2; 3}]
     Debug.Print "Let m1 = 2"
     Debug.Print "Let m2 = [{1; 2; 3}]"
-    PrintArray Divide(m1, m2)
+    PrintArray Divide(M1, M2)
 
     Debug.Print
-    Let m1 = [{1,2,4; 4,5,6; 7,8,9}]
-    Let m2 = 2
+    Let M1 = [{1,2,4; 4,5,6; 7,8,9}]
+    Let M2 = 2
     Debug.Print "Let m1 = [{1,2,4; 4,5,6; 7,8,9}]"
     Debug.Print "Let m2 = 2"
-    PrintArray Divide(m1, m2)
+    PrintArray Divide(M1, M2)
     
     Debug.Print
-    Let m1 = 2
-    Let m2 = [{1,2,4; 4,5,6; 7,8,9}]
+    Let M1 = 2
+    Let M2 = [{1,2,4; 4,5,6; 7,8,9}]
     Debug.Print "Let m1 = 2"
     Debug.Print "Let m2 = [{1,2,4; 4,5,6; 7,8,9}]"
-    PrintArray Divide(m1, m2)
+    PrintArray Divide(M1, M2)
     
     Debug.Print
-    Let m1 = [{1,2,4; 4,5,6; 7,8,9}]
-    Let m2 = Array(1, 2, 3)
+    Let M1 = [{1,2,4; 4,5,6; 7,8,9}]
+    Let M2 = Array(1, 2, 3)
     Debug.Print "Let m1 = [{1,2,4; 4,5,6; 7,8,9}]"
     Debug.Print "Let m2 = Array(1, 2, 3)"
-    PrintArray Divide(m1, m2)
+    PrintArray Divide(M1, M2)
     
     Debug.Print
-    Let m1 = Array(1, 2, 3)
-    Let m2 = [{1,2,4; 4,5,6; 7,8,9}]
+    Let M1 = Array(1, 2, 3)
+    Let M2 = [{1,2,4; 4,5,6; 7,8,9}]
     Debug.Print "Let m1 =  Array(1, 2, 3)"
     Debug.Print "Let m2 = [{1,2,4; 4,5,6; 7,8,9}]"
-    PrintArray Divide(m1, m2)
+    PrintArray Divide(M1, M2)
     
     Debug.Print
-    Let m1 = [{2,4; 8, 10; 14, 24}]
-    Let m2 = [{1,2; 4,5; 7,8}]
+    Let M1 = [{2,4; 8, 10; 14, 24}]
+    Let M2 = [{1,2; 4,5; 7,8}]
     Debug.Print "Let m1 = [{2,4; 8, 10; 14, 24}]"
     Debug.Print "Let m2 =  [{1,2; 4,5; 7,8}]"
-    PrintArray Divide(m1, m2)
+    PrintArray Divide(M1, M2)
 End Sub
 
 Public Sub TestMultiply()
-    Dim m1 As Variant
-    Dim m2 As Variant
+    Dim M1 As Variant
+    Dim M2 As Variant
     
-    Let m1 = Array(1, 2, 3)
-    Let m2 = 2
+    Let M1 = Array(1, 2, 3)
+    Let M2 = 2
     Debug.Print "Let m1 = Array(1, 2, 3)"
     Debug.Print "Let m2 = 2"
-    PrintArray Multiply(m1, m2)
+    PrintArray Multiply(M1, M2)
     
     Debug.Print
-    Let m1 = 2
-    Let m2 = Array(1, 2, 3)
+    Let M1 = 2
+    Let M2 = Array(1, 2, 3)
     Debug.Print "Let m1 = 2"
     Debug.Print "Let m2 = Array(1, 2, 3)"
-    PrintArray Multiply(m1, m2)
+    PrintArray Multiply(M1, M2)
 
     Debug.Print
-    Let m1 = [{1, 2, 3}]
-    Let m2 = 2
+    Let M1 = [{1, 2, 3}]
+    Let M2 = 2
     Debug.Print "Let m1 = [{1, 2, 3}]"
     Debug.Print "Let m2 = 2"
-    PrintArray Multiply(m1, m2)
+    PrintArray Multiply(M1, M2)
     
     Debug.Print
-    Let m1 = 2
-    Let m2 = [{1, 2, 3}]
+    Let M1 = 2
+    Let M2 = [{1, 2, 3}]
     Debug.Print "Let m1 = 2"
     Debug.Print "Let m2 = [{1, 2, 3}]"
-    PrintArray Multiply(m1, m2)
+    PrintArray Multiply(M1, M2)
 
     Debug.Print
-    Let m1 = [{1; 2; 3}]
-    Let m2 = 2
+    Let M1 = [{1; 2; 3}]
+    Let M2 = 2
     Debug.Print "Let m1 = [{1; 2; 3}]"
     Debug.Print "Let m2 = 2"
-    PrintArray Multiply(m1, m2)
+    PrintArray Multiply(M1, M2)
     
     Debug.Print
-    Let m1 = 2
-    Let m2 = [{1; 2; 3}]
+    Let M1 = 2
+    Let M2 = [{1; 2; 3}]
     Debug.Print "Let m1 = 2"
     Debug.Print "Let m2 = [{1; 2; 3}]"
-    PrintArray Multiply(m1, m2)
+    PrintArray Multiply(M1, M2)
 
     Debug.Print
-    Let m1 = [{1,2,4; 4,5,6; 7,8,9}]
-    Let m2 = 2
+    Let M1 = [{1,2,4; 4,5,6; 7,8,9}]
+    Let M2 = 2
     Debug.Print "Let m1 = [{1,2,4; 4,5,6; 7,8,9}]"
     Debug.Print "Let m2 = 2"
-    PrintArray Multiply(m1, m2)
+    PrintArray Multiply(M1, M2)
     
     Debug.Print
-    Let m1 = 2
-    Let m2 = [{1,2,4; 4,5,6; 7,8,9}]
+    Let M1 = 2
+    Let M2 = [{1,2,4; 4,5,6; 7,8,9}]
     Debug.Print "Let m1 = 2"
     Debug.Print "Let m2 = [{1,2,4; 4,5,6; 7,8,9}]"
-    PrintArray Multiply(m1, m2)
+    PrintArray Multiply(M1, M2)
     
     Debug.Print
-    Let m1 = [{1,2,4; 4,5,6; 7,8,9}]
-    Let m2 = Array(1, 2, 3)
+    Let M1 = [{1,2,4; 4,5,6; 7,8,9}]
+    Let M2 = Array(1, 2, 3)
     Debug.Print "Let m1 = [{1,2,4; 4,5,6; 7,8,9}]"
     Debug.Print "Let m2 = Array(1, 2, 3)"
-    PrintArray Multiply(m1, m2)
+    PrintArray Multiply(M1, M2)
     
     Debug.Print
-    Let m1 = Array(1, 2, 3)
-    Let m2 = [{1,2,4; 4,5,6; 7,8,9}]
+    Let M1 = Array(1, 2, 3)
+    Let M2 = [{1,2,4; 4,5,6; 7,8,9}]
     Debug.Print "Let m1 =  Array(1, 2, 3)"
     Debug.Print "Let m2 = [{1,2,4; 4,5,6; 7,8,9}]"
-    PrintArray Multiply(m1, m2)
+    PrintArray Multiply(M1, M2)
     
     Debug.Print
-    Let m1 = [{2,4; 8, 10; 14, 24}]
-    Let m2 = [{1,2; 4,5; 7,8}]
+    Let M1 = [{2,4; 8, 10; 14, 24}]
+    Let M2 = [{1,2; 4,5; 7,8}]
     Debug.Print "Let m1 = [{2,4; 8, 10; 14, 24}]"
     Debug.Print "Let m2 =  [{1,2; 4,5; 7,8}]"
-    PrintArray Multiply(m1, m2)
+    PrintArray Multiply(M1, M2)
 End Sub
 
 Public Sub TestAdd()
-    Dim m1 As Variant
-    Dim m2 As Variant
+    Dim M1 As Variant
+    Dim M2 As Variant
     
-    Let m1 = Array(1, 2, 3)
-    Let m2 = 2
+    Let M1 = Array(1, 2, 3)
+    Let M2 = 2
     Debug.Print "Let m1 = Array(1, 2, 3)"
     Debug.Print "Let m2 = 2"
-    PrintArray Add(m1, m2)
+    PrintArray Add(M1, M2)
     
     Debug.Print
-    Let m1 = 2
-    Let m2 = Array(1, 2, 3)
+    Let M1 = 2
+    Let M2 = Array(1, 2, 3)
     Debug.Print "Let m1 = 2"
     Debug.Print "Let m2 = Array(1, 2, 3)"
-    PrintArray Add(m1, m2)
+    PrintArray Add(M1, M2)
 
     Debug.Print
-    Let m1 = [{1, 2, 3}]
-    Let m2 = 2
+    Let M1 = [{1, 2, 3}]
+    Let M2 = 2
     Debug.Print "Let m1 = [{1, 2, 3}]"
     Debug.Print "Let m2 = 2"
-    PrintArray Add(m1, m2)
+    PrintArray Add(M1, M2)
     
     Debug.Print
-    Let m1 = 2
-    Let m2 = [{1, 2, 3}]
+    Let M1 = 2
+    Let M2 = [{1, 2, 3}]
     Debug.Print "Let m1 = 2"
     Debug.Print "Let m2 = [{1, 2, 3}]"
-    PrintArray Add(m1, m2)
+    PrintArray Add(M1, M2)
 
     Debug.Print
-    Let m1 = [{1; 2; 3}]
-    Let m2 = 2
+    Let M1 = [{1; 2; 3}]
+    Let M2 = 2
     Debug.Print "Let m1 = [{1; 2; 3}]"
     Debug.Print "Let m2 = 2"
-    PrintArray Add(m1, m2)
+    PrintArray Add(M1, M2)
     
     Debug.Print
-    Let m1 = 2
-    Let m2 = [{1; 2; 3}]
+    Let M1 = 2
+    Let M2 = [{1; 2; 3}]
     Debug.Print "Let m1 = 2"
     Debug.Print "Let m2 = [{1; 2; 3}]"
-    PrintArray Add(m1, m2)
+    PrintArray Add(M1, M2)
 
     Debug.Print
-    Let m1 = [{1,2,4; 4,5,6; 7,8,9}]
-    Let m2 = 2
+    Let M1 = [{1,2,4; 4,5,6; 7,8,9}]
+    Let M2 = 2
     Debug.Print "Let m1 = [{1,2,4; 4,5,6; 7,8,9}]"
     Debug.Print "Let m2 = 2"
-    PrintArray Add(m1, m2)
+    PrintArray Add(M1, M2)
     
     Debug.Print
-    Let m1 = 2
-    Let m2 = [{1,2,4; 4,5,6; 7,8,9}]
+    Let M1 = 2
+    Let M2 = [{1,2,4; 4,5,6; 7,8,9}]
     Debug.Print "Let m1 = 2"
     Debug.Print "Let m2 = [{1,2,4; 4,5,6; 7,8,9}]"
-    PrintArray Add(m1, m2)
+    PrintArray Add(M1, M2)
     
     Debug.Print
-    Let m1 = [{1,2,4; 4,5,6; 7,8,9}]
-    Let m2 = Array(1, 2, 3)
+    Let M1 = [{1,2,4; 4,5,6; 7,8,9}]
+    Let M2 = Array(1, 2, 3)
     Debug.Print "Let m1 = [{1,2,4; 4,5,6; 7,8,9}]"
     Debug.Print "Let m2 = Array(1, 2, 3)"
-    PrintArray Add(m1, m2)
+    PrintArray Add(M1, M2)
     
     Debug.Print
-    Let m1 = Array(1, 2, 3)
-    Let m2 = [{1,2,4; 4,5,6; 7,8,9}]
+    Let M1 = Array(1, 2, 3)
+    Let M2 = [{1,2,4; 4,5,6; 7,8,9}]
     Debug.Print "Let m1 =  Array(1, 2, 3)"
     Debug.Print "Let m2 = [{1,2,4; 4,5,6; 7,8,9}]"
-    PrintArray Add(m1, m2)
+    PrintArray Add(M1, M2)
     
     Debug.Print
-    Let m1 = [{2,4; 8, 10; 14, 24}]
-    Let m2 = [{1,2; 4,5; 7,8}]
+    Let M1 = [{2,4; 8, 10; 14, 24}]
+    Let M2 = [{1,2; 4,5; 7,8}]
     Debug.Print "Let m1 = [{2,4; 8, 10; 14, 24}]"
     Debug.Print "Let m2 =  [{1,2; 4,5; 7,8}]"
-    PrintArray Add(m1, m2)
+    PrintArray Add(M1, M2)
 End Sub
 
 Public Sub TestDotProduct()
@@ -3861,31 +3861,31 @@ Public Sub TestDotProduct()
 End Sub
 
 Public Sub TestMatrixMultiply()
-    Dim m1 As Variant
-    Dim m2 As Variant
+    Dim M1 As Variant
+    Dim M2 As Variant
 
     Debug.Print
-    Let m1 = Pack2DArray(Array(Array(1, 2, 3)))
-    Let m2 = [{1;2;3}]
+    Let M1 = Pack2DArray(Array(Array(1, 2, 3)))
+    Let M2 = [{1;2;3}]
     Debug.Print "Let m1 = [{1, 2, 3}]"
     Debug.Print "Let  m2 = [{1;2;3}]"
-    If IsNull(MatrixMultiply(m1, m2)) Then
+    If IsNull(MatrixMultiply(M1, M2)) Then
         Debug.Print "There was a problem with the parameters "
     Else
         Debug.Print "The matrix product is:"
-        PrintArray MatrixMultiply(m1, m2)
+        PrintArray MatrixMultiply(M1, M2)
     End If
     
     Debug.Print
-    Let m1 = [{1;2;3}]
-    Let m2 = Pack2DArray(Array(Array(1, 2, 3)))
+    Let M1 = [{1;2;3}]
+    Let M2 = Pack2DArray(Array(Array(1, 2, 3)))
     Debug.Print "Let m1 = [{1,2,3}]"
     Debug.Print "Let m2 = Pack2DArray(Array(Array(1, 2, 3)))"
-    If IsNull(MatrixMultiply(m1, m2)) Then
+    If IsNull(MatrixMultiply(M1, M2)) Then
         Debug.Print "There was a problem with the parameters "
     Else
         Debug.Print "The matrix product is:"
-        PrintArray MatrixMultiply(m1, m2)
+        PrintArray MatrixMultiply(M1, M2)
     End If
 End Sub
 
