@@ -494,16 +494,13 @@ End Function
 ' 1. arg - Expressions with of the following forms:
 '
 '        1. n - to get element n.  If given a 2D array, n refers to the row number
-'        2. AnArray() - A non-empty array of valid indices
-'        3. Span - An instance of class Span, which can be conveniently generated using
+'        2. Span - An instance of class Span, which can be conveniently generated using
 '                  ClassConstructors.Span()
 '
 ' RETURNED VALUE
 ' Returns True or False depending on whether or not the given parameter has one of the acceptable forms
 Public Function PartIndexQ(arg As Variant) As Boolean
-    Let PartIndexQ = NonZeroWholeNumberQ(arg) Or _
-                     (NonEmptyArrayQ(arg) And NonzeroWholeNumberArrayQ(arg)) Or _
-                     SpanQ(arg)
+    Let PartIndexQ = NonZeroWholeNumberQ(arg) Or SpanQ(arg)
 End Function
 
 ' DESCRIPTION
@@ -515,12 +512,20 @@ End Function
 '
 '        1. n - with n nonzero
 '        2. [{n_1, n_2}] - with n_i nonzero
+'        3. [{n_1, n_2, TheStep}] - with n_1, n2_2, TheStep<>0
 '
 ' RETURNED VALUE
 ' Returns True or False depending on whether or not the given parameter has one of the acceptable forms
 Public Function TakeIndexQ(TheIndex As Variant) As Boolean
-    Let TakeIndexQ = NonZeroWholeNumberQ(TheIndex) Or _
-                    (NonzeroWholeNumberArrayQ(TheIndex) And Length(TheIndex) = 2)
+    Let TakeIndexQ = True
+
+    If NonZeroWholeNumberQ(TheIndex) Then
+        Exit Function
+    ElseIf NonzeroWholeNumberArrayQ(TheIndex) And Length(TheIndex) >= 1 And Length(TheIndex) <= 3 Then
+        Exit Function
+    Else
+        Let TakeIndexQ = False
+    End If
 End Function
 
 ' DESCRIPTION

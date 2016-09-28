@@ -56,7 +56,7 @@ End Function
 '
 ' PARAMETERS
 ' 1. AFunctionNameArray - An array of function names
-' 2. AnElement - Any atomic value to which each of the functions will be applied
+' 2. AnElement - Any element to which each of the functions can be applied
 ' 3. ParameterCheckQ (optional) - If this explicitly set to False, no parameter consistency checks are
 '    perform.
 '
@@ -82,9 +82,6 @@ Public Function Through(AFunctionNameArray As Variant, _
             
             Exit Function
         End If
-        
-        ' Exit with Null if AnElement is not atomic
-        If Not (AtomicQ(AnElement) Or AtomicArrayQ(AnElement)) Then Exit Function
     End If
     
     ' Pre-allocate array to hold results

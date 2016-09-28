@@ -276,7 +276,7 @@ End Function
 ' True or False depending on whether arg is dimensioned, non-empty and all its elements satisfy
 ' Predicates.DateQ
 Public Function DateArrayQ(AnArray As Variant) As Boolean
-    Let DateArrayQ = AllTrueQ(AnArray, "ErrorQ")
+    Let DateArrayQ = AllTrueQ(AnArray, "DateQ")
 End Function
 
 ' DESCRIPTION
@@ -295,6 +295,7 @@ End Function
 
 ' DESCRIPTION
 ' Boolean function returns True if Returns True is its argument is 2D matrix with Atomic entries.
+' Empty arrays fail this function.
 '
 ' PARAMETERS
 ' 1. arg - a 2D array all of whose elements satisfy AtomicQ
@@ -315,7 +316,7 @@ End Function
 ' RETURNED VALUE
 ' Returns True or False depending on whether or not its arguments is a printable empty or 1D array
 Public Function PrintableArrayQ(AnArray As Variant) As Boolean
-    Let PrintableArrayQ = NumberOfDimensions(arg) = 1 And AllTrueQ(AnArray, "PrintableQ")
+    Let PrintableArrayQ = NumberOfDimensions(AnArray) = 1 And AllTrueQ(AnArray, "PrintableQ")
 End Function
 
 ' DESCRIPTION
@@ -342,7 +343,7 @@ End Function
 ' Returns True or False depending on whether or not all the elements in the 1D, dimensioned
 ' array arg satisfy ZeroQ
 Public Function ZeroArrayQ(arg As Variant) As Boolean
-    Let ZeroArrayQ = AllTrueQ(AnArray, "ZeroQ")
+    Let ZeroArrayQ = AllTrueQ(arg, "ZeroQ")
 End Function
 
 ' DESCRIPTION
@@ -384,7 +385,7 @@ End Function
 ' Returns True or False depending on whether or not all the elements in the 1D, dimensioned
 ' array arg satisfy ZeroQ
 Public Function OneArrayQ(arg As Variant) As Boolean
-    Let OneArrayQ = AllTrueQ(AnArray, "OneQ")
+    Let OneArrayQ = AllTrueQ(arg, "OneQ")
 End Function
 
 ' DESCRIPTION
@@ -429,7 +430,19 @@ End Function
 
 ' DESCRIPTION
 ' This function returns True if the two parameters are consistent so elementwise operations may be
-' perform on it (e.g. addition, multiplication, and division).
+' perform on it (e.g. addition, multiplication, and division).  For instance, it is okay to perform
+' elementwise operations for the following pairs of arguments:
+'
+' 1. scalar and row vector
+' 2. scalar and column vector
+' 3. scalar and matrix
+' 4. column vector and column vector
+' 5. column vector and matrix
+' 6. row vector and row vector
+' 7. row vector and matrix
+' 8. matrix and matrix
+'
+' The function returns False for any other pairs of arguments.
 '
 ' PARAMETERS
 ' 1. Matrix1 - a scalar, vector, or matrix
@@ -439,53 +452,39 @@ End Function
 ' True if the dimensions of the two arguments are consistent for elementwise operations. False
 ' otherwise.
 Public Function ElementwiseArithmeticParameterConsistentQ(Arg1 As Variant, Arg2 As Variant)
+    Dim var As Variant
+
     ' Set default return value when encountering erros
     Let ElementwiseArithmeticParameterConsistentQ = False
     
     ' Check parameter consistency
-    If Not (IsNumeric(Arg1) Or VectorQ(Arg1) Or MatrixQ(Arg1)) Then Exit Function
+    For Each var In Array(Arg1, Arg2)
+        If NoneTrueQ(Through(Array("EmptyQ", "NumberQ", "VectorQ", "MatrixQ"), var)) Then Exit Function
+    Next
     
-    If Not (IsNumeric(Arg2) Or VectorQ(Arg2) Or MatrixQ(Arg2)) Then Exit Function
-    
-    If RowVectorQ(Arg1) And MatrixQ(Arg2) And _
-       GetNumberOfColumns(Arg1) <> GetNumberOfColumns(Arg2) Then Exit Function
-    
-    If MatrixQ(Arg1) And RowVectorQ(Arg2) And _
-       GetNumberOfColumns(Arg1) <> GetNumberOfColumns(Arg2) Then Exit Function
-    
-    If ColumnVectorQ(Arg1) And MatrixQ(Arg2) Then
-        If GetNumberOfRows(Arg1) <> GetNumberOfRows(Arg2) Then
-            Exit Function
-        Else
-            Let ElementwiseArithmeticParameterConsistentQ = True
-            Exit Function
-        End If
-    End If
-
-    If ColumnVectorQ(Arg2) And MatrixQ(Arg1) Then
-        If GetNumberOfRows(Arg1) <> GetNumberOfRows(Arg2) Then
-            Exit Function
-        Else
-            Let ElementwiseArithmeticParameterConsistentQ = True
-            Exit Function
-        End If
-    End If
-    
-    If MatrixQ(Arg1) And ColumnVectorQ(Arg2) And _
-       GetNumberOfRows(Arg1) <> GetNumberOfRows(Arg2) Then Exit Function
-       
-    If MatrixQ(Arg1) And MatrixQ(Arg2) Then
-        If GetNumberOfRows(Arg1) <> GetNumberOfRows(Arg2) Or _
-           GetNumberOfColumns(Arg1) <> GetNumberOfColumns(Arg2) Then Exit Function
-    End If
+    ' Check compatible dimensions for all possible cases.
+    If EmptyArrayQ(Arg1) And Not EmptyArrayQ(Arg2) Then
+         Exit Function
+    ElseIf EmptyArrayQ(Arg2) And Not EmptyArrayQ(Arg1) Then
+        Exit Function
+    ElseIf RowVectorQ(Arg1) And MatrixQ(Arg2) Then
+       If NumberOfColumns(Arg1) <> NumberOfColumns(Arg2) Then Exit Function
+    ElseIf MatrixQ(Arg1) And RowVectorQ(Arg2) Then
+       If NumberOfColumns(Arg1) <> NumberOfColumns(Arg2) Then Exit Function
+    ElseIf ColumnVectorQ(Arg1) And MatrixQ(Arg2) Then
+        If NumberOfRows(Arg1) <> NumberOfRows(Arg2) Then Exit Function
+    ElseIf ColumnVectorQ(Arg2) And MatrixQ(Arg1) Then
+        If NumberOfRows(Arg1) <> NumberOfRows(Arg2) Then Exit Function
+    ElseIf MatrixQ(Arg1) And ColumnVectorQ(Arg2) Then
+       If GetNumberOfRows(Arg1) <> GetNumberOfRows(Arg2) Then Exit Function
+    ElseIf MatrixQ(Arg1) And MatrixQ(Arg2) Then
+        If NumberOfRows(Arg1) <> NumberOfRows(Arg2) Then Exit Function
         
-    If EmptyArrayQ(Arg1) And Not EmptyArrayQ(Arg2) Then Exit Function
-    
-    If EmptyArrayQ(Arg2) And Not EmptyArrayQ(Arg1) Then Exit Function
+        If NumberOfColumns(Arg1) <> NumberOfColumns(Arg2) Then Exit Function
+    End If
     
     Let ElementwiseArithmeticParameterConsistentQ = True
 End Function
-
 
 ' DESCRIPTION
 ' Boolean function returning True if its argument is a row or column vector as defined by
@@ -503,7 +502,7 @@ End Function
 ' DESCRIPTION
 ' Boolean function returning True if its argument is a column vector (e.g. n x 1 2D array with
 ' numeric entries exclusively) comprised of numeric, atomic expressions exclusively.
-' Returns True for the empty 1D array
+' Returns True for the empty array
 '
 ' PARAMETERS
 ' 1. arg - Any Excel value or reference
@@ -534,7 +533,7 @@ End Function
 
 ' DESCRIPTION
 ' Boolean function returning True if its argument is a row vector (e.g. a 1D vector comprised
-' exclusively of numeric entries).  Returns True for the empty 1D array
+' of numeric entries exclusively).  Returns True for the empty array
 '
 ' PARAMETERS
 ' 1. arg - Any Excel value or reference
@@ -559,6 +558,35 @@ Public Function RowVectorQ(arg As Variant) As Boolean
     If Not NumberArrayQ(arg) Then Exit Function
     
     Let RowVectorQ = True
+End Function
+
+' DESCRIPTION
+' Alias for AtomicArrayQ. Included to preserve parallel structure (e.g. having both ColumnArrayQ
+' and RowArrayQ just like we have RowVectorQ and ColumnVectorQ).
+'
+' PARAMETERS
+' 1. arg - Any Excel value or reference
+'
+' RETURNED VALUE
+' Returns True or False depending on whether or not its argument is a row vector.
+Public Function RowArrayQ(arg As Variant) As Boolean
+    Dim var As Variant
+    
+    Let RowArrayQ = False
+    
+    If Not DimensionedQ(arg) Then Exit Function
+    
+    ' Returning True for an empty array is necesary recursion to work properly on row vectors
+    If EmptyArrayQ(arg) Then
+        Let RowArrayQ = True
+        Exit Function
+    End If
+    
+    If NumberOfDimensions(arg) <> 1 Then Exit Function
+    
+    If Not AtomicArrayQ(arg) Then Exit Function
+    
+    Let RowArrayQ = True
 End Function
 
 ' DESCRIPTION
@@ -592,19 +620,6 @@ Public Function ColumnArrayQ(arg As Variant) As Boolean
 End Function
 
 ' DESCRIPTION
-' Alias for AtomicArrayQ. Included to preserve parallel structure (e.g. having both ColumnArrayQ
-' and RowArrayQ just like we have RowVectorQ and ColumnVectorQ).
-'
-' PARAMETERS
-' 1. arg - Any Excel value or reference
-'
-' RETURNED VALUE
-' Returns True or False depending on whether or not its argument is a row vector.
-Public Function RowArrayQ(arg As Variant) As Boolean
-    Let RowArrayQ = AtomicArrayQ(arg)
-End Function
-
-' DESCRIPTION
 ' Boolean function returning True if its argument if either RowArrayQ or ColumnArrayQ return True
 '
 ' PARAMETERS
@@ -624,7 +639,7 @@ End Function
 ' 1. Array(1,2,3)
 ' 2. Array(Array(1,2,3))
 ' 3. Array(Array(Array(1,2,3)))),
-' 4. [{1,2,3}], [{Array(1,2,3)}], etc. will evaluate to True.
+' 4. [{1,2,3}], etc. will evaluate to True.
 '
 ' PARAMETERS
 ' 1. arg - Any Excel value or reference
@@ -689,9 +704,9 @@ End Function
 ' array of atomic elements. This means that this function returns True for each of the following
 ' examples:
 '
-' 1. Array(1,2,3)
-' 2. Array(Array(1,2,3))
-' 3. [{1;2;3}], [{Array(1;2;3)}]
+' 1. [{1;2;3}]
+' 2. Array([{1;2;3}])
+' 3. Array(Array([{1;2;3}]))
 '
 ' PARAMETERS
 ' 1. arg - Any Excel value or reference

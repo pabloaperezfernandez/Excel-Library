@@ -562,7 +562,7 @@ End Function
 ' RETURNED VALUE
 ' The requested indices sequence
 Public Function CreateIndexSequenceFromSpan(AnArray As Variant, _
-                                            ASpan As Span, _
+                                            aSpan As Span, _
                                             Optional TheDimension As Long = 1) As Variant
     Dim TheStart As Variant
     Dim TheEnd As Variant
@@ -580,18 +580,18 @@ Public Function CreateIndexSequenceFromSpan(AnArray As Variant, _
 
     ' Turn the spans start and end points into positive indices relative
     ' to the array's intrinsic convention
-    Let TheStart = NormalizeIndex(AnArray, ASpan.TheStart, TheDimension)
-    Let TheEnd = NormalizeIndex(AnArray, ASpan.TheEnd, TheDimension)
+    Let TheStart = NormalizeIndex(AnArray, aSpan.TheStart, TheDimension)
+    Let TheEnd = NormalizeIndex(AnArray, aSpan.TheEnd, TheDimension)
     
     If IsNull(TheStart) Or IsNull(TheEnd) Then Exit Function
-    If TheStart > TheEnd Or ASpan.TheStep <= 0 Then Exit Function
+    If TheStart > TheEnd Or aSpan.TheStep <= 0 Then Exit Function
     
     ' Complete the sequence of numbers
     Let c = 0
-    Do While TheStart + c * ASpan.TheStep <= TheEnd
+    Do While TheStart + c * aSpan.TheStep <= TheEnd
         ReDim Preserve ReturnArray(1 To c + 1)
         
-        Let ReturnArray(c + 1) = TheStart + c * ASpan.TheStep
+        Let ReturnArray(c + 1) = TheStart + c * aSpan.TheStep
         Let c = c + 1
     Loop
     
@@ -652,7 +652,7 @@ Public Function Part(AnArray As Variant, ParamArray Indices() As Variant) As Var
     Dim RowIndices As Variant
     Dim ColumnIndices As Variant
     Dim var As Variant
-    Dim ASpan As Span
+    Dim aSpan As Span
     
     ' Set default return value when errors encountered
     Let Part = Null
@@ -678,7 +678,7 @@ Public Function Part(AnArray As Variant, ParamArray Indices() As Variant) As Var
         ' Get the current dimensional index
         If IsObject(IndicesCopy(IndexIndex)) Then
             Set AnIndex = IndicesCopy(IndexIndex)
-            Set ASpan = AnIndex
+            Set aSpan = AnIndex
         Else
             Let AnIndex = IndicesCopy(IndexIndex)
         End If
@@ -689,7 +689,7 @@ Public Function Part(AnArray As Variant, ParamArray Indices() As Variant) As Var
         ElseIf NonzeroWholeNumberArrayQ(AnIndex) And NonEmptyArrayQ(AnIndex) Then
             Let IndicesCopy(IndexIndex) = NormalizeIndexArray(AnArray, AnIndex, r, False)
         ElseIf SpanQ(AnIndex) Then
-            Let IndicesCopy(IndexIndex) = CreateIndexSequenceFromSpan(AnArray, ASpan, r)
+            Let IndicesCopy(IndexIndex) = CreateIndexSequenceFromSpan(AnArray, aSpan, r)
         Else
             Let IndicesCopy(IndexIndex) = Null
         End If
