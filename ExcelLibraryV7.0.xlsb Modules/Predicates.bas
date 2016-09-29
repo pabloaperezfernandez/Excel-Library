@@ -500,7 +500,7 @@ End Function
 ' RETURNED VALUE
 ' Returns True or False depending on whether or not the given parameter has one of the acceptable forms
 Public Function PartIndexQ(arg As Variant) As Boolean
-    Let PartIndexQ = NonZeroWholeNumberQ(arg) Or SpanQ(arg)
+    Let PartIndexQ = NonZeroWholeNumberQ(arg) Or NonzeroWholeNumberArrayQ(arg) Or SpanQ(arg)
 End Function
 
 ' DESCRIPTION
@@ -517,7 +517,7 @@ End Function
 ' RETURNED VALUE
 ' Returns True or False depending on whether or not the given parameter has one of the acceptable forms
 Public Function TakeIndexQ(TheIndex As Variant) As Boolean
-    Let TakeIndexQ = True
+     Let TakeIndexQ = True
 
     If NonZeroWholeNumberQ(TheIndex) Then
         Exit Function

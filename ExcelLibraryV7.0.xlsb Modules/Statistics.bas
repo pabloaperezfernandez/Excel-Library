@@ -36,7 +36,7 @@ Public Function ComputeSCurvedZScores(FactorValues() As Double, _
     Set CoordinatesWeightDict = New Dictionary
 
     ' Compute number of securities for this factor
-    Let NumSecurities = GetArrayLength(FactorValues)
+    Let NumSecurities = Length(FactorValues)
     
     ' Create copy of the array of security coordinates.  We set this copy of a security's combined
     ' coordinate to 0 (e.g. something that is not a valid combined coordinate) so that security is not
@@ -383,7 +383,7 @@ Public Function ComputeAveragePerformanceByQuantile(FactorVector As Variant, Ret
     Let ReturnRange.Value2 = Application.Transpose(ReturnVector)
 
     ' Compute the average value of CorrespondingVector for each quantile index.
-    ReDim Results(1 To GetArrayLength(FactorVector))
+    ReDim Results(1 To Length(FactorVector))
     For i = 1 To NumberOfQuantiles
         Let Results(i) = Application.AverageIf(QuantileRange, "=" & i, ReturnRange)
     Next i

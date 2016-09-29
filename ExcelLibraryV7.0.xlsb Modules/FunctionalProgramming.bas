@@ -170,7 +170,7 @@ Public Function ArraySelect(AnArray As Variant, _
     
     ' Exit with the empty array if AnArray is empty
     If EmptyArrayQ(AnArray) Then
-        Let ArrayMap = EmptyArray
+        Let ArraySelect = EmptyArray
         
         Exit Function
     End If
@@ -179,10 +179,11 @@ Public Function ArraySelect(AnArray As Variant, _
     ReDim ReturnArray(1 To Length(AnArray))
     
     ' Cycle through the array, adding to the return array those elements yielding True
+    Let c = 0
     For i = 1 To Length(AnArray)
         If Run(aFunctionName, Part(AnArray, i)) Then
-            Let ReturnArray(i) = var
             Let c = c + 1
+            Let ReturnArray(c) = Part(AnArray, i)
         End If
     Next
     
@@ -265,6 +266,202 @@ Public Function ArrayMapThread(aFunctionName As String, _
     Let ArrayMapThread = ReturnArray
 End Function
 
+
+' DESCRIPTION
+' This function computes the sum of the elements of the given array.  If AnArray is a 2D array,
+' this function returns the sum of the columns.  This is equivalent to
+'
+' Total(AnArray, 1)
+'
+' To add the rows, use Total(AnArray, 2)
+'
+' PARAMETERS
+' 1. AnArray - a 1D or 2D numeric array
+' 2. DimensionalIndex (optional) - Set by default to 1, indicates whether to perform the operation
+'    along dimension 1 or 2
+'
+' RETURNED VALUE
+' The result of the operation the whole array for 1D arrays, the columns for 2D arrays, or the rows
+' if requested for a 2D array
+Public Function Total(AnArray As Variant, _
+                      Optional DimensionalIndex As Integer = 1, _
+                      Optional ParameterCheckQ As Boolean = True) As Variant
+    Dim var As Variant
+    Dim ResultArray As Variant
+    Dim i As Integer
+    Dim j As Integer
+    
+    Let Total = Null
+
+    If ParameterCheckQ Then
+       If Not DimensionedQ(AnArray) Then Exit Function
+       
+        If NumberOfDimensions(AnArray) < 1 Or NumberOfDimensions(AnArray) > 2 Then Exit Function
+        
+        For Each var In AnArray
+            If Not NumberQ(var) Then Exit Function
+        Next
+    End If
+    
+    If EmptyArrayQ(AnArray) Then
+        Let Total = 0
+        Exit Function
+    End If
+    
+    If DimensionalIndex = 2 Then
+        If NumberOfDimensions(AnArray) = 1 Then
+            Let ResultArray = AnArray
+        Else
+            ReDim ResultArray(1 To Length(AnArray))
+        
+            For i = 1 To Length(AnArray)
+                Let ResultArray(i) = Total(Part(AnArray, i))
+            Next i
+        End If
+    Else
+        If NumberOfDimensions(AnArray) = 1 Then
+            Let ResultArray = 0
+            For Each var In AnArray
+                Let ResultArray = ResultArray + var
+            Next
+        Else
+            ReDim ResultArray(1 To NumberOfColumns(AnArray))
+            
+            For j = 1 To NumberOfColumns(AnArray)
+                Let ResultArray(j) = Total(Part(AnArray, Span(1, -1), j))
+            Next
+        End If
+    End If
+    
+    Let Total = ResultArray
+End Function
+
+' DESCRIPTION
+' This function computes the product of the elements of the given array.  If AnArray is a
+' 2D array, this function returns the product of the columns.  This is equivalent to
+'
+' Times(AnArray, 1)
+'
+' To add the rows, use Total(AnArray, 2)
+'
+' PARAMETERS
+' 1. AnArray - a 1D or 2D numeric array
+' 2. DimensionalIndex (optional) - Set by default to 1, indicates whether to perform the operation
+'    along dimension 1 or 2
+'
+' RETURNED VALUE
+' The result of the operation the whole array for 1D arrays, the columns for 2D arrays, or the rows
+' if requested for a 2D array
+Public Function Times(AnArray As Variant, _
+                      Optional DimensionalIndex As Integer = 1, _
+                      Optional ParameterCheckQ As Boolean = True) As Variant
+    Dim var As Variant
+    Dim ResultArray As Variant
+    Dim i As Integer
+    Dim j As Integer
+    
+    Let Times = Null
+
+    If ParameterCheckQ Then
+       If Not DimensionedQ(AnArray) Then Exit Function
+       
+        If NumberOfDimensions(AnArray) < 1 Or NumberOfDimensions(AnArray) > 2 Then Exit Function
+        
+        For Each var In AnArray
+            If Not NumberQ(var) Then Exit Function
+        Next
+    End If
+    
+    If EmptyArrayQ(AnArray) Then
+        Let Times = 1
+        Exit Function
+    End If
+    
+    If DimensionalIndex = 2 Then
+        If NumberOfDimensions(AnArray) = 1 Then
+            Let ResultArray = AnArray
+        Else
+            ReDim ResultArray(1 To Length(AnArray))
+        
+            For i = 1 To Length(AnArray)
+                Let ResultArray(i) = Times(Part(AnArray, i))
+            Next i
+        End If
+    Else
+        If NumberOfDimensions(AnArray) = 1 Then
+            Let ResultArray = 1
+            For Each var In AnArray
+                Let ResultArray = ResultArray * var
+            Next
+        Else
+            ReDim ResultArray(1 To NumberOfColumns(AnArray))
+            
+            For j = 1 To NumberOfColumns(AnArray)
+                Let ResultArray(j) = Times(Part(AnArray, Span(1, -1), j))
+            Next
+        End If
+    End If
+    
+    Let Times = ResultArray
+End Function
+
+' DESCRIPTION
+' This function computes the array that results from the successive addition of its elements. It
+' adds repeatedly along columns, returning a 1D array of 1D arrays.  When, applied to a 2D matrix,
+' it adds the rows repeatedly as if we had a sequence of rows, returning a 1D array of 1D
+' arrays. At the moment is does not work along the second dimension (adding along columns)
+'
+' PARAMETERS
+' 1. AnArray - a 1D or 2D numeric array
+'
+' RETURNED VALUE
+' The array of successive sums of the elements of the array or the columns of the 2D array
+Public Function Accumulate(AnArray As Variant, _
+                           Optional ParameterCheckQ As Boolean = True) As Variant
+    Dim var As Variant
+    Dim ResultArray As Variant
+    Dim i As Integer
+    
+    Let Accumulate = Null
+
+    If ParameterCheckQ Then
+       If Not DimensionedQ(AnArray) Then Exit Function
+       
+        If NumberOfDimensions(AnArray) < 1 Or NumberOfDimensions(AnArray) > 2 Then Exit Function
+        
+        For Each var In AnArray
+            If Not NumberQ(var) Then Exit Function
+        Next
+    End If
+    
+    If EmptyArrayQ(AnArray) Then
+        Let Accumulate = 0
+        
+        Exit Function
+    End If
+    
+    If NumberOfDimensions(AnArray) = 1 Then
+        ReDim ResultArray(1 To Length(AnArray))
+    
+        Let ResultArray(1) = First(AnArray)
+        For i = 2 To Length(AnArray)
+            Let ResultArray(i) = ResultArray(i - 1) + Part(AnArray, i)
+        Next
+    Else
+        ' Pre-allocate result array
+        ReDim ResultArray(1 To Length(AnArray))
+    
+        ' Set the initial value to the first row
+        Let ResultArray(1) = Part(AnArray, 1)
+
+        For i = 2 To Length(AnArray)
+            Let ResultArray(i) = Add(ResultArray(i - 1), Part(AnArray, i))
+        Next
+    End If
+    
+    Let Accumulate = ResultArray
+End Function
+
 ' DESCRIPTION
 ' Return the result of applying the given function N times iteratively to the given argument.
 ' Returns the argument when N = 0.  Returns Null when N<0.
@@ -331,11 +528,12 @@ Public Function NestList(aFunctionName As String, _
 End Function
 
 ' DESCRIPTION
-' Return the result of applying the given function N times iteratively to the given argument.
-' Returns the argument when N = 0.  Returns Null when N<0.
+' Return the result of applying the given function N times iteratively to the given
+' argument. Returns the argument when N = 0.  Returns Null when N<0.
 '
-' Example: ArrayMapThread("StringJoin", array(1,2,3), array(10,20,30)) returns
-'          ("110", "220", "330")
+' The function with name aFunctionName must accept two arguments.
+'
+' Example: Fold("Times", 10, [{1,2,3}]) returns 60
 '
 ' PARAMETERS
 ' 1. AFunctionName - Name of the function to apply
@@ -347,9 +545,8 @@ End Function
 Public Function Fold(aFunctionName As String, _
                      FirstArg As Variant, _
                      AnArrayForSecondArgs As Variant) As Variant
-    Dim ReturnArray As Variant
-    Dim CurrentValue As Variant
     Dim i As Long
+    Dim CurrentValue As Variant
                      
     ' Set default return value for errors
     Let Fold = Null
@@ -357,16 +554,57 @@ Public Function Fold(aFunctionName As String, _
     ' Exit with Null if AnArrayForSecordArgs is not dimensioned
     If Not DimensionedQ(AnArrayForSecondArgs) Then Exit Function
     
-    ' Return an empty list if AnArrayForSecondArgs is empty
+    ' Return an empty list if AnArrayForSecondArgs is not array or undimensioned
+    If Not DimensionedQ(AnArrayForSecondArgs) Then Exit Function
+    
+    Let CurrentValue = FirstArg
+    For i = 1 To Length(AnArrayForSecondArgs)
+        Let CurrentValue = Run(aFunctionName, CurrentValue, Part(AnArrayForSecondArgs, i))
+    Next
+    
+    Let Fold = CurrentValue
+End Function
+
+' DESCRIPTION
+' Return an array with each step in the computation resulting from applying the given
+' function N times iteratively to the given argument. Returns a 1D array with FirstArg
+' as its sole element when N = 0. Returns Null when N<0.
+'
+' The function with name aFunctionName must accept two arguments.
+'
+' Example: FoldList("Times", 10, [{1,2,3}]) returns {1, 1, 2, 6}
+'
+' PARAMETERS
+' 1. AFunctionName - Name of the function to apply
+' 2. Arg - Initial value for initial function call
+' 3. N - Number of times to apply functional nesting
+'
+' RETURNED VALUE
+' Returns all steps in the N iterations of the function on the given list
+Public Function FoldList(aFunctionName As String, _
+                     FirstArg As Variant, _
+                     AnArrayForSecondArgs As Variant) As Variant
+    Dim i As Long
+    Dim ResultArray() As Variant
+                     
+    ' Set default return value for errors
+    Let FoldList = Null
+    
+    ' Exit with Null if AnArrayForSecordArgs is not dimensioned
+    If Not DimensionedQ(AnArrayForSecondArgs) Then Exit Function
+    
+    ' Return a 1D, 1-elt array with FirstArg if AnArrayForSecondArgs empty
     If EmptyArrayQ(AnArrayForSecondArgs) Then
-        Let Fold = FirstArg
-        
+        Let FoldList = Array(FirstArg)
         Exit Function
     End If
     
-    ReDim ReturnArray(1 To Length(AnArrayForSecondArgs) + 1)
-    For i = 1 To Length(AnArrayForSecondArgs) + 1
-    '***HERE
+    ReDim ResultArray(1 To 1 + Length(AnArrayForSecondArgs))
+    Let ResultArray(1) = FirstArg
+    For i = 1 To Length(AnArrayForSecondArgs)
+        Let ResultArray(i + 1) = Run(aFunctionName, ResultArray(i), Part(AnArrayForSecondArgs, i))
     Next
+    
+    Let FoldList = ResultArray
 End Function
 

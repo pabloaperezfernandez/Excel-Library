@@ -181,7 +181,7 @@ Public Function FileExtension(AFileName As String) As Variant
     
     Let FileExtension = Split(Last(FileNameSplit(AFileName)), ".")
     
-    If GetArrayLength(FileExtension) = 1 Then
+    If Length(FileExtension) = 1 Then
         Let FileExtension = Empty
     Else
         Let FileExtension = Last(FileExtension)
@@ -204,7 +204,7 @@ Public Function FileBaseName(AFileName As String) As Variant
     
     Let FileBaseName = Split(Last(FileNameSplit(AFileName)), ".")
     
-    If GetArrayLength(FileBaseName) = 1 Then
+    If Length(FileBaseName) = 1 Then
         Let FileBaseName = First(FileBaseName)
     Else
         Let FileBaseName = Join(Most(FileBaseName), ".")

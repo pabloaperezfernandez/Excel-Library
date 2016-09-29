@@ -76,7 +76,7 @@ Public Function StringJoin(StringOrStringArray1 As Variant, Optional StringOrStr
         ' Exit with Null if StringOrStringArray1 and StringOrStringArray2 are both arrays
         ' but don't have the same length
         If IsArray(StringOrStringArray1) And IsArray(StringOrStringArray2) And _
-            GetArrayLength(StringOrStringArray1) <> GetArrayLength(StringOrStringArray2) Then
+            Length(StringOrStringArray1) <> Length(StringOrStringArray2) Then
             Let StringJoin = Null
             Exit Function
         End If

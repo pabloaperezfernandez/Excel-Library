@@ -364,7 +364,7 @@ Public Function Cast1DArrayToStrings(TheArray As Variant) As String()
     End If
     
     If IsArray(TheArray) Then
-        ReDim StringArray(1 To GetArrayLength(TheArray))
+        ReDim StringArray(1 To Length(TheArray))
     
         For i = LBound(TheArray) To UBound(TheArray)
             Let StringArray(i + (1 - LBound(TheArray))) = CStr(TheArray(i))
@@ -395,7 +395,7 @@ Public Function Cast1DArrayToIntegers(TheArray As Variant) As Integer()
     End If
     
     If IsArray(TheArray) Then
-        ReDim ResultsArray(1 To GetArrayLength(TheArray))
+        ReDim ResultsArray(1 To Length(TheArray))
     
         For i = LBound(TheArray) To UBound(TheArray)
             Let ResultsArray(i + (1 - LBound(TheArray))) = CStr(TheArray(i))
@@ -426,7 +426,7 @@ Public Function Cast1DArrayToLongs(TheArray As Variant) As Long()
     End If
     
     If IsArray(TheArray) Then
-        ReDim ResultsArray(1 To GetArrayLength(TheArray))
+        ReDim ResultsArray(1 To Length(TheArray))
     
         For i = LBound(TheArray) To UBound(TheArray)
             Let ResultsArray(i + (1 - LBound(TheArray))) = CStr(TheArray(i))
@@ -457,7 +457,7 @@ Public Function Cast1DArrayToDoubles(TheArray As Variant) As Double()
     End If
     
     If IsArray(TheArray) Then
-        ReDim ResultsArray(1 To GetArrayLength(TheArray))
+        ReDim ResultsArray(1 To Length(TheArray))
     
         For i = LBound(TheArray) To UBound(TheArray)
             Let ResultsArray(i + (1 - LBound(TheArray))) = CStr(TheArray(i))
@@ -488,9 +488,9 @@ Public Function Cast1DArrayToWorksheets(VariantWorksheetsArray As Variant) As Wo
     End If
 
     If IsArray(VariantWorksheetsArray) Then
-        ReDim MyArray(1 To GetArrayLength(VariantWorksheetsArray))
+        ReDim MyArray(1 To Length(VariantWorksheetsArray))
         
-        For i = 1 To GetArrayLength(VariantWorksheetsArray)
+        For i = 1 To Length(VariantWorksheetsArray)
             Set MyArray(i) = VariantWorksheetsArray(IIf(LBound(VariantWorksheetsArray) = 0, i - 1, i))
         Next i
         

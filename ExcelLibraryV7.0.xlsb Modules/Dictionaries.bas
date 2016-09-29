@@ -35,7 +35,7 @@ Public Function CreateDictionary(TheKeys As Variant, TheItems As Variant) As Dic
     End If
     
     ' Exit if the arguments don't have the same length
-    If GetArrayLength(TheKeys) <> GetArrayLength(TheItems) Then
+    If Length(TheKeys) <> Length(TheItems) Then
         Set CreateDictionary = Nothing
         Exit Function
     End If
@@ -187,7 +187,7 @@ Public Function GetValueFromDictionaries(Needles As Variant, _
     End If
     
     ' Exit with null if HayStacks, and ColumnIndices don't have the same length
-    If GetArrayLength(HayStacks) <> GetArrayLength(ColumnIndices) Then
+    If Length(HayStacks) <> Length(ColumnIndices) Then
         Let GetValueFromDictionaries = Null
         Exit Function
     End If

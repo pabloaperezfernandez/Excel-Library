@@ -27,7 +27,7 @@ Public Function GetOdbcDeviceDrivers() As String()
     Let strKeyPath = "SOFTWARE\ODBC\ODBCINST.INI\ODBC Drivers"
     Call objRegistry.EnumValues(HKEY_LOCAL_MACHINE, strKeyPath, arrValueNames, arrValueTypesa)
      
-    ReDim ResultArray(1 To GetArrayLength(arrValueNames))
+    ReDim ResultArray(1 To Length(arrValueNames))
     For i = 0 To UBound(arrValueNames)
         Let strValueName = arrValueNames(i)
         Call objRegistry.GetStringValue(HKEY_LOCAL_MACHINE, strKeyPath, strValueName, strValue)
@@ -182,7 +182,7 @@ Public Function InjectMatrixIntoMySql(ValuesMatrix As Variant, _
     Let QuotedFieldNames = AddSingleBackQuotesToAllArrayElements(FieldNames)
     
     ' Compute the number of chunks (e.g. number of insert statements we need)
-    Let NumberOfChunks = Application.Floor_Precise(GetNumberOfRows(ValuesMatrix) / ChunkSize)
+    Let NumberOfChunks = Application.Floor_Precise(NumberOfRows(ValuesMatrix) / ChunkSize)
     
     ' Insert each chunk
     For i = 1 To NumberOfChunks
@@ -199,12 +199,12 @@ Public Function InjectMatrixIntoMySql(ValuesMatrix As Variant, _
                                           ThePassword)
                                           
         If StatusBarMsgsFlag Then
-            Let Application.StatusBar = "Injected chunk " & i & " out of " & IIf(GetNumberOfRows(ValuesMatrix) Mod ChunkSize = 0, 0, 1)
+            Let Application.StatusBar = "Injected chunk " & i & " out of " & IIf(NumberOfRows(ValuesMatrix) Mod ChunkSize = 0, 0, 1)
         End If
     Next i
     
     ' Insert the remainder after chunking the data set
-    If GetNumberOfRows(ValuesMatrix) Mod ChunkSize > 0 Then
+    If NumberOfRows(ValuesMatrix) Mod ChunkSize > 0 Then
         Let QuotedValuesMatrix = Part(ValuesMatrix, Span(1 + CLng(NumberOfChunks) * ChunkSize, Length(ValuesMatrix)))
         Let QuotedValuesMatrix = AddSingleQuotesToAllArrayElements(QuotedValuesMatrix)
         
@@ -313,15 +313,15 @@ Public Sub ConnectAndExecuteInsertQuery(ValuesMatrix As Variant, FieldNames As V
     Let TheQuery = TheQuery & Convert1DArrayIntoParentheticalExpression(FieldNames) & vbCrLf
     Let TheQuery = TheQuery & " VALUES " & vbCrLf
     
-    ReDim TheRowArray(1 To GetNumberOfColumns(ValuesMatrix))
-    For i = 1 To GetNumberOfRows(ValuesMatrix)
-        For j = 1 To GetNumberOfColumns(ValuesMatrix)
+    ReDim TheRowArray(1 To NumberOfColumns(ValuesMatrix))
+    For i = 1 To NumberOfRows(ValuesMatrix)
+        For j = 1 To NumberOfColumns(ValuesMatrix)
             Let TheRowArray(j) = ValuesMatrix(i, j)
         Next j
     
         Let TheQuery = TheQuery & Convert1DArrayIntoParentheticalExpression(TheRowArray)
         
-        If i < GetNumberOfRows(ValuesMatrix) Then
+        If i < NumberOfRows(ValuesMatrix) Then
             Let TheQuery = TheQuery & ", " & vbCrLf
         End If
     Next i
@@ -392,7 +392,7 @@ Public Sub CopyTableFromOneDbServerToAnother(SourceServerAddress As String, TheD
     Let TheData = ConnectAndSelect("SELECT * FROM `" & TheDbName & "`.`" & DbTableName & "`;", TheDbName, SourceServerAddress, SourceDbUsername, SourceDbPassword)
     Let TheData = Rest(TheData)
     
-    Let TheData = Drop(TransposeMatrix(TheData), Array(GetNumberOfColumns(TheData)))
+    Let TheData = Drop(TransposeMatrix(TheData), Array(NumberOfColumns(TheData)))
     Let TheData = TransposeMatrix(TheData)
     
     Call MySql.RunQuery("TRUNCATE `" & TheDbName & "`.`" & DbTableName & "`;", TargetServerAddress, TheDbName, TargetDbUsername, TargetDbPassword)

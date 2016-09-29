@@ -60,7 +60,7 @@ Public Function AddColumnsToListObject(aListObject As ListObject, _
     
     ' If param TheData is present, then it must be a 1D array of the same length as ColumnNames
     If Not IsMissing(TheData) Then
-        If EmptyArrayQ(TheData) Or GetArrayLength(TheData) <> GetArrayLength(ColumnNames) Then
+        If EmptyArrayQ(TheData) Or Length(TheData) <> Length(ColumnNames) Then
             Set AddColumnsToListObject = Nothing
             Exit Function
         End If
@@ -71,7 +71,7 @@ Public Function AddColumnsToListObject(aListObject As ListObject, _
                 Exit Function
             End If
             
-            If GetArrayLength(var) <> aListObject.ListRows.Count Then
+            If Length(var) <> aListObject.ListRows.Count Then
                 Set AddColumnsToListObject = Nothing
                 Exit Function
             End If
@@ -90,7 +90,7 @@ Public Function AddColumnsToListObject(aListObject As ListObject, _
     End If
     
     ' If the code gets here, optional parameter TheData has been provided
-    For i = 1 To GetArrayLength(ColumnNames)
+    For i = 1 To Length(ColumnNames)
         Set lc = aListObject.ListColumns.Add
         Let lc.Name = ColumnNames(i)
         Call DumpInSheet(TransposeMatrix(TheData(i)), lc.DataBodyRange(1, 1))
@@ -174,14 +174,14 @@ Public Function LeftJoinListObjectsOnKeyEquality(ListObject1 As ListObject, _
     Next
     
     ' Get the column indices of the headers for ListObject1 and ListObject2
-    ReDim Array1HeadersPos(1 To GetArrayLength(Array1HeadersArray))
+    ReDim Array1HeadersPos(1 To Length(Array1HeadersArray))
     Let r = 1
     For Each var In Array1HeadersArray
         Let Array1HeadersPos(r) = ListObject1.ListColumns(var).Index
         Let r = r + 1
     Next
     
-    ReDim Array2HeadersPos(1 To GetArrayLength(Array2HeadersArray))
+    ReDim Array2HeadersPos(1 To Length(Array2HeadersArray))
     Let r = 1
     For Each var In Array2HeadersArray
         Let Array2HeadersPos(r) = ListObject2.ListColumns(var).Index
@@ -189,11 +189,11 @@ Public Function LeftJoinListObjectsOnKeyEquality(ListObject1 As ListObject, _
     Next
     
     ' Count the number of requested columns in each list object
-    Let NumRequestedCols1 = GetArrayLength(Array1HeadersArray)
-    Let NumRequestedCols2 = GetArrayLength(Array2HeadersArray)
+    Let NumRequestedCols1 = Length(Array1HeadersArray)
+    Let NumRequestedCols2 = Length(Array2HeadersArray)
 
     ' Load all information from ListObject1 into a dictionary
-    ReDim TheItems(1 To GetArrayLength(Array1HeadersArray) + GetArrayLength(Array2HeadersArray))
+    ReDim TheItems(1 To Length(Array1HeadersArray) + Length(Array2HeadersArray))
     
     Set ResultsDict = New Dictionary
     For r = 1 To ListObject1.ListRows.Count
@@ -342,14 +342,14 @@ Public Function InnerJoinListObjectsOnKeyEquality(ListObject1 As ListObject, _
     Next
     
     ' Get the column indices of the headers for ListObject1 and ListObject2
-    ReDim Array1HeadersPos(1 To GetArrayLength(Array1HeadersArray))
+    ReDim Array1HeadersPos(1 To Length(Array1HeadersArray))
     Let r = 1
     For Each var In Array1HeadersArray
         Let Array1HeadersPos(r) = ListObject1.ListColumns(var).Index
         Let r = r + 1
     Next
     
-    ReDim Array2HeadersPos(1 To GetArrayLength(Array2HeadersArray))
+    ReDim Array2HeadersPos(1 To Length(Array2HeadersArray))
     Let r = 1
     For Each var In Array2HeadersArray
         Let Array2HeadersPos(r) = ListObject2.ListColumns(var).Index
@@ -357,8 +357,8 @@ Public Function InnerJoinListObjectsOnKeyEquality(ListObject1 As ListObject, _
     Next
     
     ' Count the number of requested columns in each list object
-    Let NumRequestedCols1 = GetArrayLength(Array1HeadersArray)
-    Let NumRequestedCols2 = GetArrayLength(Array2HeadersArray)
+    Let NumRequestedCols1 = Length(Array1HeadersArray)
+    Let NumRequestedCols2 = Length(Array2HeadersArray)
 
     ' Index the contents of array2
     Set ListObject2Dict = New Dictionary

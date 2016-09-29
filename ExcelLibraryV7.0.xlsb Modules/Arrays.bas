@@ -83,19 +83,6 @@ FinalDimension:
 End Function
 
 ' DESCRIPTION
-' Alias for NumberOfDimensions().  This function returns the number of dimensions of any VBA expression.
-' Non-array expressions all have 0 dimensions.  Undimemsioned arrays have 0 dimensions.
-'
-' PARAMETERS
-' 1. arg - any value or object reference
-'
-' RETURNED VALUE
-' Number of dimensions for its argument.  Dimensioned arrays are the only expressions returning non-zero.
-Public Function GetNumberOfDimensions(MyArray As Variant) As Long
-    Let GetNumberOfDimensions = NumberOfDimensions(MyArray)
-End Function
-
-' DESCRIPTION
 ' This function returns the length of the given 1D or 2D array.  A 2D array is interpreted as 1D array
 ' of its rows. Non-array expressions all have 0 dimensions.  Undimemsioned arrays have 0 dimensions.
 '
@@ -104,26 +91,12 @@ End Function
 '
 ' RETURNED VALUE
 ' Length of the given array.  Dimensioned arrays are the only expressions returning non-zero.
-Public Function GetArrayLength(AnArray As Variant) As Long
-    If Not DimensionedQ(AnArray) Then
-        Let GetArrayLength = 0
-    Else
-        Let GetArrayLength = UBound(AnArray, 1) - LBound(AnArray, 1) + 1
-    End If
-End Function
-
-' DESCRIPTION
-' Alias for GetArrayLength.  This function returns the length of the given 1D or 2D array.  A 2D
-' array is interpreted as 1D array of its rows. Non-array expressions all have 0 dimensions.
-' Undimemsioned arrays have 0 dimensions.
-'
-' PARAMETERS
-' 1. arg - any value or object reference
-'
-' RETURNED VALUE
-' Length of the given array.  Dimensioned arrays are the only expressions returning non-zero.
 Public Function Length(AnArray As Variant) As Long
-    Let Length = GetArrayLength(AnArray)
+    If Not DimensionedQ(AnArray) Then
+        Let Length = 0
+    Else
+        Let Length = UBound(AnArray, 1) - LBound(AnArray, 1) + 1
+    End If
 End Function
 
 ' DESCRIPTION
@@ -135,28 +108,14 @@ End Function
 '
 ' RETURNED VALUE
 ' Length of the given array.  Dimensioned arrays are the only expressions returning non-zero.
-Public Function GetNumberOfRows(AMatrix As Variant) As Long
+Public Function NumberOfRows(AMatrix As Variant) As Long
     If Not DimensionedQ(AMatrix) Then
-        Let GetNumberOfRows = 0
+        Let NumberOfRows = 0
     ElseIf NumberOfDimensions(AMatrix) = 1 Then
-        Let GetNumberOfRows = 1
+        Let NumberOfRows = 1
     Else
-        Let GetNumberOfRows = UBound(AMatrix, 1) - LBound(AMatrix, 1) + 1
+        Let NumberOfRows = UBound(AMatrix, 1) - LBound(AMatrix, 1) + 1
     End If
-End Function
-
-' DESCRIPTION
-' Alias for GetNumberOfRows.  This function returns the number of rows in the given 2D array.
-' An empty array is said to have 0 rows.  Only dimensioned arrays return non-zero values.  All
-' other parameters return 0.
-'
-' PARAMETERS
-' 1. arg - any value or object reference
-'
-' RETURNED VALUE
-' Length of the given array.  Dimensioned arrays are the only expressions returning non-zero.
-Public Function NumberOfRows(AnArray As Variant) As Long
-    Let NumberOfRows = GetNumberOfRows(AnArray)
 End Function
 
 ' DESCRIPTION
@@ -168,28 +127,14 @@ End Function
 '
 ' RETURNED VALUE
 ' Number of columns of the given array.  Dimensioned arrays are the only expressions returning non-zero.
-Public Function GetNumberOfColumns(AMatrix As Variant) As Long
+Public Function NumberOfColumns(AMatrix As Variant) As Long
     If Not DimensionedQ(AMatrix) Then
-        Let GetNumberOfColumns = 0
+        Let NumberOfColumns = 0
     ElseIf NumberOfDimensions(AMatrix) = 1 Then
-        Let GetNumberOfColumns = UBound(AMatrix, 1) - LBound(AMatrix, 1) + 1
+        Let NumberOfColumns = UBound(AMatrix, 1) - LBound(AMatrix, 1) + 1
     Else
-        Let GetNumberOfColumns = UBound(AMatrix, 2) - LBound(AMatrix, 2) + 1
+        Let NumberOfColumns = UBound(AMatrix, 2) - LBound(AMatrix, 2) + 1
     End If
-End Function
-
-' DESCRIPTION
-' Alias for GetNumberOfColumns. This function returns the number of columns in the given 2D array.
-' An empty array is said to have 0 columns.  Only dimensioned arrays return non-zero values.  All
-' other parameters return 0.
-'
-' PARAMETERS
-' 1. arg - any value or object reference
-'
-' RETURNED VALUE
-' Number of columns of the given array.  Dimensioned arrays are the only expressions returning non-zero.
-Public Function NumberOfColumns(AnArray As Variant) As Long
-    Let NumberOfColumns = GetNumberOfColumns(AnArray)
 End Function
 
 ' DESCRIPTION
@@ -210,14 +155,12 @@ Public Function First(AnArray As Variant) As Variant
     If Not DimensionedQ(AnArray) Then
         Exit Function
     ElseIf NumberOfDimensions(AnArray) = 1 Then
-        If EmptyArrayQ(AnArray) Then
-            Exit Function
+        If EmptyArrayQ(AnArray) Then Exit Function
+        
+        If IsObject(AnArray(LBound(AnArray))) Then
+            Set First = AnArray(LBound(AnArray))
         Else
-            If IsObject(AnArray(LBound(AnArray))) Then
-                Set First = AnArray(LBound(AnArray))
-            Else
-                Let First = AnArray(LBound(AnArray))
-            End If
+            Let First = AnArray(LBound(AnArray))
         End If
     ElseIf NumberOfDimensions(AnArray) = 2 Then
         Let First = Part(AnArray, 1)
@@ -242,14 +185,12 @@ Public Function Last(AnArray As Variant) As Variant
     If Not DimensionedQ(AnArray) Then
         Exit Function
     ElseIf NumberOfDimensions(AnArray) = 1 Then
-        If EmptyArrayQ(AnArray) Then
-            Exit Function
+        If EmptyArrayQ(AnArray) Then Exit Function
+            
+        If IsObject(AnArray(UBound(AnArray))) Then
+            Set Last = AnArray(UBound(AnArray))
         Else
-            If IsObject(AnArray(UBound(AnArray))) Then
-                Set Last = AnArray(UBound(AnArray))
-            Else
-                Let Last = AnArray(UBound(AnArray))
-            End If
+            Let Last = AnArray(UBound(AnArray))
         End If
     ElseIf NumberOfDimensions(AnArray) = 2 Then
         Let Last = Part(AnArray, -1)
@@ -313,58 +254,68 @@ End Function
 ' DESCRIPTION
 ' Flattens a system of nested arrays, regardless of the complexity of array nesting.  The leaves of
 ' the tree represented by the nested array can have any Excel type. The leaves of the tree must be
-' atomic elements (e.g. satisfy AtomicQ) or the function returns Null.
+' atomic elements (e.g. satisfy AtomicQ) or the function returns Null.  This function flattens
+' [{1,2; 3,4}] the same way as Array(Array(1,2), Array(3,4))
 '
 ' PARAMETERS
 ' 1. arg - any value or object reference
 '
 ' RETURNED VALUE
 ' A 1D array all the values in the leaves of the tree represented by the original, nested array.
-Public Function Flatten(A As Variant, Optional ParameterCheckQ As Boolean = True) As Variant
+Public Function Flatten(a As Variant, Optional ParameterCheckQ As Boolean = True) As Variant
     Dim var As Variant
     Dim var2 As Variant
     Dim TempVariant As Variant
     Dim ResultsArray() As Variant
     Dim i As Long
+    Dim j As Long
     
     If ParameterCheckQ Then
-        If Not IsArray(A) Then
+        If Not IsArray(a) Then
             Let Flatten = Null
             Exit Function
         End If
     End If
     
-    If AtomicQ(A) Then
-        Let Flatten = A
+    If AtomicQ(a) Then
+        Let Flatten = a
         Exit Function
     End If
-
-    Let i = 0
-    For Each var In A
-        If AtomicQ(var) Then
-            Let i = i + 1
-            ReDim Preserve ResultsArray(1 To i)
-            Let ResultsArray(i) = var
-        ElseIf IsArray(var) Then
-            Let TempVariant = Flatten(var)
-            
-            If ParameterCheckQ Then
-                If IsNull(TempVariant) Then
-                    Let Flatten = Null
-                    Exit Function
-                End If
-            End If
-        
-            For Each var2 In Flatten(var)
+    
+    If NumberOfDimensions(a) = 1 Then
+        For i = 1 To NumberOfColumns(a)
+            For j = 1 To NumberOfRows(a)
+                '***HERE
+            Next
+        Next
+    Else
+        Let i = 0
+        For Each var In a
+            If AtomicQ(var) Then
                 Let i = i + 1
                 ReDim Preserve ResultsArray(1 To i)
-                Let ResultsArray(i) = var2
-            Next
-        Else
-            Let Flatten = Null
-            Exit Function
-        End If
-    Next
+                Let ResultsArray(i) = var
+            ElseIf IsArray(var) Then
+                Let TempVariant = Flatten(var)
+                
+                If ParameterCheckQ Then
+                    If IsNull(TempVariant) Then
+                        Let Flatten = Null
+                        Exit Function
+                    End If
+                End If
+            
+                For Each var2 In Flatten(var)
+                    Let i = i + 1
+                    ReDim Preserve ResultsArray(1 To i)
+                    Let ResultsArray(i) = var2
+                Next
+            Else
+                Let Flatten = Null
+                Exit Function
+            End If
+        Next
+    End If
     
     Let Flatten = ResultsArray
 End Function
@@ -830,11 +781,15 @@ End Function
 ' elements as in the case of Part(AnArray, n) or Part(AnArray, n, m), which return single
 ' elements when n and m are whole numbers.
 '
+' Where as Mathematica's Take can operate on rows and columns, our implementation operates
+' one the first dimension exclusively.  Use Part with Span() if you want to operate on more
+' than one dimension simultaneously,
+'
 ' PARAMETERS
 ' 1. AnArray - A dimensioned array
-' 2. Indices - a sequence of indices (with at least one supplied) of the forms below, with each one
-'    referring to a different dimension of the array. At the moment we process only 1D and 2D arrays.
-'    So, Indices can only be one or two of the forms below.
+' 2. Indices - a sequence of indices (with at least one supplied) of the forms below, with
+'    each one referring to a different dimension of the array. At the moment we process only
+'    1D and 2D arrays. So, Indices can only be one or two of the forms below.
 '
 ' Indices can take any of the following forms:
 ' 1. n - Get elements 1 through
@@ -883,7 +838,7 @@ End Function
 '
 ' RETURNED VALUE
 ' Returns the stacked 2D array resulting from stacking the two given arrays.
-Public Function StackArrays(A As Variant, _
+Public Function StackArrays(a As Variant, _
                             B As Variant, _
                             Optional ParameterCheckQ As Boolean = True) As Variant
     Dim r As Long
@@ -901,30 +856,30 @@ Public Function StackArrays(A As Variant, _
     
     ' Check parameter consistency if ParameterCheckQ is True
     If ParameterCheckQ Then
-        If Not (DimensionedQ(A) Or DimensionedQ(B)) Then Exit Function
+        If Not (DimensionedQ(a) Or DimensionedQ(B)) Then Exit Function
         
-        If Not (AtomicArrayQ(A) Or AtomicTableQ(A)) Or _
-           Not (AtomicArrayQ(A) Or AtomicTableQ(A)) Then Exit Function
+        If Not (AtomicArrayQ(a) Or AtomicTableQ(a)) Or _
+           Not (AtomicArrayQ(a) Or AtomicTableQ(a)) Then Exit Function
         
-        If GetNumberOfColumns(A) <> GetNumberOfColumns(B) Then Exit Function
+        If NumberOfColumns(a) <> NumberOfColumns(B) Then Exit Function
         
-        If EmptyArrayQ(A) Then
+        If EmptyArrayQ(a) Then
             Let StackArrays = B
             Exit Function
         End If
         
         If EmptyArrayQ(B) Then
-            Let StackArrays = A
+            Let StackArrays = a
             Exit Function
         End If
     End If
 
     ' Get dimensions of a and b
-    Let DimsA = NumberOfDimensions(A)
+    Let DimsA = NumberOfDimensions(a)
     Let DimsB = NumberOfDimensions(B)
-    Let NumColsA = NumberOfColumns(A)
+    Let NumColsA = NumberOfColumns(a)
     Let NumColsB = NumberOfColumns(B)
-    Let NumRowsA = NumberOfRows(A)
+    Let NumRowsA = NumberOfRows(a)
     Let NumRowsB = NumberOfRows(B)
     
     ' Stack two 1D arrays
@@ -934,8 +889,8 @@ Public Function StackArrays(A As Variant, _
         
         ' Add A's lone row and B's lone row in rows 1 and 2 respectively of the stacked array
         For c = 1 To NumColsA
-            Let ReturnArray(1, c) = A(c + LBound(A) - 1)
-            Let ReturnArray(2, c) = B(c + LBound(A) - 1)
+            Let ReturnArray(1, c) = a(c + LBound(a) - 1)
+            Let ReturnArray(2, c) = B(c + LBound(a) - 1)
         Next c
     ' Stack 1D array A on top of 2D array B
     ElseIf DimsA = 1 And DimsB > 1 Then
@@ -944,7 +899,7 @@ Public Function StackArrays(A As Variant, _
         
         ' Set A's lone row as the first row of the stacked array
         For c = 1 To NumColsA
-            Let ReturnArray(1, c) = A(c + LBound(A) - 1)
+            Let ReturnArray(1, c) = a(c + LBound(a) - 1)
         Next c
         
         For r = 1 To NumRowsB
@@ -960,7 +915,7 @@ Public Function StackArrays(A As Variant, _
         For r = 1 To NumRowsA + 1
             For c = 1 To NumColsA
                 If r < NumRowsA + 1 Then
-                    Let ReturnArray(r, c) = A(r + LBound(A, 1) - 1, c + LBound(A, 2) - 1)
+                    Let ReturnArray(r, c) = a(r + LBound(a, 1) - 1, c + LBound(a, 2) - 1)
                 Else
                     Let ReturnArray(r, c) = B(c + LBound(B) - 1)
                 End If
@@ -972,7 +927,7 @@ Public Function StackArrays(A As Variant, _
         ReDim ReturnArray(1 To NumRowsA + NumRowsB, 1 To NumColsB)
         For r = 1 To NumRowsA
             For c = 1 To NumColsA
-                Let ReturnArray(r, c) = A(r + LBound(A, 1) - 1, c + LBound(A, 2) - 1)
+                Let ReturnArray(r, c) = a(r + LBound(a, 1) - 1, c + LBound(a, 2) - 1)
             Next c
         Next r
     
@@ -1013,7 +968,7 @@ Public Function Append(AnArray As Variant, _
         If Not DimensionedQ(AnArray) Then Exit Function
             
         ' Exit with Null if AnArray is a 2D array and AnElt does not have the same number of columns
-        If NumberOfDimensions(AnArray) = 2 And GetNumberOfColumns(AnArray) <> GetNumberOfColumns(AnElt) Then Exit Function
+        If NumberOfDimensions(AnArray) = 2 And NumberOfColumns(AnArray) <> NumberOfColumns(AnElt) Then Exit Function
         
         ' Exit with AnElt if AnArray is empty
         If EmptyArrayQ(AnArray) Then
@@ -1072,7 +1027,7 @@ Public Function Prepend(AnArray As Variant, _
         If Not DimensionedQ(AnArray) Then Exit Function
             
         ' Exit with Null if AnArray is a 2D array and AnElt does not have the same number of columns
-        If NumberOfDimensions(AnArray) = 2 And GetNumberOfColumns(AnArray) <> GetNumberOfColumns(AnElt) Then Exit Function
+        If NumberOfDimensions(AnArray) = 2 And NumberOfColumns(AnArray) <> NumberOfColumns(AnElt) Then Exit Function
         
         ' Exit with AnElt if AnArray is empty
         If EmptyArrayQ(AnArray) Then
@@ -1623,7 +1578,7 @@ Public Function Pack2DArray(TheRowsAs1DArrays As Variant, _
         End If
     
         For Each var In TheRowsAs1DArrays
-            If GetArrayLength(var) <> ElementLength Then
+            If Length(var) <> ElementLength Then
                 Let Pack2DArray = Null
                 Exit Function
             End If
@@ -1675,7 +1630,7 @@ End Function
 '
 ' RETURNED VALUE
 ' Returns the 1D whose elements are the rows or columns (if explicitly requested) of the given 2D array
-Public Function UnPack2DArray(A2DArray As Variant, _
+Public Function UnPack2DArray(a2DArray As Variant, _
                               Optional UnPackAsColumnsQ As Boolean = False) As Variant
     Dim r As Long
     Dim c As Long
@@ -1689,29 +1644,29 @@ Public Function UnPack2DArray(A2DArray As Variant, _
     Let UnPack2DArray = Null
     
     ' Exit with Null if A2DArray is undimensioned
-    If Not DimensionedQ(A2DArray) Then Exit Function
+    If Not DimensionedQ(a2DArray) Then Exit Function
     
     ' Exit with the empty array if A2DArray is the empty array
-    If EmptyArrayQ(A2DArray) Then
+    If EmptyArrayQ(a2DArray) Then
         Let UnPack2DArray = EmptyArray()
         Exit Function
     End If
     
     ' Exit if the argument is not the expected type
-    If NumberOfDimensions(A2DArray) <> 2 Then Exit Function
+    If NumberOfDimensions(a2DArray) <> 2 Then Exit Function
     
     ' Unpack the array, returning the columns as the elements of the return array
     If UnPackAsColumnsQ Then
         ' Pre-allocate a 2D array filled with Empty
-        ReDim ReturnArray(1 To NumberOfColumns(A2DArray))
-        ReDim ColumnArray(1 To Length(A2DArray))
+        ReDim ReturnArray(1 To NumberOfColumns(a2DArray))
+        ReDim ColumnArray(1 To Length(a2DArray))
         
-        Let rOffset = LBound(A2DArray, 1) - 1
-        Let cOffset = LBound(A2DArray, 2) - 1
+        Let rOffset = LBound(a2DArray, 1) - 1
+        Let cOffset = LBound(a2DArray, 2) - 1
         
-        For c = 1 To NumberOfColumns(A2DArray)
-            For r = 1 To Length(A2DArray)
-                Let ColumnArray(r) = A2DArray(r + rOffset, c + cOffset)
+        For c = 1 To NumberOfColumns(a2DArray)
+            For r = 1 To Length(a2DArray)
+                Let ColumnArray(r) = a2DArray(r + rOffset, c + cOffset)
             Next
             
             Let ReturnArray(c) = ColumnArray
@@ -1719,15 +1674,15 @@ Public Function UnPack2DArray(A2DArray As Variant, _
     ' Unpack the array, returning the rows as the elements of the return array
     Else
         ' Pre-allocate a 2D array filled with Empty
-        ReDim ReturnArray(1 To Length(A2DArray))
-        ReDim RowArray(1 To NumberOfColumns(A2DArray))
+        ReDim ReturnArray(1 To Length(a2DArray))
+        ReDim RowArray(1 To NumberOfColumns(a2DArray))
         
-        Let rOffset = LBound(A2DArray, 1) - 1
-        Let cOffset = LBound(A2DArray, 2) - 1
+        Let rOffset = LBound(a2DArray, 1) - 1
+        Let cOffset = LBound(a2DArray, 2) - 1
     
-        For r = 1 To Length(A2DArray)
-            For c = 1 To NumberOfColumns(A2DArray)
-                Let RowArray(c) = A2DArray(r + rOffset, c + cOffset)
+        For r = 1 To Length(a2DArray)
+            For c = 1 To NumberOfColumns(a2DArray)
+                Let RowArray(c) = a2DArray(r + rOffset, c + cOffset)
             Next c
             
             Let ReturnArray(r) = RowArray
@@ -2145,7 +2100,7 @@ End Function
 '
 ' RETURNED VALUE
 ' The set complement of one set with respect to another
-Public Function ComplementOfSets(A As Variant, B As Variant) As Variant
+Public Function ComplementOfSets(a As Variant, B As Variant) As Variant
     Dim BDict As Dictionary
     Dim ComplementDict As Dictionary
     Dim var As Variant
@@ -2154,16 +2109,16 @@ Public Function ComplementOfSets(A As Variant, B As Variant) As Variant
     Let ComplementOfSets = Null
     
     ' Exit with Null if either set is undimensioned
-    If Not (DimensionedQ(A) And DimensionedQ(B)) Then Exit Function
+    If Not (DimensionedQ(a) And DimensionedQ(B)) Then Exit Function
     
     ' If a is an empty array, exit returning an empty array
-    If EmptyArrayQ(A) Then
+    If EmptyArrayQ(a) Then
         Let ComplementOfSets = EmptyArray()
         Exit Function
     End If
     
     If EmptyArrayQ(B) Then
-        Let ComplementOfSets = A
+        Let ComplementOfSets = a
         Exit Function
     End If
     
@@ -2179,7 +2134,7 @@ Public Function ComplementOfSets(A As Variant, B As Variant) As Variant
     Next
     
     ' Populate ComplementDict
-    For Each var In UniqueSubset(A)
+    For Each var In UniqueSubset(a)
         If Not BDict.Exists(Key:=var) And Not ComplementDict.Exists(Key:=var) Then
             Call ComplementDict.Add(Key:=var, Item:=var)
         End If
@@ -2255,204 +2210,6 @@ Public Function TransposeMatrix(AMatrix As Variant, _
     Next r
     
     Let TransposeMatrix = TheResult
-End Function
-
-' DESCRIPTION
-' This function computes the sum of the elements of the given array.  If a 2D array, this
-' function returns the sum of the columns.  This is equivalent to
-'
-' Total(AnArray, 1)
-'
-' To add the rows, use Total(AnArray, 2)
-'
-' PARAMETERS
-' 1. AnArray - a 1D or 2D numeric array
-' 2. DimensionalIndex (optional) - Set by default to 1, indicates whether to perform the operation
-'    along dimension 1 or 2
-'
-' RETURNED VALUE
-' The result of the operation the whole array for 1D arrays, the columns for 2D arrays, or the rows
-' if requested for a 2D array
-Public Function Total(AnArray As Variant, _
-                      Optional DimensionalIndex As Integer = 1, _
-                      Optional ParameterCheckQ As Boolean = True) As Variant
-    Dim var As Variant
-    Dim ResultArray As Variant
-    Dim i As Integer
-    Dim j As Integer
-    
-    Let Total = Null
-
-    If ParameterCheckQ Then
-       If Not DimensionedQ(AnArray) Then Exit Function
-       
-        If NumberOfDimensions(AnArray) < 1 Or NumberOfDimensions(AnArray) > 2 Then Exit Function
-        
-        For Each var In AnArray
-            If Not NumberQ(var) Then Exit Function
-        Next
-    End If
-    
-    If EmptyArrayQ(AnArray) Then
-        Let Total = 0
-        Exit Function
-    End If
-    
-    If DimensionalIndex = 2 Then
-        If NumberOfDimensions(AnArray) = 1 Then
-            Let ResultArray = AnArray
-        Else
-            ReDim ResultArray(1 To Length(AnArray))
-        
-            For i = 1 To Length(AnArray)
-                Let ResultArray(i) = Total(Part(AnArray, i))
-            Next i
-        End If
-    Else
-        If NumberOfDimensions(AnArray) = 1 Then
-            Let ResultArray = 0
-            For Each var In AnArray
-                Let ResultArray = ResultArray + var
-            Next
-        Else
-            ReDim ResultArray(1 To NumberOfColumns(AnArray))
-            
-            For j = 1 To NumberOfColumns(AnArray)
-                Let ResultArray(j) = Total(Part(AnArray, Span(1, -1), j))
-            Next
-        End If
-    End If
-    
-    Let Total = ResultArray
-End Function
-
-' DESCRIPTION
-' This function computes the product of the elements of the given array.  If a 2D array, this
-' function returns the product of the columns.  This is equivalent to
-'
-' Times(AnArray, 1)
-'
-' To add the rows, use Total(AnArray, 2)
-'
-' PARAMETERS
-' 1. AnArray - a 1D or 2D numeric array
-' 2. DimensionalIndex (optional) - Set by default to 1, indicates whether to perform the operation
-'    along dimension 1 or 2
-'
-' RETURNED VALUE
-' The result of the operation the whole array for 1D arrays, the columns for 2D arrays, or the rows
-' if requested for a 2D array
-Public Function Times(AnArray As Variant, _
-                      Optional DimensionalIndex As Integer = 1, _
-                      Optional ParameterCheckQ As Boolean = True) As Variant
-    Dim var As Variant
-    Dim ResultArray As Variant
-    Dim i As Integer
-    Dim j As Integer
-    
-    Let Times = Null
-
-    If ParameterCheckQ Then
-       If Not DimensionedQ(AnArray) Then Exit Function
-       
-        If NumberOfDimensions(AnArray) < 1 Or NumberOfDimensions(AnArray) > 2 Then Exit Function
-        
-        For Each var In AnArray
-            If Not NumberQ(var) Then Exit Function
-        Next
-    End If
-    
-    If EmptyArrayQ(AnArray) Then
-        Let Times = 1
-        Exit Function
-    End If
-    
-    If DimensionalIndex = 2 Then
-        If NumberOfDimensions(AnArray) = 1 Then
-            Let ResultArray = AnArray
-        Else
-            ReDim ResultArray(1 To Length(AnArray))
-        
-            For i = 1 To Length(AnArray)
-                Let ResultArray(i) = Times(Part(AnArray, i))
-            Next i
-        End If
-    Else
-        If NumberOfDimensions(AnArray) = 1 Then
-            Let ResultArray = 1
-            For Each var In AnArray
-                Let ResultArray = ResultArray * var
-            Next
-        Else
-            ReDim ResultArray(1 To NumberOfColumns(AnArray))
-            
-            For j = 1 To NumberOfColumns(AnArray)
-                Let ResultArray(j) = Times(Part(AnArray, Span(1, -1), j))
-            Next
-        End If
-    End If
-    
-    Let Times = ResultArray
-End Function
-
-' DESCRIPTION
-' This function computes the array that results from the successive addition of its elements. It
-' adds repeatedly along columns, returning a 1D array of 1D arrays.
-'
-' PARAMETERS
-' 1. AnArray - a 1D or 2D numeric array
-'
-' RETURNED VALUE
-' The array of successive sums of the elements of the array or the columns of the 2D array
-Public Function Accumulate(AnArray As Variant, _
-                           Optional DimensionalIndex As Integer = 1, _
-                           Optional ParameterCheckQ As Boolean = True) As Variant
-    Dim var As Variant
-    Dim ResultArray As Variant
-    Dim i As Integer
-    Dim j As Integer
-    
-    Let Accumulate = Null
-
-    If ParameterCheckQ Then
-       If Not DimensionedQ(AnArray) Then Exit Function
-       
-        If NumberOfDimensions(AnArray) < 1 Or NumberOfDimensions(AnArray) > 2 Then Exit Function
-        
-        For Each var In AnArray
-            If Not NumberQ(var) Then Exit Function
-        Next
-    End If
-    
-    If EmptyArrayQ(AnArray) Then
-        Let Accumulate = 0
-        
-        Exit Function
-    End If
-    
-    If NumberOfDimensions(AnArray) = 1 Then
-        ReDim ResultArray(1 To Length(AnArray))
-    
-        Let ResultArray(1) = First(AnArray)
-        For i = 2 To Length(AnArray)
-            Let ResultArray(i) = ResultArray(i - 1) + Part(AnArray, i)
-        Next
-    Else
-        ReDim ResultArray(1 To Length(AnArray), 1 To NumberOfColumns(AnArray))
-    
-        For i = 1 To Length(AnArray)
-            Let ResultArray(i, 1) = Part(AnArray, i, 1)
-        Next
-
-        For j = 2 To NumberOfColumns(AnArray)
-            For i = 1 To Length(AnArray)
-                 
-                Let ResultArray(i, j) = ResultArray(i, j - 1) + Part(AnArray, i, j)
-            Next
-        Next
-    End If
-    
-    Let Accumulate = ResultArray
 End Function
 
 ' DESCRIPTION
@@ -2657,7 +2414,7 @@ Public Function ApplyElementwiseArithmeticOperation(TheOperation As String, _
             Let TheResults = Arg1 / Arg2
         End If
     ElseIf IsNumeric(Arg1) And NumberOfDimensions(Arg2) = 1 Then
-        Let numColumns = GetNumberOfColumns(Arg2)
+        Let numColumns = NumberOfColumns(Arg2)
         
         ReDim TheResults(1 To numColumns)
 
@@ -2678,7 +2435,7 @@ Public Function ApplyElementwiseArithmeticOperation(TheOperation As String, _
             Next
         End If
     ElseIf IsNumeric(Arg1) And NumberOfDimensions(Arg2) = 2 And NumberOfColumns(Arg2) = 1 Then
-        Let NumRows = GetNumberOfRows(Arg2)
+        Let NumRows = NumberOfRows(Arg2)
         
         ReDim TheResults(1 To NumRows, 1 To 1)
 
@@ -2699,8 +2456,8 @@ Public Function ApplyElementwiseArithmeticOperation(TheOperation As String, _
             Next
         End If
     ElseIf IsNumeric(Arg1) And NumberOfDimensions(Arg2) = 2 And NumberOfColumns(Arg2) > 1 Then
-        Let NumRows = GetNumberOfRows(Arg2)
-        Let numColumns = GetNumberOfColumns(Arg2)
+        Let NumRows = NumberOfRows(Arg2)
+        Let numColumns = NumberOfColumns(Arg2)
         
         ReDim TheResults(1 To NumRows, 1 To numColumns)
     
@@ -2729,8 +2486,8 @@ Public Function ApplyElementwiseArithmeticOperation(TheOperation As String, _
         End If
     ElseIf NumberOfDimensions(Arg1) = 1 And NumberOfDimensions(Arg2) = 2 And NumberOfColumns(Arg2) > 1 Then
         ' If the code gets here, we are adding two 2D matrices of the same size
-        Let NumRows = GetNumberOfRows(Arg2)
-        Let numColumns = GetNumberOfColumns(Arg2)
+        Let NumRows = NumberOfRows(Arg2)
+        Let numColumns = NumberOfColumns(Arg2)
         
         ReDim TheResults(1 To NumRows, 1 To numColumns)
     
@@ -2759,8 +2516,8 @@ Public Function ApplyElementwiseArithmeticOperation(TheOperation As String, _
             Next
         End If
     ElseIf NumberOfDimensions(Arg1) = 2 And NumberOfColumns(Arg1) = 1 And NumberOfDimensions(Arg2) = 2 And NumberOfColumns(Arg2) > 1 Then
-        Let NumRows = GetNumberOfRows(Arg2)
-        Let numColumns = GetNumberOfColumns(Arg2)
+        Let NumRows = NumberOfRows(Arg2)
+        Let numColumns = NumberOfColumns(Arg2)
         
         ReDim TheResults(1 To NumRows, 1 To numColumns)
     
@@ -2789,10 +2546,32 @@ Public Function ApplyElementwiseArithmeticOperation(TheOperation As String, _
                 Next
             Next
         End If
+    ElseIf NumberOfDimensions(Arg1) = 1 And NumberOfDimensions(Arg2) = 1 Then
+        Let numColumns = Length(Arg1)
+        
+        ReDim TheResults(1 To numColumns)
+    
+        ' Compute the r and c offsets due to differences in array starts
+        Let cOffset1 = IIf(LBound(Arg1, 1) = 0, 1, 0)
+        Let cOffset2 = IIf(LBound(Arg2, 1) = 0, 1, 0)
+
+        If TheOperation = "ADD" Then
+            For c = 1 To numColumns
+                Let TheResults(c) = Arg1(1 + cOffset1) + Arg2(c + cOffset2)
+            Next
+        ElseIf TheOperation = "MULTIPLY" Then
+            For c = 1 To numColumns
+                Let TheResults(c) = Arg1(1 + cOffset1) * Arg2(c + cOffset2)
+            Next
+        Else
+            For c = 1 To numColumns
+                Let TheResults(c) = Arg1(1 + cOffset1) / Arg2(c + cOffset2)
+            Next
+        End If
     Else
         ' If the code gets here, we are adding two 2D matrices of the same size
-        Let NumRows = GetNumberOfRows(Arg1)
-        Let numColumns = GetNumberOfColumns(Arg1)
+        Let NumRows = NumberOfRows(Arg1)
+        Let numColumns = NumberOfColumns(Arg1)
         
         ReDim TheResults(1 To NumRows, 1 To numColumns)
     
@@ -2987,156 +2766,6 @@ Public Function BlankOutArraySequentialRepetitions(ByVal AnArray As Variant)
     Let BlankOutArraySequentialRepetitions = AnArray
 End Function
 
-' DESCRIPTION
-' This function inserts new elements in a repeated fashion in between the elements of the
-' given array. It can take several forms:
-'
-'    1. Riffle(Array(e1, e2, ...), elt)
-'    2. Riffle(Array(e1, e2, ...), Array(elt1, elt2, ...))
-'    3. Riffle(Array(e1, e2, ...), elt, n)
-'    4. Riffle(Array(e1, e2, ...), elt, Array(imin, imax, n))
-'       This case requires assumes that 1 instead of 0 is the first array position.
-'       It also requires imin<=imax
-'
-' If there are fewer elements in Array(elt1, elt2, ...) than gaps between  in Riffle(Array(e1,e2,…),Array(x1,x2,…)),
-' the Array(elt1, elt2, ...) are used cyclically. Riffle(Array(e),x) gives Array(e). The specification  is of the
-' type used in Take. Negative indices count from the end of the list.
-'
-' In Riffle[list, xlist], if list and xlist are of the same length, then their elements are directly interleaved,
-' so that the last element of the result is the last element of xlist.
-'
-' When A1DArray is an empty array, the empty array is returned unchanged.  When the parameters are inconsistent,
-' the function returns Null.
-Public Function Riffle(A1DArray As Variant, Arg2 As Variant, Optional StepInterval As Variant) As Variant
-    Dim ResultsDict As Dictionary
-    Dim var As Dictionary
-    Dim r As Long
-    Dim s As Long
-    Dim c As Long
-
-    If Not DimensionedQ(A1DArray) Then
-        Let Riffle = Null
-        Exit Function
-    End If
-
-    If EmptyArrayQ(A1DArray) Then
-        Let Riffle = A1DArray
-        Exit Function
-    End If
-    
-    If Not AtomicArrayQ(A1DArray) Then
-        Let Riffle = Null
-        Exit Function
-    End If
-    
-    If Not IsMissing(StepInterval) Then
-        If Not (PositiveWholeNumberQ(StepInterval) Or IsArray(StepInterval)) Then
-            Let Riffle = Null
-            Exit Function
-        End If
-        
-        If IsArray(StepInterval) Then
-            If Not AtomicQ(Arg2) Then
-                Let Riffle = Null
-                Exit Function
-            End If
-            
-            If Not PositiveWholeNumberArrayQ(StepInterval) And GetArrayLength(StepInterval) <> 3 Then
-                Let Riffle = Null
-                Exit Function
-            End If
-            
-            If First(StepInterval) > First(Rest(StepInterval)) Then
-                Let Riffle = Null
-                Exit Function
-            End If
-        End If
-    End If
-    
-    If Not (AtomicQ(Arg2) Or AtomicArrayQ(Arg2)) Then
-        Let Riffle = Null
-        Exit Function
-    End If
-    
-    If IsArray(Arg2) Then
-        If Not DimensionedQ(Arg2) Then
-            Let Riffle = Null
-            Exit Function
-        End If
-
-        If EmptyArrayQ(Arg2) Then
-            Let Riffle = Null
-            Exit Function
-        End If
-        
-        If Not AtomicArrayQ(Arg2) Then
-            Let Riffle = Null
-            Exit Function
-        End If
-        
-        If Not IsMissing(StepInterval) Then
-            Let Riffle = Null
-            Exit Function
-        End If
-    End If
-    
-    ' Case Riffle(Array(e1, e2, ...), elt) and Riffle(Array(e1, e2, ...), elt, n)
-    If AtomicArrayQ(A1DArray) And AtomicQ(Arg2) Then
-        If IsMissing(StepInterval) Then
-            Let StepInterval = 1
-        End If
-        
-        Let s = 1
-        Set ResultsDict = New Dictionary
-        For r = LBound(A1DArray, 1) To UBound(A1DArray, 1) - 1
-            Call ResultsDict.Add(Key:=r, Item:=A1DArray(r))
-            
-            If s Mod StepInterval = 0 Then
-                Call ResultsDict.Add(Key:=r & "-separator", Item:=Arg2)
-                Let s = 1
-            Else
-                Let s = s + 1
-            End If
-        Next
-        Call ResultsDict.Add(Key:=UBound(A1DArray, 1), Item:=A1DArray(UBound(A1DArray, 1)))
-        
-        Let Riffle = ResultsDict.Items
-        Exit Function
-    End If
-    
-    ' Case Riffle(Array(e1, e2, ...), Array(elt1, elt2, ...))
-    If AtomicArrayQ(A1DArray) And AtomicArrayQ(Arg2) Then
-        Let s = LBound(Arg2, 1)
-        Let c = 1
-        
-        Set ResultsDict = New Dictionary
-        For r = LBound(A1DArray, 1) To UBound(A1DArray, 1) - 1
-            Call ResultsDict.Add(Key:=c, Item:=A1DArray(r))
-            Call ResultsDict.Add(Key:=c + 1, Item:=Arg2(s))
-                
-            If s = UBound(Arg2, 1) Then
-                Let s = LBound(Arg2, 1)
-            Else
-                Let s = s + 1
-            End If
-            
-            Let c = c + 2
-        Next
-        Call ResultsDict.Add(Key:=c, Item:=A1DArray(UBound(A1DArray, 1)))
-        If GetArrayLength(A1DArray) = GetArrayLength(Arg2) Then
-            Call ResultsDict.Add(Key:=c + 1, _
-                                 Item:=Arg2(UBound(Arg2, 1)))
-        End If
-        
-        Let Riffle = ResultsDict.Items
-        Exit Function
-    End If
-    
-    ' Case Riffle(Array(e1, e2, ...), elt, Array(imin, imax, n))
-    Let s = 1
-    '***HERE1for r =
-End Function
-
 ' This function sorts the given 2D matrix by the columns whose positions are given by
 ' ArrayOfColPos. The sorting orientation in each column are in ArrayOfColsSortOrder
 ' ArrayOfColsSortOrder is a variant array whose elements are all of enumerated type
@@ -3157,7 +2786,7 @@ Public Function Sort2DArray(MyArray As Variant, ArrayOfColPos As Variant, _
     Call DumpInSheet(MyArray, TempComputation.Range("A1"), True)
 
     ' Set range pointer to the data we just dumped in the temp sheet
-    Set TheRange = TmpSheet.Range("A1").Resize(GetNumberOfRows(MyArray), GetNumberOfColumns(MyArray))
+    Set TheRange = TmpSheet.Range("A1").Resize(NumberOfRows(MyArray), NumberOfColumns(MyArray))
 
     ' Clear any previous sorting criteria
     TmpSheet.Sort.SortFields.Clear
@@ -3228,7 +2857,7 @@ Public Function DumpInSheet(AnArray As Variant, _
         Exit Function
     End If
     
-    If GetArrayLength(AnArray) = 0 Then
+    If Length(AnArray) = 0 Then
         Set DumpInSheet = Nothing
         Exit Function
     End If
@@ -3252,8 +2881,8 @@ Private Function DumpInSheetHelper(AnArray As Variant, TopLeftCorner As Range, O
     Dim NumDimensions As Integer
 
     Let NumDimensions = NumberOfDimensions(AnArray)
-    Let NumberOfRows = GetNumberOfRows(AnArray)
-    Let NumberOfColumns = GetNumberOfColumns(AnArray)
+    Let NumberOfRows = NumberOfRows(AnArray)
+    Let NumberOfColumns = NumberOfColumns(AnArray)
     
     If PreserveColumnTextFormats Then
         If NumDimensions = 0 Then
@@ -3330,7 +2959,7 @@ End Function
 ' A and B must have the same dimensions (e.g. 1 or 2D)
 ' If dim(A)<>dim(B) or dim(A)>2 or dim(B)>2 or dim(A)<1 or dim(B)<1 then
 ' this function returns EmptyArray()
-Public Function ConcatenateArrays(A As Variant, _
+Public Function ConcatenateArrays(a As Variant, _
                                   B As Variant, _
                                   Optional ParameterCheckQ As Boolean = True) As Variant
     Dim i As Long
@@ -3338,34 +2967,34 @@ Public Function ConcatenateArrays(A As Variant, _
     
     Let ConcatenateArrays = Null
     
-    If Not (DimensionedQ(A) And DimensionedQ(B)) Then Exit Function
+    If Not (DimensionedQ(a) And DimensionedQ(B)) Then Exit Function
     
-    If EmptyArrayQ(A) Then
+    If EmptyArrayQ(a) Then
         Let ConcatenateArrays = B
         Exit Function
     End If
     
     If EmptyArrayQ(B) Then
-        Let ConcatenateArrays = A
+        Let ConcatenateArrays = a
         Exit Function
     End If
     
-    If NumberOfDimensions(A) = 1 And NumberOfDimensions(B) = 1 Then
-        ReDim ResultArray(1 To Length(A) + Length(B))
+    If NumberOfDimensions(a) = 1 And NumberOfDimensions(B) = 1 Then
+        ReDim ResultArray(1 To Length(a) + Length(B))
         
-        For i = 1 To Length(A)
-            Let ResultArray(i) = A(NormalizeIndex(A, i, 1, ParameterCheckQ))
+        For i = 1 To Length(a)
+            Let ResultArray(i) = a(NormalizeIndex(a, i, 1, ParameterCheckQ))
         Next
         
         For i = 1 To Length(B)
-            Let ResultArray(i + Length(A)) = B(NormalizeIndex(B, i, 1, ParameterCheckQ))
+            Let ResultArray(i + Length(a)) = B(NormalizeIndex(B, i, 1, ParameterCheckQ))
         Next
         
         Let ConcatenateArrays = ResultArray
         Exit Function
     End If
 
-    Let ConcatenateArrays = TransposeMatrix(StackArrays(TransposeMatrix(A, False, ParameterCheckQ), _
+    Let ConcatenateArrays = TransposeMatrix(StackArrays(TransposeMatrix(a, False, ParameterCheckQ), _
                                                         TransposeMatrix(B, False, ParameterCheckQ), _
                                                         ParameterCheckQ), _
                                             False, _
@@ -3484,7 +3113,7 @@ End Function
 Public Function SwapMatrixColumns(TheMatrix As Variant, FirstColumnIndex As Long, SecondColumIndex As Long) As Variant
     Dim col1 As Variant
     
-    If FirstColumnIndex < 1 Or FirstColumnIndex > GetNumberOfColumns(TheMatrix) Or SecondColumIndex < 1 Or SecondColumIndex > GetNumberOfColumns(TheMatrix) Or FirstColumnIndex = SecondColumIndex Then
+    If FirstColumnIndex < 1 Or FirstColumnIndex > NumberOfColumns(TheMatrix) Or SecondColumIndex < 1 Or SecondColumIndex > NumberOfColumns(TheMatrix) Or FirstColumnIndex = SecondColumIndex Then
         Let SwapMatrixColumns = False
 
         Exit Function
@@ -3503,7 +3132,7 @@ End Function
 Public Function SwapMatrixRows(TheMatrix As Variant, FirstRowIndex As Long, SecondRowIndex As Long) As Variant
     Dim Row1 As Variant
 
-    If FirstRowIndex < 1 Or FirstRowIndex > GetNumberOfRows(TheMatrix) Or SecondRowIndex < 1 Or SecondRowIndex > GetNumberOfRows(TheMatrix) Or FirstRowIndex = SecondRowIndex Then
+    If FirstRowIndex < 1 Or FirstRowIndex > NumberOfRows(TheMatrix) Or SecondRowIndex < 1 Or SecondRowIndex > NumberOfRows(TheMatrix) Or FirstRowIndex = SecondRowIndex Then
         Let SwapMatrixRows = False
 
         Exit Function
@@ -3540,18 +3169,18 @@ Public Function TransposeRectangular1DArrayOf1DArrays(AnArray As Variant) As Var
         Exit Function
     End If
     
-    Let TheLength = GetArrayLength(First(AnArray))
+    Let TheLength = Length(First(AnArray))
     
     For Each var In AnArray
-        If Not AtomicArrayQ(var) Or GetArrayLength(var) <> TheLength Then
+        If Not AtomicArrayQ(var) Or Length(var) <> TheLength Then
             Let TransposeRectangular1DArrayOf1DArrays = Null
             Exit Function
         End If
     Next
     
     Let TheMatrix = Pack2DArray(AnArray)
-    ReDim TheResult(1 To GetNumberOfColumns(TheMatrix))
-    For c = 1 To GetArrayLength(First(AnArray))
+    ReDim TheResult(1 To NumberOfColumns(TheMatrix))
+    For c = 1 To Length(First(AnArray))
         Let TheResult(c) = Flatten(Part(TheMatrix, Span(1, -1), c))
     Next
     
@@ -3607,9 +3236,9 @@ Public Function AutofilterMatrix(TheMatrix As Variant, ColumnsToFilter As Varian
     Dim NCols As Long
     Dim NRows As Long
 
-    If NumberOfDimensions(TheMatrix) <> 2 Or GetNumberOfRows(TheMatrix) < 2 Or _
+    If NumberOfDimensions(TheMatrix) <> 2 Or NumberOfRows(TheMatrix) < 2 Or _
        NumberOfDimensions(ColumnsToFilter) <> 1 Or NumberOfDimensions(Criteria1List) <> 1 Or _
-       GetArrayLength(ColumnsToFilter) <> GetArrayLength(Criteria1List) Then
+       Length(ColumnsToFilter) <> Length(Criteria1List) Then
         Let AutofilterMatrix = EmptyArray()
         Exit Function
     End If
@@ -3622,8 +3251,8 @@ Public Function AutofilterMatrix(TheMatrix As Variant, ColumnsToFilter As Varian
         End If
         
         If NumberOfDimensions(OperatorList) <> 1 Or NumberOfDimensions(Criteria2List) <> 1 Or _
-           GetArrayLength(OperatorList) <> GetArrayLength(Criteria1List) Or _
-           GetArrayLength(Criteria2List) <> GetArrayLength(Criteria1List) Then
+           Length(OperatorList) <> Length(Criteria1List) Or _
+           Length(Criteria2List) <> Length(Criteria1List) Then
             Let AutofilterMatrix = EmptyArray()
             Exit Function
         End If
@@ -3632,8 +3261,8 @@ Public Function AutofilterMatrix(TheMatrix As Variant, ColumnsToFilter As Varian
     ' If the code gets to this point, parameters are consistent.
 
     ' Get dimensions of source matrix
-    Let NCols = GetNumberOfColumns(TheMatrix)
-    Let NRows = GetNumberOfRows(TheMatrix)
+    Let NCols = NumberOfColumns(TheMatrix)
+    Let NRows = NumberOfRows(TheMatrix)
 
     ' Clear any existing contents in worksheet TempComputation
     Call TempComputation.UsedRange.ClearContents
@@ -3851,8 +3480,8 @@ Public Function DoubleQuote2DArray(TheArray As Variant) As Variant
     
     Let ParamCopy = TheArray
     
-    For r = 1 To GetNumberOfRows(ParamCopy)
-        For c = 1 To GetNumberOfColumns(ParamCopy)
+    For r = 1 To NumberOfRows(ParamCopy)
+        For c = 1 To NumberOfColumns(ParamCopy)
             If IsError(ParamCopy(r, c)) Then
                 Let ParamCopy(r, c) = "NULL"
             ElseIf IsEmpty(ParamCopy(r, c)) Or Trim(ParamCopy(r, c)) = "" Then
@@ -3874,10 +3503,10 @@ Public Function Convert2DArrayIntoListOfParentheticalExpressions(TheArray As Var
     Dim TheList As String
     Dim i As Integer
 
-    For i = 1 To GetNumberOfRows(TheArray)
+    For i = 1 To NumberOfRows(TheArray)
         Let TheList = TheList & Convert1DArrayIntoParentheticalExpression(Part(TheArray, CLng(i)))
         
-        If i < GetNumberOfRows(TheArray) Then
+        If i < NumberOfRows(TheArray) Then
             Let TheList = TheList & ", "
         End If
     Next i
@@ -3948,8 +3577,8 @@ Public Function LeftJoin2DArraysOnKeyEquality(a2DArray1 As Variant, _
     ' Exit with Null if the index of key1 is non-positive or larger than the number
     ' of columns in array1 or the index of key2 is non-positive or larger than the number
     ' of columns in array2
-    If a2DArray1KeyColPos < 1 Or a2DArray1KeyColPos > GetNumberOfColumns(a2DArray1) Or _
-       a2DArray2KeyColPos < 1 Or a2DArray2KeyColPos > GetNumberOfColumns(a2DArray2) Then
+    If a2DArray1KeyColPos < 1 Or a2DArray1KeyColPos > NumberOfColumns(a2DArray1) Or _
+       a2DArray2KeyColPos < 1 Or a2DArray2KeyColPos > NumberOfColumns(a2DArray2) Then
         Let LeftJoin2DArraysOnKeyEquality = Null
         Exit Function
     End If
@@ -3965,7 +3594,7 @@ Public Function LeftJoin2DArraysOnKeyEquality(a2DArray1 As Variant, _
     ' Exit with Null if any of the indices in ColsPosArrayFrom2DArray1 is less than 1
     ' or larger than the number of columns in array1
     For Each var In ColsPosArrayFrom2DArray1
-        If var < 1 Or var > GetNumberOfColumns(a2DArray1) Then
+        If var < 1 Or var > NumberOfColumns(a2DArray1) Then
             Let LeftJoin2DArraysOnKeyEquality = Null
             Exit Function
         End If
@@ -3974,7 +3603,7 @@ Public Function LeftJoin2DArraysOnKeyEquality(a2DArray1 As Variant, _
     ' Exit with Null if any of the indices in ColsPosArrayFrom2DArray2 is less than 1
     ' or larger than the number of columns in array2
     For Each var In ColsPosArrayFrom2DArray2
-        If var < 1 Or var > GetNumberOfColumns(a2DArray2) Then
+        If var < 1 Or var > NumberOfColumns(a2DArray2) Then
             Let LeftJoin2DArraysOnKeyEquality = Null
             Exit Function
         End If
@@ -3983,16 +3612,16 @@ Public Function LeftJoin2DArraysOnKeyEquality(a2DArray1 As Variant, _
     ' Exit with Null if either a2DArray1 or a2DArray2 has only 1 row when ArraysHaveHeadersQ
     ' is True
     If ArraysHaveHeadersQ And _
-       (GetNumberOfRows(a2DArray1) < 2 Or GetNumberOfRows(a2DArray1) < 2) Then
+       (NumberOfRows(a2DArray1) < 2 Or NumberOfRows(a2DArray1) < 2) Then
         Let LeftJoin2DArraysOnKeyEquality = Null
         Exit Function
     End If
 
     ' Determine the number of columns from array 1
-    Let NumColsArray1 = GetArrayLength(ColsPosArrayFrom2DArray1)
+    Let NumColsArray1 = Length(ColsPosArrayFrom2DArray1)
     
     ' Determine the number of columns from array 2 to append to array 1
-    Let NumColsArray2 = GetArrayLength(ColsPosArrayFrom2DArray2)
+    Let NumColsArray2 = Length(ColsPosArrayFrom2DArray2)
 
     ' Load all information from a2DArray1 into a dictionary
     Set ResultsDict = New Dictionary
@@ -4119,8 +3748,8 @@ Public Function InnerJoin2DArraysOnKeyEquality(a2DArray1 As Variant, _
     ' Exit with Null if the index of key1 is non-positive or larger than the number
     ' of columns in array1 or the index of key2 is non-positive or larger than the number
     ' of columns in array2
-    If a2DArray1KeyColPos < 1 Or a2DArray1KeyColPos > GetNumberOfColumns(a2DArray1) Or _
-       a2DArray2KeyColPos < 1 Or a2DArray2KeyColPos > GetNumberOfColumns(a2DArray2) Then
+    If a2DArray1KeyColPos < 1 Or a2DArray1KeyColPos > NumberOfColumns(a2DArray1) Or _
+       a2DArray2KeyColPos < 1 Or a2DArray2KeyColPos > NumberOfColumns(a2DArray2) Then
         Let InnerJoin2DArraysOnKeyEquality = Null
         Exit Function
     End If
@@ -4136,7 +3765,7 @@ Public Function InnerJoin2DArraysOnKeyEquality(a2DArray1 As Variant, _
     ' Exit with Null if any of the indices in ColsPosArrayFrom2DArray1 is less than 1
     ' or larger than the number of columns in array1
     For Each var In ColsPosArrayFrom2DArray1
-        If var < 1 Or var > GetNumberOfColumns(a2DArray1) Then
+        If var < 1 Or var > NumberOfColumns(a2DArray1) Then
             Let InnerJoin2DArraysOnKeyEquality = Null
             Exit Function
         End If
@@ -4145,7 +3774,7 @@ Public Function InnerJoin2DArraysOnKeyEquality(a2DArray1 As Variant, _
     ' Exit with Null if any of the indices in ColsPosArrayFrom2DArray2 is less than 1
     ' or larger than the number of columns in array2
     For Each var In ColsPosArrayFrom2DArray2
-        If var < 1 Or var > GetNumberOfColumns(a2DArray2) Then
+        If var < 1 Or var > NumberOfColumns(a2DArray2) Then
             Let InnerJoin2DArraysOnKeyEquality = Null
             Exit Function
         End If
@@ -4154,14 +3783,14 @@ Public Function InnerJoin2DArraysOnKeyEquality(a2DArray1 As Variant, _
     ' Exit with Null if either a2DArray1 or a2DArray2 has only 1 row when ArraysHaveHeadersQ
     ' is True
     If ArraysHaveHeadersQ And _
-       (GetNumberOfRows(a2DArray1) < 2 Or GetNumberOfRows(a2DArray1) < 2) Then
+       (NumberOfRows(a2DArray1) < 2 Or NumberOfRows(a2DArray1) < 2) Then
         Let InnerJoin2DArraysOnKeyEquality = Null
         Exit Function
     End If
 
     ' Determine the number of columns in arrays 1 and 2
-    Let NumColsArray1 = GetArrayLength(ColsPosArrayFrom2DArray1)
-    Let NumColsArray2 = GetArrayLength(ColsPosArrayFrom2DArray2)
+    Let NumColsArray1 = Length(ColsPosArrayFrom2DArray1)
+    Let NumColsArray2 = Length(ColsPosArrayFrom2DArray2)
 
     ' Index the contents of array2
     Set Array2Dict = New Dictionary
