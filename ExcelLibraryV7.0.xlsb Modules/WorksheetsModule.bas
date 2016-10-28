@@ -54,8 +54,8 @@ Public Function ConsolidateWorksheets(WorksheetsArray() As Worksheet, _
                                       Optional StartingRow As Variant, _
                                       Optional TargetWorksheet As Variant) As Variant
     Dim Headers As Variant
-    Dim NumberOfColumns As Integer
-    Dim NumberOfRows As Long
+    Dim NumColumns As Integer
+    Dim NumRows As Long
     Dim FirstDataRow As Long
     Dim LastDataRow As Long
     Dim ConsolidationWorksheet As Worksheet
@@ -78,11 +78,11 @@ Public Function ConsolidateWorksheets(WorksheetsArray() As Worksheet, _
     Set ConsolidationWorksheet = ThisWorkbook.Worksheets.Add
     
     ' Determine the number of columns
-    Let NumberOfColumns = WorksheetsArray(1).UsedRange.Columns.Count
+    Let NumColumns = WorksheetsArray(1).UsedRange.Columns.Count
     
     ' Get the headers. May be multiple rows, starting from the top
     If FirstDataRow > 1 Then
-        Let Headers = WorksheetsArray(1).Range("A1").Resize(FirstDataRow, NumberOfColumns).Value2
+        Let Headers = WorksheetsArray(1).Range("A1").Resize(FirstDataRow, NumColumns).Value2
     
         ' Copy the headers row to ConsolidatedWorksheet
         Call DumpInSheet(Headers, ConsolidationWorksheet.Range("A1"))
@@ -94,24 +94,24 @@ Public Function ConsolidateWorksheets(WorksheetsArray() As Worksheet, _
         Let LastDataRow = WorksheetsArray(N).Cells(WorksheetsArray(1).Rows.Count, 1).End(xlUp).Row
         
         ' Compute the number of rows to consolidate
-        Let NumberOfRows = LastDataRow - FirstDataRow + 1
+        Let NumRows = LastDataRow - FirstDataRow + 1
                         
         ' Set the source range
-        Set SourceRange = WorksheetsArray(N).Cells(FirstDataRow, 1).Resize(NumberOfRows, NumberOfColumns)
+        Set SourceRange = WorksheetsArray(N).Cells(FirstDataRow, 1).Resize(NumRows, NumColumns)
         
         ' Set the target range
-        Set TargetRange = ConsolidationWorksheet.Cells(RowCursor, 1).Resize(NumberOfRows, NumberOfColumns)
+        Set TargetRange = ConsolidationWorksheet.Cells(RowCursor, 1).Resize(NumRows, NumColumns)
         
         ' Do the actual consolidation
         Call SourceRange.Copy
         Call TargetRange.PasteSpecial(Paste:=xlPasteAll)
         
         ' Update RowCursor
-        Let RowCursor = RowCursor + NumberOfRows
+        Let RowCursor = RowCursor + NumRows
     Next N
     
     If Not IsMissing(TargetWorksheet) Then
-        Call ConsolidationWorksheet.Cells(1, 1).Resize(RowCursor, NumberOfColumns).Copy
+        Call ConsolidationWorksheet.Cells(1, 1).Resize(RowCursor, NumColumns).Copy
         Call TargetWorksheet.Range("A1").PasteSpecial(Paste:=xlPasteAll)
         
         ' Delete the consolidation worksheet
@@ -121,60 +121,7 @@ Public Function ConsolidateWorksheets(WorksheetsArray() As Worksheet, _
     End If
     
     ' Since a target worksheet was not provided to use as consolidator, we simply return a 2D matrix with the data
-    Let ConsolidateWorksheets = ConsolidationWorksheet.Cells(1, 1).Resize(RowCursor, NumberOfColumns).Value2
-    
-    ' Delete the consolidation worksheet
-    Call ConsolidationWorksheet.Delete
-End Function
-
-Public Function ConsolidateWorksheetsHorizontally(WorksheetsArray() As Worksheet, _
-                                                  Optional StartingColumn As Variant, _
-                                                  Optional TargetWorksheet As Variant) As Variant
-    Dim var As Variant
-    Dim NRows As Variant
-    Dim NCols As Variant
-    Dim SourceRange As Range
-    Dim TargetRange As Range
-    Dim LastColUsed As Long
-    Dim ConsolidationWorksheet As Worksheet
-    
-    Set ConsolidationWorksheet = ThisWorkbook.Worksheets.Add
-    
-    Let LastColUsed = 0
-    For Each var In WorksheetsArray
-        If LastColUsed = 0 Then
-            ' This is the first workbook. Copy names and tickers
-            Let LastColUsed = LastColUsed + 1
-            Set SourceRange = var.Worksheets(1).Range("A1").CurrentRegion
-            Set TargetRange = ConsolidationWorksheet.Range("A1").Resize(SourceRange.Rows.Count, SourceRange.Columns.Count)
-            Call SourceRange.Copy
-            Call TargetRange.PasteSpecial(Paste:=xlPasteAll)
-            Let LastColUsed = LastColUsed + SourceRange.Columns.Count
-        Else
-            Set SourceRange = var.Worksheets(1).Range("A1").CurrentRegion
-            Set SourceRange = SourceRange.Offset(0, StartingColumn - 1).Resize(SourceRange.Rows.Count, SourceRange.Columns.Count - 2)
-            Set TargetRange = ConsolidationWorksheet.Range("A1").Offset(0, LastColUsed - 1).Resize(SourceRange.Rows.Count, SourceRange.Columns.Count)
-            Call SourceRange.Copy
-            Call TargetRange.PasteSpecial(Paste:=xlPasteAll)
-            Let LastColUsed = LastColUsed + SourceRange.Columns.Count
-        End If
-    Next var
-    
-    ' Autofit all columns and then center all columns to the right of StartingColumn
-    Set TargetRange = ConsolidationWorksheet.Range("A1").CurrentRegion
-    Call TargetRange.EntireColumn.AutoFit
-    Set TargetRange = TargetRange.Offset(0, 2).Resize(TargetRange.Rows.Count, TargetRange.Columns.Count - 2)
-    Let TargetRange.EntireColumn.HorizontalAlignment = xlCenter
-    
-    If IsMissing(TargetWorksheet) Then
-        Let ConsolidateWorksheetsHorizontally = ConsolidationWorksheet.Range("A1").CurrentRegion.Value2
-        Call ConsolidationWorksheet.Delete
-    
-        Exit Function
-    End If
-    
-    Call ConsolidationWorksheet.Cells(1, 1).Resize(RowCursor, NumberOfColumns).Copy
-    Call TargetWorksheet.Range("A1").PasteSpecial(Paste:=xlPasteAll)
+    Let ConsolidateWorksheets = ConsolidationWorksheet.Cells(1, 1).Resize(RowCursor, NumColumns).Value2
     
     ' Delete the consolidation worksheet
     Call ConsolidationWorksheet.Delete

@@ -1774,7 +1774,7 @@ Public Sub TestPredicatesSpanArrayQ()
     Dim var As Variant
     Dim aListObject As ListObject
     Dim aDictionary As Dictionary
-    Dim aSpan As New Span
+    Dim ASpan As New Span
     
     For Each var In TempComputation.ListObjects
         Call var.Delete
@@ -1806,8 +1806,8 @@ Public Sub TestPredicatesSpanArrayQ()
         Debug.Assert Not SpanArrayQ(var)
     Next
 
-    For Each var In Array(Array(aSpan), _
-                          Array(aSpan, aSpan), _
+    For Each var In Array(Array(ASpan), _
+                          Array(ASpan, ASpan), _
                           EmptyArray())
         Debug.Assert SpanArrayQ(var)
     Next
@@ -1819,7 +1819,7 @@ Public Sub TestPredicatesPartIndexArrayQ()
     Dim var As Variant
     Dim aListObject As ListObject
     Dim aDictionary As Dictionary
-    Dim aSpan As New Span
+    Dim ASpan As New Span
     
     For Each var In TempComputation.ListObjects
         Call var.Delete
@@ -1852,9 +1852,9 @@ Public Sub TestPredicatesPartIndexArrayQ()
         Debug.Assert Not PartIndexArrayQ(var)
     Next
 
-    For Each var In Array(Array(aSpan), _
-                          Array(aSpan, aSpan), _
-                          Array(1, aSpan), _
+    For Each var In Array(Array(ASpan), _
+                          Array(ASpan, ASpan), _
+                          Array(1, ASpan), _
                           Array(1, 2, 3))
         Debug.Assert PartIndexArrayQ(var)
     Next
@@ -1866,7 +1866,7 @@ Public Sub TestPredicatesTakeIndexArrayQ()
     Dim var As Variant
     Dim aListObject As ListObject
     Dim aDictionary As Dictionary
-    Dim aSpan As New Span
+    Dim ASpan As New Span
     
     For Each var In TempComputation.ListObjects
         Call var.Delete
@@ -1892,9 +1892,9 @@ Public Sub TestPredicatesTakeIndexArrayQ()
                           Null, _
                           Empty, _
                           Array(Array(Array(1, 2, 3))), _
-                          Array(aSpan), _
-                          Array(aSpan, aSpan), _
-                          Array(1, aSpan) _
+                          Array(ASpan), _
+                          Array(ASpan, ASpan), _
+                          Array(1, ASpan) _
                           )
         Debug.Assert Not TakeIndexArrayQ(var)
     Next
@@ -2555,4 +2555,74 @@ End Sub
 Public Sub TestArraysFlatten()
     PrintArray Flatten(Array(Array(1, 2, 3), Array(4, 5, 6)))
     PrintArray Flatten([{1, 2, 3; 4, 5, 6}])
+    PrintArray Flatten(Array(Array(Array(1, 2, 3), Array(Array(4, 5)), 6), 7))
 End Sub
+
+Public Sub TestNumericalSequence()
+    Debug.Print "Sequential array 1...10"
+    PrintArray NumericalSequence(1, 10)
+    Debug.Print
+    
+    Debug.Print "Sequential array 2...6"
+    PrintArray NumericalSequence(2, 5)
+    Debug.Print
+    
+    Debug.Print "Sequential array 2...12 step 2"
+    PrintArray NumericalSequence(2, 6, 2)
+    Debug.Print
+
+    Debug.Print "Sequential array 2...2 repeated 10 times at step 0"
+    PrintArray NumericalSequence(2, 10, 0)
+    Debug.Print
+    
+    Debug.Print "Sequential array from 1 to 11"
+    PrintArray NumericalSequence(1, 11, ToEndNumberQ:=True)
+    
+    Debug.Print "Sequential array from 1 to 11 step 3"
+    PrintArray NumericalSequence(1, 11, TheStep:=3, ToEndNumberQ:=True)
+    
+    Debug.Print "Sequential array from 0.5, -20 numbers"
+    PrintArray NumericalSequence(0.5, -20)
+    
+    Debug.Print "Sequential array from 0.5 to -10 step -3.1"
+    PrintArray NumericalSequence(0.5, -10, TheStep:=-3.1)
+    
+    Debug.Print "Sequential array from 0.5 to -10 step -3.1, to end number"
+    PrintArray NumericalSequence(0.5, -10, TheStep:=-3.1, ToEndNumberQ:=True)
+End Sub
+
+Public Sub TestCreateIndexSequenceFromSpan()
+    Dim ASpan As Span
+    Dim AnArray() As Integer
+    Dim i As Integer
+    
+    PrintArray CreateIndexSequenceFromSpan(NumericalSequence(1, 10), Span(1, 10))
+    Debug.Print
+    PrintArray CreateIndexSequenceFromSpan(NumericalSequence(1, 5), Span(1, -1))
+    Debug.Print
+    PrintArray CreateIndexSequenceFromSpan(NumericalSequence(1, 5), Span(2, -2))
+    Debug.Print
+    PrintArray CreateIndexSequenceFromSpan(NumericalSequence(1, 5), Span(2, -2, 2))
+    Debug.Print
+    PrintArray CreateIndexSequenceFromSpan(NumericalSequence(1, 20), Span(1, -1, 2))
+    Debug.Print
+    PrintArray CreateIndexSequenceFromSpan(NumericalSequence(100, 10), Span(1, 10))
+    Debug.Print
+    PrintArray CreateIndexSequenceFromSpan(NumericalSequence(100, 5), Span(1, -1))
+    Debug.Print
+    PrintArray CreateIndexSequenceFromSpan(NumericalSequence(100, 5), Span(2, -2))
+    Debug.Print
+    PrintArray CreateIndexSequenceFromSpan(NumericalSequence(100, 5), Span(2, -2, 2))
+    Debug.Print
+    PrintArray CreateIndexSequenceFromSpan(NumericalSequence(100, 20), Span(1, -1, 2))
+    Debug.Print
+    
+    ReDim AnArray(0 To 10)
+    For i = 1 To 10
+        Let AnArray(i - 1) = i
+    Next
+    
+    PrintArray CreateIndexSequenceFromSpan(AnArray, Span(1, 10))
+    Debug.Print
+End Sub
+

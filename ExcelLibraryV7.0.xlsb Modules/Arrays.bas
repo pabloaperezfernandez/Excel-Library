@@ -282,12 +282,8 @@ Public Function Flatten(a As Variant, Optional ParameterCheckQ As Boolean = True
         Exit Function
     End If
     
-    If NumberOfDimensions(a) = 1 Then
-        For i = 1 To NumberOfColumns(a)
-            For j = 1 To NumberOfRows(a)
-                '***HERE
-            Next
-        Next
+    If NumberOfDimensions(a) = 2 Then
+        Let Flatten = Flatten(UnPack2DArray(a))
     Else
         Let i = 0
         For Each var In a
@@ -315,9 +311,9 @@ Public Function Flatten(a As Variant, Optional ParameterCheckQ As Boolean = True
                 Exit Function
             End If
         Next
+        
+        Let Flatten = ResultsArray
     End If
-    
-    Let Flatten = ResultsArray
 End Function
 
 ' DESCRIPTION
@@ -432,17 +428,18 @@ Public Function NormalizeIndexArray(AnArray As Variant, _
 End Function
 
 ' DESCRIPTION
-' This function returns a sequence of numbers based on the users specifications.  It has two calling
-' modalities.
+' This function returns a sequence of numbers based on the user's specifications.  It has two
+' calling modalities.
 
-' 1. When not passing the optional ToEndNumberQ set to True, the function interprets N as the number
-'    of terms expected in the return sequence.
+' 1. When not passing the optional ToEndNumberQ set to True, the function interprets N as the
+'    number of terms expected in the return sequence.
 '
 ' 2. When passing the optional ToEndNumberQ set to True, the function returns a sequence starting
 '    starting with StartNumber and with every other number obtained sequentially from the prior
 '    adding TheStep (set to 1 if not passed) up to an including N.
 '
-' This function returns Null if N is negative when called in modality 1.
+' This function returns Null if N is negative when called in modality 1.  The function currently
+' requires N to be larger than or equal to StartNumber when ToEndNumberQ=True.
 '
 ' PARAMETERS
 ' 1. StartNumber - First number in the array
@@ -453,9 +450,9 @@ End Function
 ' RETURNED VALUE
 ' The requested numerical sequence
 Public Function NumericalSequence(StartNumber As Variant, _
-                                      N As Variant, _
-                                      Optional TheStep As Variant, _
-                                      Optional ToEndNumberQ As Boolean = False) As Variant
+                                  N As Variant, _
+                                  Optional TheStep As Variant, _
+                                  Optional ToEndNumberQ As Boolean = False) As Variant
     Dim TheStepCopy As Variant
     Dim ReturnArray As Variant
     Dim CurrentNumber As Variant
@@ -503,7 +500,11 @@ End Function
 
 ' DESCRIPTION
 ' This function returns the sequence of indices specified by the given Span instance relative to the
-' given array and dimensional index.
+' given array and dimensional index.  This function gives an easy way to translate indices from our
+' base 1 convention to the array's intrinsic convertion. For instance, while we take 1 to refer to
+' the array's first element, the array might employ base 0.  Hence, this function translates 1 to
+' 0.  It takes an array and a span instance, and translates the indices specified by the span
+' into the array's indexing convention.
 '
 ' PARAMETERS
 ' 1. AnArray - A dimensioned, nonempty array
@@ -513,7 +514,7 @@ End Function
 ' RETURNED VALUE
 ' The requested indices sequence
 Public Function CreateIndexSequenceFromSpan(AnArray As Variant, _
-                                            aSpan As Span, _
+                                            ASpan As Span, _
                                             Optional TheDimension As Long = 1) As Variant
     Dim TheStart As Variant
     Dim TheEnd As Variant
@@ -531,18 +532,18 @@ Public Function CreateIndexSequenceFromSpan(AnArray As Variant, _
 
     ' Turn the spans start and end points into positive indices relative
     ' to the array's intrinsic convention
-    Let TheStart = NormalizeIndex(AnArray, aSpan.TheStart, TheDimension)
-    Let TheEnd = NormalizeIndex(AnArray, aSpan.TheEnd, TheDimension)
+    Let TheStart = NormalizeIndex(AnArray, ASpan.TheStart, TheDimension)
+    Let TheEnd = NormalizeIndex(AnArray, ASpan.TheEnd, TheDimension)
     
     If IsNull(TheStart) Or IsNull(TheEnd) Then Exit Function
-    If TheStart > TheEnd Or aSpan.TheStep <= 0 Then Exit Function
+    If TheStart > TheEnd Or ASpan.TheStep <= 0 Then Exit Function
     
     ' Complete the sequence of numbers
     Let c = 0
-    Do While TheStart + c * aSpan.TheStep <= TheEnd
+    Do While TheStart + c * ASpan.TheStep <= TheEnd
         ReDim Preserve ReturnArray(1 To c + 1)
         
-        Let ReturnArray(c + 1) = TheStart + c * aSpan.TheStep
+        Let ReturnArray(c + 1) = TheStart + c * ASpan.TheStep
         Let c = c + 1
     Loop
     
@@ -603,7 +604,7 @@ Public Function Part(AnArray As Variant, ParamArray Indices() As Variant) As Var
     Dim RowIndices As Variant
     Dim ColumnIndices As Variant
     Dim var As Variant
-    Dim aSpan As Span
+    Dim ASpan As Span
     
     ' Set default return value when errors encountered
     Let Part = Null
@@ -629,7 +630,7 @@ Public Function Part(AnArray As Variant, ParamArray Indices() As Variant) As Var
         ' Get the current dimensional index
         If IsObject(IndicesCopy(IndexIndex)) Then
             Set AnIndex = IndicesCopy(IndexIndex)
-            Set aSpan = AnIndex
+            Set ASpan = AnIndex
         Else
             Let AnIndex = IndicesCopy(IndexIndex)
         End If
@@ -640,7 +641,7 @@ Public Function Part(AnArray As Variant, ParamArray Indices() As Variant) As Var
         ElseIf NonzeroWholeNumberArrayQ(AnIndex) And NonEmptyArrayQ(AnIndex) Then
             Let IndicesCopy(IndexIndex) = NormalizeIndexArray(AnArray, AnIndex, r, False)
         ElseIf SpanQ(AnIndex) Then
-            Let IndicesCopy(IndexIndex) = CreateIndexSequenceFromSpan(AnArray, aSpan, r)
+            Let IndicesCopy(IndexIndex) = CreateIndexSequenceFromSpan(AnArray, ASpan, r)
         Else
             Let IndicesCopy(IndexIndex) = Null
         End If
@@ -2368,7 +2369,7 @@ Public Function ApplyElementwiseArithmeticOperation(TheOperation As String, _
     Dim Arg2 As Variant
     Dim TmpSheet As Worksheet
     Dim NumRows As Long
-    Dim numColumns As Long
+    Dim NumColumns As Long
     Dim r As Long ' for number of rows
     Dim c As Long ' for number of columns
     Dim rOffset1 As Long
@@ -2414,23 +2415,23 @@ Public Function ApplyElementwiseArithmeticOperation(TheOperation As String, _
             Let TheResults = Arg1 / Arg2
         End If
     ElseIf IsNumeric(Arg1) And NumberOfDimensions(Arg2) = 1 Then
-        Let numColumns = NumberOfColumns(Arg2)
+        Let NumColumns = NumberOfColumns(Arg2)
         
-        ReDim TheResults(1 To numColumns)
+        ReDim TheResults(1 To NumColumns)
 
         ' Compute the r and c offsets due to differences in array starts
         Let cOffset2 = IIf(LBound(Arg2, 1) = 0, 1, 0)
 
         If TheOperation = "ADD" Then
-            For c = 1 To numColumns
+            For c = 1 To NumColumns
                 Let TheResults(c) = Arg1 + Arg2(c + cOffset2)
             Next
         ElseIf TheOperation = "MULTIPLY" Then
-            For c = 1 To numColumns
+            For c = 1 To NumColumns
                 Let TheResults(c) = Arg1 * Arg2(c + cOffset2)
             Next
         Else
-            For c = 1 To numColumns
+            For c = 1 To NumColumns
                 Let TheResults(c) = Arg1 / Arg2(c + cOffset2)
             Next
         End If
@@ -2457,9 +2458,9 @@ Public Function ApplyElementwiseArithmeticOperation(TheOperation As String, _
         End If
     ElseIf IsNumeric(Arg1) And NumberOfDimensions(Arg2) = 2 And NumberOfColumns(Arg2) > 1 Then
         Let NumRows = NumberOfRows(Arg2)
-        Let numColumns = NumberOfColumns(Arg2)
+        Let NumColumns = NumberOfColumns(Arg2)
         
-        ReDim TheResults(1 To NumRows, 1 To numColumns)
+        ReDim TheResults(1 To NumRows, 1 To NumColumns)
     
         ' Compute the r and c offsets due to differences in array starts
         Let rOffset2 = IIf(LBound(Arg2, 1) = 0, 1, 0)
@@ -2467,19 +2468,19 @@ Public Function ApplyElementwiseArithmeticOperation(TheOperation As String, _
         
         If TheOperation = "ADD" Then
             For r = 1 To NumRows
-                For c = 1 To numColumns
+                For c = 1 To NumColumns
                     Let TheResults(r, c) = Arg1 + Arg2(r + rOffset2, c + cOffset2)
                 Next
             Next
         ElseIf TheOperation = "MULTIPLY" Then
             For r = 1 To NumRows
-                For c = 1 To numColumns
+                For c = 1 To NumColumns
                     Let TheResults(r, c) = Arg1 * Arg2(r + rOffset2, c + cOffset2)
                 Next
             Next
         Else
             For r = 1 To NumRows
-                For c = 1 To numColumns
+                For c = 1 To NumColumns
                     Let TheResults(r, c) = Arg1 / Arg2(r + rOffset2, c + cOffset2)
                 Next
             Next
@@ -2487,9 +2488,9 @@ Public Function ApplyElementwiseArithmeticOperation(TheOperation As String, _
     ElseIf NumberOfDimensions(Arg1) = 1 And NumberOfDimensions(Arg2) = 2 And NumberOfColumns(Arg2) > 1 Then
         ' If the code gets here, we are adding two 2D matrices of the same size
         Let NumRows = NumberOfRows(Arg2)
-        Let numColumns = NumberOfColumns(Arg2)
+        Let NumColumns = NumberOfColumns(Arg2)
         
-        ReDim TheResults(1 To NumRows, 1 To numColumns)
+        ReDim TheResults(1 To NumRows, 1 To NumColumns)
     
         ' Compute the r and c offsets due to differences in array starts
         Let rOffset2 = IIf(LBound(Arg2, 1) = 0, 1, 0)
@@ -2498,28 +2499,28 @@ Public Function ApplyElementwiseArithmeticOperation(TheOperation As String, _
         
         If TheOperation = "ADD" Then
             For r = 1 To NumRows
-                For c = 1 To numColumns
+                For c = 1 To NumColumns
                     Let TheResults(r, c) = Arg1(c + cOffset1) + Arg2(r + rOffset2, c + cOffset2)
                 Next
             Next
         ElseIf TheOperation = "MULTIPLY" Then
             For r = 1 To NumRows
-                For c = 1 To numColumns
+                For c = 1 To NumColumns
                     Let TheResults(r, c) = Arg1(c + cOffset1) * Arg2(r + rOffset2, c + cOffset2)
                 Next
             Next
         Else
             For r = 1 To NumRows
-                For c = 1 To numColumns
+                For c = 1 To NumColumns
                     Let TheResults(r, c) = Arg1(c + cOffset1) / Arg2(r + rOffset2, c + cOffset2)
                 Next
             Next
         End If
     ElseIf NumberOfDimensions(Arg1) = 2 And NumberOfColumns(Arg1) = 1 And NumberOfDimensions(Arg2) = 2 And NumberOfColumns(Arg2) > 1 Then
         Let NumRows = NumberOfRows(Arg2)
-        Let numColumns = NumberOfColumns(Arg2)
+        Let NumColumns = NumberOfColumns(Arg2)
         
-        ReDim TheResults(1 To NumRows, 1 To numColumns)
+        ReDim TheResults(1 To NumRows, 1 To NumColumns)
     
         ' Compute the r and c offsets due to differences in array starts
         Let rOffset1 = IIf(LBound(Arg1, 1) = 0, 1, 0)
@@ -2529,51 +2530,51 @@ Public Function ApplyElementwiseArithmeticOperation(TheOperation As String, _
 
         If TheOperation = "ADD" Then
             For r = 1 To NumRows
-                For c = 1 To numColumns
+                For c = 1 To NumColumns
                     Let TheResults(r, c) = Arg1(r + rOffset1, 1 + cOffset1) + Arg2(r + rOffset2, c + cOffset2)
                 Next
             Next
         ElseIf TheOperation = "MULTIPLY" Then
             For r = 1 To NumRows
-                For c = 1 To numColumns
+                For c = 1 To NumColumns
                     Let TheResults(r, c) = Arg1(r + rOffset1, 1 + cOffset1) * Arg2(r + rOffset2, c + cOffset2)
                 Next
             Next
         Else
             For r = 1 To NumRows
-                For c = 1 To numColumns
+                For c = 1 To NumColumns
                     Let TheResults(r, c) = Arg1(r + rOffset1, 1 + cOffset1) / Arg2(r + rOffset2, c + cOffset2)
                 Next
             Next
         End If
     ElseIf NumberOfDimensions(Arg1) = 1 And NumberOfDimensions(Arg2) = 1 Then
-        Let numColumns = Length(Arg1)
+        Let NumColumns = Length(Arg1)
         
-        ReDim TheResults(1 To numColumns)
+        ReDim TheResults(1 To NumColumns)
     
         ' Compute the r and c offsets due to differences in array starts
         Let cOffset1 = IIf(LBound(Arg1, 1) = 0, 1, 0)
         Let cOffset2 = IIf(LBound(Arg2, 1) = 0, 1, 0)
 
         If TheOperation = "ADD" Then
-            For c = 1 To numColumns
+            For c = 1 To NumColumns
                 Let TheResults(c) = Arg1(1 + cOffset1) + Arg2(c + cOffset2)
             Next
         ElseIf TheOperation = "MULTIPLY" Then
-            For c = 1 To numColumns
+            For c = 1 To NumColumns
                 Let TheResults(c) = Arg1(1 + cOffset1) * Arg2(c + cOffset2)
             Next
         Else
-            For c = 1 To numColumns
+            For c = 1 To NumColumns
                 Let TheResults(c) = Arg1(1 + cOffset1) / Arg2(c + cOffset2)
             Next
         End If
     Else
         ' If the code gets here, we are adding two 2D matrices of the same size
         Let NumRows = NumberOfRows(Arg1)
-        Let numColumns = NumberOfColumns(Arg1)
+        Let NumColumns = NumberOfColumns(Arg1)
         
-        ReDim TheResults(1 To NumRows, 1 To numColumns)
+        ReDim TheResults(1 To NumRows, 1 To NumColumns)
     
         ' Compute the r and c offsets due to differences in array starts
         Let rOffset1 = IIf(LBound(Arg1, 1) = 0, 1, 0)
@@ -2583,19 +2584,19 @@ Public Function ApplyElementwiseArithmeticOperation(TheOperation As String, _
 
         If TheOperation = "ADD" Then
             For r = 1 To NumRows
-                For c = 1 To numColumns
+                For c = 1 To NumColumns
                     Let TheResults(r, c) = Arg1(r + rOffset1, c + cOffset1) + Arg2(r + rOffset2, c + cOffset2)
                 Next
             Next
         ElseIf TheOperation = "MULTIPLY" Then
             For r = 1 To NumRows
-                For c = 1 To numColumns
+                For c = 1 To NumColumns
                     Let TheResults(r, c) = Arg1(r + rOffset1, c + cOffset1) * Arg2(r + rOffset2, c + cOffset2)
                 Next
             Next
         Else
             For r = 1 To NumRows
-                For c = 1 To numColumns
+                For c = 1 To NumColumns
                     Let TheResults(r, c) = Arg1(r + rOffset1, c + cOffset1) / Arg2(r + rOffset2, c + cOffset2)
                 Next
             Next
@@ -2771,8 +2772,8 @@ End Function
 ' ArrayOfColsSortOrder is a variant array whose elements are all of enumerated type
 ' XLSortOrder (e.g. xlAscending, xlDescending)
 Public Function Sort2DArray(MyArray As Variant, ArrayOfColPos As Variant, _
-                     ArrayOfColsSortOrder As Variant, _
-                     WithHeaders As XlYesNoGuess) As Variant
+                            ArrayOfColsSortOrder As Variant, _
+                            WithHeaders As XlYesNoGuess) As Variant
     Dim TheRange As Range
     Dim TmpSheet As Worksheet
     Dim i As Integer
@@ -2876,13 +2877,13 @@ End Function
 ' This function is a helper for Arrays.DumpInSheet()
 Private Function DumpInSheetHelper(AnArray As Variant, TopLeftCorner As Range, Optional PreserveColumnTextFormats As Boolean = False) As Range
     Dim c As Integer
-    Dim NumberOfRows As Long
-    Dim NumberOfColumns As Integer
+    Dim NumRows As Long
+    Dim NumColumns As Integer
     Dim NumDimensions As Integer
 
     Let NumDimensions = NumberOfDimensions(AnArray)
-    Let NumberOfRows = NumberOfRows(AnArray)
-    Let NumberOfColumns = NumberOfColumns(AnArray)
+    Let NumRows = NumberOfRows(AnArray)
+    Let NumColumns = NumberOfColumns(AnArray)
     
     If PreserveColumnTextFormats Then
         If NumDimensions = 0 Then
@@ -2891,22 +2892,22 @@ Private Function DumpInSheetHelper(AnArray As Variant, TopLeftCorner As Range, O
         Else
             ' Loop over the target columns, applying the format of the array's first column element to
             ' the entire, corresponding target range column
-            For c = 0 To NumberOfColumns - 1
+            For c = 0 To NumColumns - 1
                 If NumDimensions = 1 Then
-                    Let TopLeftCorner.Offset(0, c).Resize(NumberOfRows, 1).NumberFormat = IIf(TypeName(AnArray(c + LBound(AnArray))) = "String", "@", "0")
+                    Let TopLeftCorner.Offset(0, c).Resize(NumRows, 1).NumberFormat = IIf(TypeName(AnArray(c + LBound(AnArray))) = "String", "@", "0")
                 Else
-                    Let TopLeftCorner.Offset(0, c).Resize(NumberOfRows, 1).NumberFormat = IIf(TypeName(AnArray(1, c + LBound(AnArray, 2))) = "String", "@", "0")
+                    Let TopLeftCorner.Offset(0, c).Resize(NumRows, 1).NumberFormat = IIf(TypeName(AnArray(1, c + LBound(AnArray, 2))) = "String", "@", "0")
                 End If
             Next c
         End If
     End If
 
     If NumDimensions = 1 Then
-        Let TopLeftCorner(1, 1).Resize(1, NumberOfColumns).Value2 = AnArray
-        Set DumpInSheetHelper = TopLeftCorner(1, 1).Resize(1, NumberOfColumns)
+        Let TopLeftCorner(1, 1).Resize(1, NumColumns).Value2 = AnArray
+        Set DumpInSheetHelper = TopLeftCorner(1, 1).Resize(1, NumColumns)
     Else
-        Let TopLeftCorner(1, 1).Resize(NumberOfRows, NumberOfColumns).Value2 = AnArray
-        Set DumpInSheetHelper = TopLeftCorner(1, 1).Resize(NumberOfRows, NumberOfColumns)
+        Let TopLeftCorner(1, 1).Resize(NumRows, NumColumns).Value2 = AnArray
+        Set DumpInSheetHelper = TopLeftCorner(1, 1).Resize(NumRows, NumColumns)
     End If
 End Function
 
