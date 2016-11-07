@@ -2625,4 +2625,3 @@ Public Sub TestCreateIndexSequenceFromSpan()
     PrintArray CreateIndexSequenceFromSpan(AnArray, Span(1, 10))
     Debug.Print
 End Sub
-

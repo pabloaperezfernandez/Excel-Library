@@ -53,7 +53,7 @@ Public Function AddColumnsToListObject(aListObject As ListObject, _
     
     ' Exit if ColumnNames is not an array, ColumnNames is an empty array, or any of the
     ' elements in the array is not a string
-    If EmptyArrayQ(ColumnNames) Or Not String1DArrayQ(ColumnNames) Then
+    If EmptyArrayQ(ColumnNames) Or Not StringArrayQ(ColumnNames) Then
         Set AddColumnsToListObject = Nothing
         Exit Function
     End If
