@@ -1,6 +1,6 @@
 Attribute VB_Name = "License"
  '' ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ '
-' VBA-ExcelLibrary v7.6
+' VBA-ExcelLibrary v7.7
 ' (c) Pablo A. Perez-Fernandez, Ph.D.
 '
 ' @author Pablo_A_Perez_Fernandez@gmail.com

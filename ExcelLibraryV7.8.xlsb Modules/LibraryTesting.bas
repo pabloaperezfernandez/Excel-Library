@@ -3210,3 +3210,23 @@ Public Sub TestSelectUsingSql()
     Let Application.ScreenUpdating = True
     Let Application.DisplayAlerts = True
 End Sub
+
+'********************************************************************************************
+' ListObjectsModule
+'********************************************************************************************
+
+Public Sub TestAddListObject()
+    Dim lo As ListObject
+    
+    Call ToTemp([{"Col1", "Col2"; 11,12;21,22;31,32;41,42}])
+    
+    Set lo = AddListObject(TempComputation.Range("A1"))
+    
+    Call MsgBox("Inspect TempComputation. Entire CurrentRange should be a listobject")
+    
+    Call ToTemp([{"Col1", "Col2"; 11,12;21,22;31,32;41,42}])
+    
+    Set lo = AddListObject(TempComputation.Range("A1").Resize(3, 1), UseCurrentRegionQ:=False)
+    Call MsgBox("Inspect TempComputation. Only 1st three rows and column 1 should be the listobject")
+End Sub
+

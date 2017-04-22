@@ -2304,7 +2304,7 @@ Public Function ComplementOfSets(a As Variant, b As Variant) As Variant
     If ComplementDict.Count = 0 Then
         Let ComplementOfSets = EmptyArray()
     Else
-        Let ComplementOfSets = ComplementDict.Keys
+        Let ComplementOfSets = Flatten(ComplementDict.Keys)
     End If
 End Function
 
@@ -3023,7 +3023,7 @@ Public Function Sort2DArray(MyArray As Variant, ArrayOfColPos As Variant, _
     Call TempComputation.UsedRange.ClearContents
     
     ' Pre-format dump range as text to
-    Let TmpSheet.Range("A1").Resize(UBound(MyArray, 1), UBound(MyArray, 2)).Value2 = MyArray
+    Let TempComputation.Range("A1").Resize(UBound(MyArray, 1), UBound(MyArray, 2)).Value2 = MyArray
     
     ' Dump array in temp sheet
     Call DumpInSheet(MyArray, TempComputation.Range("A1"), True)
