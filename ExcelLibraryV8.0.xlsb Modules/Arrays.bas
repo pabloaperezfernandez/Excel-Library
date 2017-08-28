@@ -2033,7 +2033,7 @@ End Function
 '
 ' RETURNED VALUE
 ' An array joining the arrays passed as parameters
-Public Function JoinArrays(ParamArray params()) As Variant
+Public Function JoinArrays(ParamArray Params()) As Variant
     Dim ParamsCopy As Variant
     Dim var As Variant
     Dim var2 As Variant
@@ -2051,7 +2051,7 @@ Public Function JoinArrays(ParamArray params()) As Variant
     Let JoinArrays = Null
     
     ' Make copy of ParamArray
-    Let ParamsCopy = CopyParamArray(params)
+    Let ParamsCopy = CopyParamArray(Params)
     
     ' Exit with Null if no parameters are passed
     If Not DimensionedQ(ParamsCopy) Then Exit Function
@@ -5027,3 +5027,12 @@ Public Function ReorderColumns(A2DArray As Variant, ColumnNamesInDesiredOrder As
     Let ReorderColumns = TransposeMatrix(Pack2DArray(ReturnArray))
 End Function
 
+Public Function QuoteStringsInArray(ByVal AnArray As Variant) As Variant
+    Dim i As Long
+    
+    For i = LBound(AnArray) To UBound(AnArray)
+        If StringQ(AnArray(i)) Then Let AnArray(i) = """" & AnArray(i) & """"
+    Next
+    
+    Let QuoteStringsInArray = AnArray
+End Function

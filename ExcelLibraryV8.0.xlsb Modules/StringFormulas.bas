@@ -365,4 +365,3 @@ Public Function Convert1DArrayIntoParentheticalExpression(TheArray As Variant) A
     Let Convert1DArrayIntoParentheticalExpression = "(" & Join(TheArray, ",") & ")"
 End Function
 
-

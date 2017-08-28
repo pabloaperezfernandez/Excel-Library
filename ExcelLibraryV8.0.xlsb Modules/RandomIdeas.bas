@@ -129,6 +129,3 @@ Private Sub UseTheFuncs()
     Debug.Print "Calling ANewFunc2"
     Call ANewFunc(10, 20)
 End Sub
-
-
-

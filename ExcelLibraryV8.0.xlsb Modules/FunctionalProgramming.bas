@@ -265,6 +265,66 @@ Public Function ArrayMapThread(aFunctionName As String, _
     Let ArrayMapThread = ReturnArray
 End Function
 
+Public Function Apply(FunctionName As String, Params As Variant)
+'***HERE
+End Function
+
+Public Function MapThread(aFunctionName As String, _
+                          ParamArray ArrayOfEqualLength1DArrays() As Variant) As Variant
+    Dim var As Variant
+    Dim N As Long
+    Dim r As Long
+    Dim c As Long
+    Dim ArrayNumber As Long
+    Dim ElementNumber As Long
+    Dim ParamsArray As Variant
+    Dim CallArray As Variant
+    Dim ReturnArray As Variant
+    Dim CommandString As String
+    
+    ' Set default return value
+    Let ArrayMapThread = Null
+    
+    ' Make a copy of array of parameters so we may apply other functions to it
+    Let ParamsArray = CopyParamArray(ArrayOfEqualLength1DArrays)
+    
+    ' Exit with Null if ParamsArray is not dimensioned
+    If Not DimensionedQ(ParamsArray) Then Exit Function
+    
+    ' Exit with Null if ParamsArray is empty
+    If EmptyArrayQ(ParamsArray) Then
+        Let ArrayMapThread = EmptyArray
+        Exit Function
+    End If
+    
+    ' Get the length of the first parameter array
+    Let N = Length(First(ParamsArray))
+    
+    ' Exit with Null if the arrays don't all have the same length or are atomic
+    For Each var In ParamsArray
+        If Length(var) <> N Then Exit Function
+    Next
+    
+    ' Pre-allocate array to hold results and each function call's array
+    ReDim ReturnArray(1 To N)
+    ReDim CallArray(1 To Length(ParamsArray))
+
+    ' Loop over the array elements to compute results to return
+    For r = 1 To N
+        ' Assemble array of value for this function call
+        For c = 1 To Length(ParamsArray)
+            Let CallArray(c) = Part(Part(ParamsArray, c), r)
+        Next
+        
+        Let CommandString = Convert1DArrayIntoParentheticalExpression(QuoteStringsInArray(CallArray))
+        
+        Let ReturnArray(r) = Run(aFunctionName, CallArray)
+    Next
+    
+    ' Return the array used
+    Let MapThread = ReturnArray
+End Function
+
 
 ' DESCRIPTION
 ' This function computes the sum of the elements of the given array.  If AnArray is a 2D array,
@@ -608,36 +668,40 @@ Public Function FoldList(aFunctionName As String, _
 End Function
 
 ' DESCRIPTION
-' Return an array with each step in the computation resulting from applying the given
-' function N times iteratively to the given argument. Returns a 1D array with FirstArg
-' as its sole element when N = 0. Returns Null when N<0.
+' Creates an anonymous function and returns its name so it may be used
+' by other functional programming constructs.
 '
-' The function with name aFunctionName must accept two arguments.
+' Example: ArrayMap(Lambda("x", "", "2*x"), [{1,2,3,4,5}]) ->
+'          Array(2,4,6,8,10)
 '
-' Example: FoldList("Times", 10, [{1,2,3}]) returns {1, 1, 2, 6}
+'          This also returns a function name for the anonymous function.
 '
 ' PARAMETERS
-' 1. AFunctionName - Name of the function to apply
-' 2. Arg - Initial value for initial function call
-' 3. N - Number of times to apply functional nesting
+' 1. ParameterNameArray - A string or list of strings, with each string the
+'    valid name of a variable
+' 2. FunctionBody - Either a string representing a valid VBA function body,
+'    or an array of strings representing a valid VBA function body
+' 3. ReturnExpression - A valid VBA expression whose evaluation is returned by
+'    the anonymous function
 '
 ' RETURNED VALUE
-' Returns all steps in the N iterations of the function on the given list
-Public Function Anon(ParameterNameArray As Variant, FunctionBody As Variant, ReturnExpression As String) As String
+' Returns the name of the anonymous function
+Public Function Lambda(ParameterNameArray As Variant, FunctionBody As Variant, ReturnExpression As String) As String
     Dim AnonCounter As Integer
     Dim FunctionName As String
     
     Let AnonCounter = CInt(Right(ThisWorkbook.Names("AnonFunctionCounter").Value, _
                                  Len(ThisWorkbook.Names("AnonFunctionCounter").Value) - 1))
+    
+    
     Let FunctionName = "Anon" & AnonCounter
-    Let ThisWorkbook.Names("AnonFunctionCounter").Value = AnonCounter + 1
+    Let ThisWorkbook.Names("LambdaFunctionCounter").Value = AnonCounter + 1
     
     Call InsertFunction(ThisWorkbook, _
-                        "AnonFunctionsTemp", _
+                        "LambdaFunctionsTemp", _
                         FunctionName, _
                         IIf(StringQ(ParameterNameArray), Array(ParameterNameArray), ParameterNameArray), _
                         Append(IIf(StringQ(FunctionBody), Array(FunctionBody), FunctionBody), _
                                vbCrLf & "Let " & FunctionName & "=" & ReturnExpression))
-    Let Anon = "'" & ThisWorkbook.Name & "'!" & FunctionName
+    Let Lambda = "'" & ThisWorkbook.Name & "'!" & FunctionName
 End Function
-
