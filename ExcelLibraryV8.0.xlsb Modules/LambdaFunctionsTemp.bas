@@ -1,24 +1,49 @@
 Attribute VB_Name = "LambdaFunctionsTemp"
-Public Function Anon6(x, y) As Variant
-Let Anon6 = x + y
+Public Function Lambda7(ArrayToSplice) As Variant
+Dim x1 As Variant
+Dim x2 As Variant
+Let x1 = Part(ArrayToSplice, 1)
+Let x2 = Part(ArrayToSplice, 2)
+
+Let Lambda7 = Run("'ExcelLibraryV8.0.xlsb'!Lambda6", x1, x2)
 End Function
-]
-Public Function Anon5(x, y) As Variant
-Let Anon5 = x + y
+Public Function Lambda6(x, y) As Variant
+
+
+Let Lambda6 = x + y
 End Function
 
-Public Function Anon4(x, y, z) As Variant
-Let Anon4 = x + y + z
-End Function
+Public Function Lambda4(x, y) As Variant
 
-Public Function Anon3(x, y, z) As Variant
-Let Anon3 = x + y + z
-End Function
 
-Public Function Anon2(x, y, z) As Variant
-Let Anon2 = x + y + z
+Let Lambda4 = x + y
 End Function
+Public Function Lambda3(ArrayToSplice) As Variant
+Dim x1 As Variant
+Dim x2 As Variant
+Let x1 = Part(ArrayToSplice, 1)
+Let x2 = Part(ArrayToSplice, 2)
 
-Public Function Anon1(x) As Variant
-Let Anon1 = 2 * x
+Let Lambda3 = Run("'ExcelLibraryV8.0.xlsb'!Lambda2", x1, x2)
+End Function
+Public Function Lambda2(x, y) As Variant
+
+
+Let Lambda2 = x + y
+End Function
+Public Function Lambda1(ArrayToSplice) As Variant
+Dim x1 As Variant
+Dim x2 As Variant
+Let x1 = Part(ArrayToSplice, 1)
+Let x2 = Part(ArrayToSplice, 2)
+
+Let Lambda1 = Add(x1, x2)
+End Function
+Public Function Lambda0(ArrayToSplice) As Variant
+Dim x1 As Variant
+Dim x2 As Variant
+Let x1 = Part(ArrayToSplice, 1)
+Let x2 = Part(ArrayToSplice, 2)
+
+Let Lambda0 = Add(x1, x2)
 End Function

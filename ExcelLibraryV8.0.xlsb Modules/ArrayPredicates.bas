@@ -5,7 +5,7 @@ Option Base 1
 ' DESCRIPTION
 ' Boolean function returning True if its argument is a dimensioned array. Returns
 ' False otherwise.  In other words, it returns False if its arg is neither an
-' an array nor dimensioned.tabb
+' an array nor dimensioned.
 '
 ' PARAMETERS
 ' 1. arg - any value or object reference

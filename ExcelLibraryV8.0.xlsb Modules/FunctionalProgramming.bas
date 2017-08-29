@@ -20,8 +20,7 @@ Option Base 1
 '
 ' RETURNED VALUE
 ' An array with the results of applying a sequence of the functions to an element.
-Public Function Scan(aFunctionName As String, _
-                     A1DArray As Variant) As Variant
+Public Function Scan(aFunctionName As String, A1DArray As Variant) As Variant
     Dim var As Variant
     
     ' Set default return value
@@ -109,8 +108,7 @@ End Function
 '
 ' RETURNED VALUE
 ' An array with the results of applying a sequence of the functions to an element.
-Public Function ArrayMap(aFunctionName As String, _
-                         A1DArray As Variant) As Variant
+Public Function ArrayMap(aFunctionName As String, A1DArray As Variant) As Variant
     Dim ReturnArray As Variant
     Dim c As Long
     
@@ -153,8 +151,7 @@ End Function
 '
 ' RETURNED VALUE
 ' An array with the results of applying a sequence of the functions to an element.
-Public Function ArraySelect(AnArray As Variant, _
-                            aFunctionName As String) As Variant
+Public Function ArraySelect(AnArray As Variant, aFunctionName As String) As Variant
     Dim ReturnArray As Variant
     Dim i As Long
     Dim c As Long
@@ -203,8 +200,7 @@ End Function
 '
 ' If the parameters are compatible with expectations, the function returns Null
 '
-' Example: ArrayMapThread("StringJoin", array(1,2,3), array(10,20,30)) returns
-'          ("110", "220", "330")
+' Example: ArrayMapThread("add", array(1,2,3), array(10,20,30)) -> (11, 22, 33)
 '
 ' PARAMETERS
 ' 1. AFunctionName - Name of the function to apply
@@ -212,63 +208,6 @@ End Function
 '
 ' RETURNED VALUE
 ' An array with the results of applying the given function to the threading of the parameter arrays
-Public Function ArrayMapThread(aFunctionName As String, _
-                               ParamArray ArrayOfEqualLength1DArrays() As Variant) As Variant
-    Dim var As Variant
-    Dim N As Long
-    Dim r As Long
-    Dim c As Long
-    Dim ArrayNumber As Long
-    Dim ElementNumber As Long
-    Dim ParamsArray As Variant
-    Dim CallArray As Variant
-    Dim ReturnArray As Variant
-    
-    ' Set default return value
-    Let ArrayMapThread = Null
-    
-    ' Make a copy of array of parameters so we may apply other functions to it
-    Let ParamsArray = CopyParamArray(ArrayOfEqualLength1DArrays)
-    
-    ' Exit with Null if ParamsArray is not dimensioned
-    If Not DimensionedQ(ParamsArray) Then Exit Function
-    
-    ' Exit with Null if ParamsArray is empty
-    If EmptyArrayQ(ParamsArray) Then
-        Let ArrayMapThread = EmptyArray
-        Exit Function
-    End If
-    
-    ' Get the length of the first parameter array
-    Let N = Length(First(ParamsArray))
-    
-    ' Exit with Null if the arrays don't all have the same length or are atomic
-    For Each var In ParamsArray
-        If Length(var) <> N Then Exit Function
-    Next
-    
-    ' Pre-allocate array to hold results and each function call's array
-    ReDim ReturnArray(1 To N)
-    ReDim CallArray(1 To Length(ParamsArray))
-
-    ' Loop over the array elements to compute results to return
-    For r = 1 To N
-        ' Assemble array of value for this function call
-        For c = 1 To Length(ParamsArray)
-            Let CallArray(c) = Part(Part(ParamsArray, c), r)
-        Next
-        
-        Let ReturnArray(r) = Run(aFunctionName, CallArray)
-    Next
-    
-    ' Return the array used
-    Let ArrayMapThread = ReturnArray
-End Function
-
-Public Function Apply(FunctionName As String, Params As Variant)
-'***HERE
-End Function
-
 Public Function MapThread(aFunctionName As String, _
                           ParamArray ArrayOfEqualLength1DArrays() As Variant) As Variant
     Dim var As Variant
@@ -280,10 +219,10 @@ Public Function MapThread(aFunctionName As String, _
     Dim ParamsArray As Variant
     Dim CallArray As Variant
     Dim ReturnArray As Variant
-    Dim CommandString As String
+    Dim SplicingDelegateName As String
     
     ' Set default return value
-    Let ArrayMapThread = Null
+    Let MapThread = Null
     
     ' Make a copy of array of parameters so we may apply other functions to it
     Let ParamsArray = CopyParamArray(ArrayOfEqualLength1DArrays)
@@ -293,7 +232,7 @@ Public Function MapThread(aFunctionName As String, _
     
     ' Exit with Null if ParamsArray is empty
     If EmptyArrayQ(ParamsArray) Then
-        Let ArrayMapThread = EmptyArray
+        Let MapThread = EmptyArray
         Exit Function
     End If
     
@@ -308,6 +247,9 @@ Public Function MapThread(aFunctionName As String, _
     ' Pre-allocate array to hold results and each function call's array
     ReDim ReturnArray(1 To N)
     ReDim CallArray(1 To Length(ParamsArray))
+    
+    ' Create splicing delegate name
+    Let SplicingDelegateName = ParameterSplicingDelegate(aFunctionName, Length(ParamsArray))
 
     ' Loop over the array elements to compute results to return
     For r = 1 To N
@@ -316,15 +258,12 @@ Public Function MapThread(aFunctionName As String, _
             Let CallArray(c) = Part(Part(ParamsArray, c), r)
         Next
         
-        Let CommandString = Convert1DArrayIntoParentheticalExpression(QuoteStringsInArray(CallArray))
-        
-        Let ReturnArray(r) = Run(aFunctionName, CallArray)
+        Let ReturnArray(r) = Run(SplicingDelegateName, CallArray)
     Next
     
     ' Return the array used
     Let MapThread = ReturnArray
 End Function
-
 
 ' DESCRIPTION
 ' This function computes the sum of the elements of the given array.  If AnArray is a 2D array,
@@ -690,18 +629,155 @@ Public Function Lambda(ParameterNameArray As Variant, FunctionBody As Variant, R
     Dim AnonCounter As Integer
     Dim FunctionName As String
     
-    Let AnonCounter = CInt(Right(ThisWorkbook.Names("AnonFunctionCounter").Value, _
-                                 Len(ThisWorkbook.Names("AnonFunctionCounter").Value) - 1))
+    ' Get the current lambda counter
+    Let AnonCounter = CInt(Right(ThisWorkbook.Names("LambdaFunctionCounter").Value, _
+                                 Len(ThisWorkbook.Names("LambdaFunctionCounter").Value) - 1))
     
     
-    Let FunctionName = "Anon" & AnonCounter
+    ' Generate new, unique lambda name
+    Let FunctionName = "Lambda" & AnonCounter
+    
+    ' Increase lambda counter
     Let ThisWorkbook.Names("LambdaFunctionCounter").Value = AnonCounter + 1
     
+    ' Generate new lambda function
     Call InsertFunction(ThisWorkbook, _
                         "LambdaFunctionsTemp", _
                         FunctionName, _
                         IIf(StringQ(ParameterNameArray), Array(ParameterNameArray), ParameterNameArray), _
                         Append(IIf(StringQ(FunctionBody), Array(FunctionBody), FunctionBody), _
                                vbCrLf & "Let " & FunctionName & "=" & ReturnExpression))
+    
+    ' Return fully-qualified function name
     Let Lambda = "'" & ThisWorkbook.Name & "'!" & FunctionName
 End Function
+
+' DESCRIPTION
+' Returns the result from the application of a function with the values of the
+' given array as the values of its parameters. This function does not checking to
+' ensure that the length of the parameter array and the number of required funcitonal
+' parameters are equal.
+'
+' Example: Apply(Lambda([{"x","y"}], "", "2*x*y"), [{1,2}]) ->
+'          Lambda([{"x"<-1,"y"<-2}], "", "2*x*y") -> 2*1*2 = 4
+'
+' PARAMETERS
+' 1. FunctionName - The name of the function
+' 2. ParameterArray - The array holding the values to evaluate the function
+'
+' RETURNED VALUE
+' The result from evaluating the function with parameter values specified by the
+' given array
+Public Function Apply(ByVal FunctionName As String, _
+                      ByVal ParameterArray As Variant) As Variant
+    Dim ParentExpr As String
+    Dim ParamNames As Variant
+    Dim FunctionBody() As String
+    Dim VarName As Variant
+    Dim i As Long
+    Dim LambdaName As String
+    Dim LambdaCounter As Integer
+
+    ' Set default return value in case of error
+    Let Apply = Null
+    
+    ' ErrorCheck: Exit with Null if ParameterArray not an array
+    If Not IsArray(ParameterArray) Then Exit Function
+    
+    ' ErrorCheck: Exit with Null if ParameterArray not initialized and non-empty
+    If Not DimensionedQ(ParameterArray) Then Exit Function
+    
+    ' ErrorCheck: Exit with Null if ParameterArray is empty
+    If EmptyArrayQ(ParameterArray) Then Exit Function
+    
+    ' Create delegating function
+    Let LambdaName = ParameterSplicingDelegate(FunctionName, Length(ParameterArray))
+    
+    ' Apply the delegation funciton to the parameter array
+    Let Apply = Run(LambdaName, ParameterArray)
+End Function
+
+' DESCRIPTION
+' Creates and returns the name of a function to allow splice the contents of a 1D array
+' as the arguments of a function. This function provides the same functionality as the
+' apply function in EmacsLisp.
+'
+' There is no way in to take a<-array(1,2) and then apply("add", a) to get add(1,2)
+'
+' This function returns a function name that can be passed to Apply to achieve this
+' behavior. One does not need to call ParameterSplicingDelegate directly. This helper
+' function is called by Apply. However, it is also called by MapThread to achieve similar
+' behavior.
+'
+' PARAMETERS
+' 1. FunctionName - The name of the function
+' 2. N - A positive integer indicating the number of arguments the delegate must accept
+'
+' RETURNED VALUE
+' Returns the name of the delegate function for splicing an array into the parameter
+' slots of the given function
+Public Function ParameterSplicingDelegate(FunctionName As String, N As Integer) As Variant
+    Dim ParamNames As Variant
+    Dim ParenString As String
+    Dim FunctionBody() As String
+    Dim VarName As Variant
+    Dim i As Long
+    
+    ' Set default return value in case of error
+    Let ParameterSplicingDelegate = Null
+    
+    ' ErrorCheck: Exit with Null if N not a positive integer
+    If Not PositiveWholeNumberQ(N) Then Exit Function
+    
+    ' Create parameter list for anonymous function
+    Let ParamNames = GenerateStringSequence("Param", 1, N)
+    
+    ' Create the function body
+    
+    ' Construct a let statement for bind each var to its intended value
+    ReDim FunctionBody(1 To 2 * N)
+    For i = 1 To N
+        Let FunctionBody(i) = _
+            "Dim " & Part(ParamNames, i) & " as Variant"
+    Next
+    
+    For i = N + 1 To 2 * N
+        Let FunctionBody(i) = _
+            "Let " & Part(ParamNames, i - N) & " = Part(ArrayToSplice," & i - N & ")"
+    Next
+        
+    ' Create the anonymous function
+    Let ParenString = ToParentheticalString(ParamNames)
+    Let ParenString = Right(ParenString, Len(ParenString) - 1)
+    Let ParameterSplicingDelegate = Lambda("ArrayToSplice", _
+                                           FunctionBody, _
+                                           "run(" & Chr(34) & FunctionName & Chr(34) & _
+                                          "," & ParenString _
+                                          )
+End Function
+
+' DESCRIPTION
+' Clears the contents of module LambdaFunctionsTemp and resets workbook name
+' LambdaFunctionCounter to 0.
+'
+' PARAMETERS
+' None
+'
+' RETURNED VALUE
+' None
+Public Sub ClearLambdaFunctionsData()
+    Dim CodeModule As VBIDE.CodeModule
+
+    ' Simply continue without raising error if the module is not found in
+    ' the given module
+    On Error Resume Next
+    
+    ' Set reference to approrpriate code module
+    Set CodeModule = ThisWorkbook.VBProject.VBComponents("LambdaFunctionsTemp").CodeModule
+
+    ' Delete the funnction from the code module
+    Call CodeModule.DeleteLines(1, CodeModule.CountOfLines)
+    
+    ' Reset lambda counter
+    Let ThisWorkbook.Names("LambdaFunctionCounter").Value = 0
+End Sub

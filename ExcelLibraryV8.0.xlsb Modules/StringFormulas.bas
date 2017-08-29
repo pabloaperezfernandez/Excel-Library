@@ -365,3 +365,53 @@ Public Function Convert1DArrayIntoParentheticalExpression(TheArray As Variant) A
     Let Convert1DArrayIntoParentheticalExpression = "(" & Join(TheArray, ",") & ")"
 End Function
 
+Public Function ToParentheticalString(TheArray As Variant) As String
+    Let ToParentheticalString = Convert1DArrayIntoParentheticalExpression(TheArray)
+End Function
+
+' DESCRIPTION
+' Returns an array of numbered strings using the string provided by the user
+' as the root.
+'
+' This function returns a sequence of numbered strings based on the user's
+' specifications. It has two calling modalities.
+
+' 1. When not passing the optional ToEndNumberQ set to True, the function interprets N
+'    as the number of terms expected in the return sequence.
+'
+' 2. When passing the optional ToEndNumberQ set to True, the function returns a sequence
+'    starting with StartNumber and with every other number obtained sequentially from
+'    the prior adding TheStep (set to 1 if not passed) up to an including N.
+'
+' This function returns Null if N is negative when called in modality 1.  The function
+' currently requires N to be larger than or equal to StartNumber when ToEndNumberQ=True.
+'
+' PARAMETERS
+' 1. StartNumber - First number in the array
+' 2. N - Number of elements in the sequence or the ending number, depending on the
+'    calling modality
+' 3. TheStep (optional) - To create a sequence using a sequential step different from 1
+' 4. ToEndNumberQ (optional) - When passed explicitly as True, it activates
+'    calling modality 2
+'
+' RETURNED VALUE
+' The requested string sequence
+Public Function GenerateStringSequence(TheStringRoot As String, _
+                                       StartNumber As Variant, _
+                                       N As Variant, _
+                                       Optional TheStep As Variant, _
+                                       Optional ToEndNumberQ As Boolean = False) As Variant
+    Dim TheNumericSequence As Variant
+    
+    ' Set default return value in case of error
+    Let GenerateStringSequence = Null
+    
+    Let TheNumericSequence = NumericalSequence(StartNumber, N, TheStep, ToEndNumberQ)
+    
+    ' ErrorCheck: Exit if the parameters caused an error
+    If IsNull(TheNumericSequence) Then Exit Function
+    
+    ' Generate and return the requested string sequence
+    Let GenerateStringSequence = StringJoin("x", ToStrings(TheNumericSequence))
+End Function
+

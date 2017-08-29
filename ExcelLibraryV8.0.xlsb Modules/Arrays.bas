@@ -556,24 +556,26 @@ Public Function NormalizeIndicesTupleArray(ByVal AnArray As Variant, _
 End Function
 
 ' DESCRIPTION
-' This function returns a sequence of numbers based on the user's specifications.  It has two
-' calling modalities.
+' This function returns a sequence of numbers based on the user's specifications.
+' It has two calling modalities.
 
-' 1. When not passing the optional ToEndNumberQ set to True, the function interprets N as the
-'    number of terms expected in the return sequence.
+' 1. When not passing the optional ToEndNumberQ set to True, the function interprets N
+'    as the number of terms expected in the return sequence.
 '
-' 2. When passing the optional ToEndNumberQ set to True, the function returns a sequence starting
-'    starting with StartNumber and with every other number obtained sequentially from the prior
-'    adding TheStep (set to 1 if not passed) up to an including N.
+' 2. When passing the optional ToEndNumberQ set to True, the function returns a sequence
+'    starting with StartNumber and with every other number obtained sequentially from
+'    the prior adding TheStep (set to 1 if not passed) up to an including N.
 '
-' This function returns Null if N is negative when called in modality 1.  The function currently
-' requires N to be larger than or equal to StartNumber when ToEndNumberQ=True.
+' This function returns Null if N is negative when called in modality 1.  The function
+' currently requires N to be larger than or equal to StartNumber when ToEndNumberQ=True.
 '
 ' PARAMETERS
 ' 1. StartNumber - First number in the array
-' 2. N - Number of elements in the sequence or the ending number, depending on the calling modality
+' 2. N - Number of elements in the sequence or the ending number, depending on the
+'    calling modality
 ' 3. TheStep (optional) - To create a sequence using a sequential step different from 1
-' 4. ToEndNumberQ (optional) - When passed explicitly as True, it activates calling modality 2
+' 4. ToEndNumberQ (optional) - When passed explicitly as True, it activates
+'    calling modality 2
 '
 ' RETURNED VALUE
 ' The requested numerical sequence

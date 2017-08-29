@@ -341,7 +341,7 @@ Public Sub InsertFunction(AWorkBook As Workbook, _
     ' Create string to hold function body
     Let CodeString = "Public Function " & FunctionName
     Let CodeString = CodeString & _
-                     Convert1DArrayIntoParentheticalExpression(ParameterNameArray) & _
+                     ToParentheticalString(ParameterNameArray) & _
                      " As Variant" & vbCrLf
 
     For Each TmpStr In FunctionBody
