@@ -7,7 +7,7 @@ Option Base 1
 ' sub with name AFunctionName to each element of A1DArray without storing the returned
 ' result.  Usage examples include:
 '
-' Call ForEach("MySub", Array(1, 2, 3, 4))
+' Call Scan("MySub", Array(1, 2, 3, 4))
 '
 ' Applies a function to an array of atomic elements, returning an array with the results.
 ' This function returns Null if the array of elements is not atomic. This function returns an
@@ -108,12 +108,12 @@ End Function
 '
 ' RETURNED VALUE
 ' An array with the results of applying a sequence of the functions to an element.
-Public Function ArrayMap(aFunctionName As String, A1DArray As Variant) As Variant
+Public Function Map(aFunctionName As String, A1DArray As Variant) As Variant
     Dim ReturnArray As Variant
     Dim c As Long
     
     ' Set default return value
-    Let ArrayMap = Null
+    Let Map = Null
     
     ' Exit with Null if A1DArray is not dimensioned
     If Not DimensionedQ(A1DArray) Then Exit Function
@@ -121,7 +121,7 @@ Public Function ArrayMap(aFunctionName As String, A1DArray As Variant) As Varian
     ' Check parameters for consistency
     ' Exit with the empty array if A1DArray is empty
     If EmptyArrayQ(A1DArray) Then
-        Let ArrayMap = EmptyArray()
+        Let Map = EmptyArray()
         
         Exit Function
     End If
@@ -135,7 +135,7 @@ Public Function ArrayMap(aFunctionName As String, A1DArray As Variant) As Varian
     Next c
 
     ' Return the array holding the mapped results
-    Let ArrayMap = ReturnArray
+    Let Map = ReturnArray
 End Function
 
 ' DESCRIPTION
