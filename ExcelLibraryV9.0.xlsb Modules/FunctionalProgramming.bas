@@ -6,7 +6,7 @@ Option Base 1
 ' Returns the value from applying the given instance of Lambda to the given parameter.
 '
 ' Example: Eval(Lambda("x", "", "2*x), 5) ->
-'          Lambda("x", "", "2*x") -> 2*5 = 10
+'          Lambda("x"<-5, "", "2*x") -> 2*5 = 10
 '
 ' PARAMETERS
 ' 1. ALambda - An instance of class Lambda
@@ -15,6 +15,8 @@ Option Base 1
 ' RETURNED VALUE
 ' ALambda(TheParam)
 Public Function Eval(ByVal ALambda As Lambda, ByVal TheParam) As Variant
+Attribute Eval.VB_Description = "A function provided by the Mathematica Link add-in. Please see Mathematica Link documentation for more information on this function."
+Attribute Eval.VB_ProcData.VB_Invoke_Func = " \n14"
     Let Eval = Run(ALambda.FunctionName, TheParam)
 End Function
 
@@ -55,10 +57,10 @@ Public Function Apply(ByVal ALambda As Lambda, _
     
     ' ErrorCheck: Exit with Null if ParameterArray is empty
     If EmptyArrayQ(ParameterArray) Then Exit Function
-    
+
     ' Create delegating function
     Let LambdaName = ParameterSplicingDelegate(ALambda.FunctionName, Length(ParameterArray))
-    
+
     ' Apply the delegation funciton to the parameter array
     Let Apply = Run(LambdaName, ParameterArray)
 End Function

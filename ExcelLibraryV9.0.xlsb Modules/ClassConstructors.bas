@@ -14,7 +14,7 @@ Option Explicit
 ' 3. TheStep (optional) - To create a sequence using a sequential step different from 1
 '
 ' RETURNED VALUE
-' An object represing the desired span of indices
+' An object representing the desired span of indices
 Public Function Span(StartNumber As Long, _
                      EndNumber As Long, _
                      Optional TheStep As Long = 1) As Span
@@ -47,20 +47,20 @@ End Function
 Public Function Lambda(ParameterNameArray As Variant, _
                        FunctionBody As Variant, _
                        ReturnExpression As String) As Lambda
-    Dim AnonCounter As Integer
+    Dim LambdaCounter As Integer
     Dim FunctionName As String
     Dim obj As New Lambda
     
     ' Get the current lambda counter
-    Let AnonCounter = CInt(Right(ThisWorkbook.Names("LambdaFunctionCounter").Value, _
+    Let LambdaCounter = CInt(Right(ThisWorkbook.Names("LambdaFunctionCounter").Value, _
                                  Len(ThisWorkbook.Names("LambdaFunctionCounter").Value) - 1))
     
     
     ' Generate new, unique lambda name
-    Let FunctionName = "Lambda" & AnonCounter
+    Let FunctionName = "Lambda" & LambdaCounter
     
     ' Increase lambda counter
-    Let ThisWorkbook.Names("LambdaFunctionCounter").Value = AnonCounter + 1
+    Let ThisWorkbook.Names("LambdaFunctionCounter").Value = LambdaCounter + 1
     
     ' Generate new lambda function
     Call InsertFunction(ThisWorkbook, _

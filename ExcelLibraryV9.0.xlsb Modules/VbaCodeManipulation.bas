@@ -441,7 +441,7 @@ Public Function ParameterSplicingDelegate(FunctionName As String, N As Integer) 
     
     ' Create parameter list for anonymous function
     Let ParamNames = GenerateStringSequence("Param", 1, N)
-    
+
     ' Create the function body
     
     ' Construct a let statement for bind each var to its intended value
@@ -463,7 +463,7 @@ Public Function ParameterSplicingDelegate(FunctionName As String, N As Integer) 
                                            FunctionBody, _
                                            "run(" & Chr(34) & FunctionName & Chr(34) & _
                                           "," & ParenString _
-                                          )
+                                          ).FunctionName
 End Function
 
 

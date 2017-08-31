@@ -2014,7 +2014,7 @@ Public Sub TestFunctionalProgrammingEval()
 End Sub
 
 Public Sub TestFunctionalProgrammingApply()
-    Debug.Assert Apply(Lambda([{"x","y"}], "", "2*x*y"), [{20,30}]) = 120
+    Debug.Assert Apply(Lambda([{"x","y"}], "", "2*x*y"), [{20,30}]) = 1200
 End Sub
 
 Public Sub TestFunctionalProgrammingScan()
