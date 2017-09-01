@@ -2,6 +2,8 @@ Attribute VB_Name = "Predicates"
 Option Explicit
 Option Base 1
 
+Dim SampleLambda As New Lambda
+
 ' DESCRIPTION
 ' This function returns an array of strings with the names the predicates used to
 ' identify atomic values.
@@ -549,7 +551,7 @@ End Function
 ' RETURNED VALUE
 ' Returns True or False depending on whether or not its argument is an instance of class Span
 Public Function LambdaQ(arg As Variant) As Boolean
-    Let LambdaQ = TypeName(arg) = TypeName(Lambda("", "", """"""))
+    Let LambdaQ = TypeName(arg) = TypeName(Predicates.SampleLambda)
 End Function
 
 ' DESCRIPTION

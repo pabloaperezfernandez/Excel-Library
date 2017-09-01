@@ -2070,13 +2070,13 @@ End Sub
 Private Function ArrayMapHelper1(arg As Variant) As Integer
     Let ArrayMapHelper1 = arg * 10
 End Function
-
+'***HERE
 Public Sub TestFunctionalProgrammingMapThread()
-'    PrintArray MapThread(Lambda([{"x1","x2", "x3", "x4"}], "", "x1+x2+x3+X4"), _
-'                         [{1,2,3}], _
-'                         [{10,20,30}], _
-'                         [{100,200,300}], _
-'                         [{1000,2000,3000}])
+    PrintArray MapThread(Lambda([{"x1","x2", "x3", "x4"}], "", "x1+x2+x3+X4"), _
+                         [{1,2,3}], _
+                         [{10,20,30}], _
+                         [{100,200,300}], _
+                         [{1000,2000,3000}])
 
     Debug.Print "Test 2"
     

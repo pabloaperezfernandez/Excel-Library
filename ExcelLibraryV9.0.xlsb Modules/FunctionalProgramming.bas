@@ -437,18 +437,17 @@ Public Function MapThread(ALambda As Variant, _
 
     ' Create splicing delegate name
     Let SplicingDelegateName = ParameterSplicingDelegate(ProcName, Length(ParamsArray))
-Debug.Print "Here1. Splicing del is " & SplicingDelegateName
+
     ' Loop over the array elements to compute results to return
     For r = 1 To N
         ' Assemble array of value for this function call
         For c = 1 To Length(ParamsArray)
             Let CallArray(c) = Part(Part(ParamsArray, c), r)
         Next
-Debug.Print "r = " & r
-PrintArray CallArray
+        
         Let ReturnArray(r) = Run(SplicingDelegateName, CallArray)
     Next
-Debug.Print "Here2"
+    
     ' Return the array used
     Let MapThread = ReturnArray
 
