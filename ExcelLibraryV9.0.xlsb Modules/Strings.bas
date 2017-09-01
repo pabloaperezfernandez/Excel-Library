@@ -1,4 +1,4 @@
-Attribute VB_Name = "StringFormulas"
+Attribute VB_Name = "Strings"
 Option Explicit
 Option Base 1
 
@@ -413,5 +413,48 @@ Public Function GenerateStringSequence(TheStringRoot As String, _
     
     ' Generate and return the requested string sequence
     Let GenerateStringSequence = StringJoin("x", ToStrings(TheNumericSequence))
+End Function
+
+' DESCRIPTION
+' Returns a fully qualified sub/function name in the given module and workbook
+'
+' EXAMPLE
+' RoutineName(wbk, "MyModule", "MyFunc") -> "'" & wbk.name & "'!MyModule.MyFunc"
+'
+' PARAMETERS
+' 1. AWorkbook - A reference of type Workbook
+' 2. ModuleName - Name of a module in AWorkbook
+' 2. RoutineName - The string name of the sub/function
+'
+' RETURNED VALUE
+' The fully quallified name of a function in a given workbook.
+Public Function MakeRoutineName(AWorkbook As Workbook, _
+                                ModuleName As String, _
+                                RoutineName As String) As String
+    Let MakeRoutineName = "'" & AWorkbook.Name & "'!" & _
+                          IIf(RoutineName = "", _
+                          RoutineName, _
+                          ModuleName & "." & RoutineName)
+End Function
+
+' DESCRIPTION
+' Returns the given string with sequences of spaces replaced by a single space
+'
+' PARAMETERS
+' 1. Text - The string to process
+'
+' RETURNED VALUE
+' the string with sequences of spaces replaced by a single space
+Public Function RemoveDuplicatedSpaces(ByVal Text As String) As String
+    Dim Pos As String
+    
+    Let Pos = InStr(1, Text, Space(2), vbBinaryCompare)
+    
+    Do Until Pos = 0
+        Let Text = Replace(Text, Space(2), Space(1))
+        Let Pos = InStr(1, Text, Space(2), vbBinaryCompare)
+    Loop
+    
+    Let RemoveDuplicatedSpaces = Text
 End Function
 

@@ -137,14 +137,14 @@ Public Sub TestPredicatesPrintableQ()
     Dim aBoolean As Boolean
     Dim aString As String
     Dim aWorksheet As Worksheet
-    Dim AWorkBook As Workbook
+    Dim AWorkbook As Workbook
     Dim aListObject As ListObject
     Dim aDictionary As Dictionary
     Dim ANumericArray(1 To 2) As Integer
     Dim var2 As Variant
     
     Set aWorksheet = ActiveSheet
-    Set AWorkBook = ThisWorkbook
+    Set AWorkbook = ThisWorkbook
     Set aListObject = AddListObject(TempComputation.Range("A1"))
     Set aDictionary = New Dictionary
     
@@ -162,7 +162,7 @@ Public Sub TestPredicatesPrintableQ()
                            Array("aString", aString), _
                            Array("CVErr(1)", CVErr(1)), _
                            Array("aWorksheet", aWorksheet), _
-                           Array("aWorkbook", AWorkBook), _
+                           Array("aWorkbook", AWorkbook), _
                            Array("aListObject", aListObject), _
                            Array("ANumericArray", ANumericArray), _
                            Array("aDictionary", aDictionary), _
@@ -181,7 +181,7 @@ Public Sub TestPredicatesAtomicPredicates()
     Dim aBoolean As Boolean
     Dim aString As String
     Dim aWorksheet As Worksheet
-    Dim AWorkBook As Workbook
+    Dim AWorkbook As Workbook
     Dim aListObject As ListObject
     Dim aDictionary As Dictionary
     Dim aVariant As Variant
@@ -190,7 +190,7 @@ Public Sub TestPredicatesAtomicPredicates()
     Dim var2 As Variant
     
     Set aWorksheet = ActiveSheet
-    Set AWorkBook = ThisWorkbook
+    Set AWorkbook = ThisWorkbook
     Set aListObject = AddListObject(TempComputation.Range("A1"))
     Set aDictionary = New Dictionary
     Let aVariant = 1
@@ -209,7 +209,7 @@ Public Sub TestPredicatesAtomicPredicates()
                                Array("aString", aString), _
                                Array("CVErr(1)", CVErr(1)), _
                                Array("aWorksheet", aWorksheet), _
-                               Array("aWorkbook", AWorkBook), _
+                               Array("aWorkbook", AWorkbook), _
                                Array("aListObject", aListObject), _
                                Array("aVariant", aVariant), _
                                Array("AnArray", AnArray), _
@@ -483,13 +483,13 @@ Public Sub TestPredicatesAtomicArrayQ()
     Dim aBoolean As Boolean
     Dim aString As String
     Dim aWorksheet As Worksheet
-    Dim AWorkBook As Workbook
+    Dim AWorkbook As Workbook
     Dim aListObject As ListObject
     Dim aVariant As Variant
     Dim AnArray(1 To 2) As Integer
     
     Set aWorksheet = ActiveSheet
-    Set AWorkBook = ThisWorkbook
+    Set AWorkbook = ThisWorkbook
     Set aListObject = AddListObject(TempComputation.Range("A1"))
     
     Debug.Assert AtomicArrayQ(Array(anInteger, aDouble))
@@ -2015,11 +2015,12 @@ End Sub
 
 Public Sub TestFunctionalProgrammingApply()
     Debug.Assert Apply(Lambda([{"x","y"}], "", "2*x*y"), [{20,30}]) = 1200
+    Debug.Assert Apply("add", [{20,30}]) = 50
 End Sub
 
 Public Sub TestFunctionalProgrammingScan()
     Call Scan("ScanHelper1", NumericalSequence(1, 10))
-End Sub
+End Sub '***HERE
 
 Private Sub ScanHelper1(arg As Variant)
     Debug.Print "The time for interation " & arg & " is " & Now()
@@ -2029,7 +2030,7 @@ Public Sub TestFunctionalProgrammingThrough()
     PrintArray Through([{"NumberQ", "StringQ","BooleanQ"}], 123)
 End Sub
 
-Public Sub TestFunctionalProgrammingArrayMap()
+Public Sub TestFunctionalProgrammingMap()
     Dim a As Variant
     Dim VariantArrayOfStringArrays(1 To 2) As Variant
     
@@ -2041,65 +2042,59 @@ Public Sub TestFunctionalProgrammingArrayMap()
     Debug.Print "All entries in a are strings."
     Debug.Print
     
-    Let a = ArrayMap("StringConcatenate", a)
+    Let a = Map("StringConcatenate", a)
     Debug.Print "Let a = TransposeMatrix(Pack2DArray(Array(Array(""1"", ""2"", ""3""), Array(""4"", ""5"", ""6"")))"
-    Debug.Print "Let a = ArrayMap(""StringConcatenate"", a)"
+    Debug.Print "Let a = Map(""StringConcatenate"", a)"
     PrintArray a
     
     Debug.Print
-    Debug.Print "We are showing how to do MapThread using ArrayMap."
+    Debug.Print "We are showing how to do MapThread using Map."
     Debug.Print
     Let VariantArrayOfStringArrays(1) = ToStrings(Array("1", "2", "3"))
     Let VariantArrayOfStringArrays(2) = ToStrings(Array("4", "5", "6"))
     Debug.Print "StringArray is:"
     PrintArray Pack2DArray(VariantArrayOfStringArrays)
-    PrintArray ArrayMap("StringConcatenate", VariantArrayOfStringArrays)
+    Debug.Print "The concatenation of each row is:"
+    PrintArray Map("StringConcatenate", VariantArrayOfStringArrays)
     
     Debug.Print
 
-    PrintArray ArrayMap("ArrayMapHelper1", NumericalSequence(1, 10))
+    Debug.Print "We are not showing to multiply each element in " & PrintArray(NumericalSequence(1, 10), True)
+    PrintArray Map("ArrayMapHelper1", NumericalSequence(1, 10))
+    
+    Debug.Print
+    Debug.Print "We are evaluating: Map(Lambda(""x"", """", ""10*x""), NumericalSequence(1, 10))"
+    PrintArray Map(Lambda("x", "", "10*x"), NumericalSequence(1, 10))
 End Sub
 
 Private Function ArrayMapHelper1(arg As Variant) As Integer
     Let ArrayMapHelper1 = arg * 10
 End Function
 
-Public Sub TestFunctionalProgrammingArrayMapThread()
-    PrintArray ArrayMapThread("StringJoin", _
-                              Array("1", "2", "3"), _
-                              Array("-11", "-22", "-33"))
-    Debug.Print
+Public Sub TestFunctionalProgrammingMapThread()
+'    PrintArray MapThread(Lambda([{"x1","x2", "x3", "x4"}], "", "x1+x2+x3+X4"), _
+'                         [{1,2,3}], _
+'                         [{10,20,30}], _
+'                         [{100,200,300}], _
+'                         [{1000,2000,3000}])
+
+    Debug.Print "Test 2"
     
-    PrintArray ArrayMapThread("StringJoin", _
-                              Array("1", "2", "3"), _
-                              Array("-11", "-22", "-33"), _
-                              Array("-111", "-222", "-332"))
-    Debug.Print
-    
-    PrintArray ArrayMapThread("Total", _
-                              [{1,2,3}], _
-                              [{10,20,30}])
-                              
-    Debug.Print
-    
-    PrintArray ArrayMapThread("Total", _
-                              [{1,2,3}], _
-                              [{10,20,30}], _
-                              [{100,200,300}], _
-                              [{1000,2000,3000}])
+    PrintArray MapThread("Add", [{1,2,3,4,5}], [{10, 20, 30, 40, 50}])
 End Sub
 
-Public Sub TestFunctionalProgrammingArraySelect()
-    PrintArray ArraySelect(NumericalSequence(1, 100), "ArraySelectHelper1")
-    PrintArray ArraySelect(Array("aPAPa", "bbbPAP", "sdgasdkh"), "ArraySelectHelper2")
+Public Sub TestFunctionalProgrammingFilter()
+    PrintArray Filter(NumericalSequence(1, 100), "FilterHelper1")
+    PrintArray Filter(Array("aPAPa", "bbbPAP", "sdgasdkh"), "FilterHelper2")
+    PrintArray Filter(Array("aPAPa", "bbbPAP", "sdgasdkh"), Lambda("x", "", "InStr(1, x, ""PAP"")"))
 End Sub
 
-Private Function ArraySelectHelper1(arg As Variant) As Boolean
-    Let ArraySelectHelper1 = arg > 1 And arg < 6
+Private Function FilterHelper1(arg As Variant) As Boolean
+    Let FilterHelper1 = arg > 1 And arg < 6
 End Function
 
-Private Function ArraySelectHelper2(arg As Variant) As Boolean
-    Let ArraySelectHelper2 = InStr(1, arg, "PAP")
+Private Function FilterHelper2(arg As Variant) As Boolean
+    Let FilterHelper2 = InStr(1, arg, "PAP")
 End Function
 
 Public Sub TestFunctionalProgrammingTotal()
@@ -3266,3 +3261,11 @@ Public Sub TestAddListObject()
     Call MsgBox("Inspect TempComputation. Only 1st three rows and column 1 should be the listobject")
 End Sub
 
+
+'********************************************************************************************
+' StringFormulas
+'********************************************************************************************
+Public Sub TestVbaCodeManipulationMakeRoutineName()
+    Debug.Assert "'ExcelLibraryV9.0.xlsb'!MyMod.MyFunc" = _
+                 MakeRoutineName(ThisWorkbook, "MyMod", "MyFunc")
+End Sub

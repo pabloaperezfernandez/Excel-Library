@@ -249,7 +249,7 @@ End Sub
 '
 ' RETURNED VALUE
 ' True or False according to the exitence of the module
-Public Function ModuleExistsQ(AWorkBook As Workbook, _
+Public Function ModuleExistsQ(AWorkbook As Workbook, _
                               ModuleName As String) As Boolean
     Dim CodeModule As VBIDE.CodeModule
     Dim AVar As Variant
@@ -261,7 +261,7 @@ Public Function ModuleExistsQ(AWorkBook As Workbook, _
     Let ModuleExistsQ = True
     
     ' Set reference to target code module
-    Set CodeModule = AWorkBook.VBProject.VBComponents(ModuleName).CodeModule
+    Set CodeModule = AWorkbook.VBProject.VBComponents(ModuleName).CodeModule
     
     ' Exit before ErrorHandler since no error occured.
     Exit Function
@@ -281,7 +281,7 @@ End Function
 '
 ' RETURNED VALUE
 ' True or False according to the exitence of the function
-Public Function FunctionExistsQ(AWorkBook As Workbook, _
+Public Function FunctionExistsQ(AWorkbook As Workbook, _
                                 ModuleName As String, _
                                 FunctionName As String) As Boolean
     Dim CodeModule As VBIDE.CodeModule
@@ -294,7 +294,7 @@ Public Function FunctionExistsQ(AWorkBook As Workbook, _
     Let FunctionExistsQ = True
     
     ' Set reference to target code module
-    Set CodeModule = AWorkBook.VBProject.VBComponents(ModuleName).CodeModule
+    Set CodeModule = AWorkbook.VBProject.VBComponents(ModuleName).CodeModule
 
     Let AVar = CodeModule.ProcStartLine(FunctionName, vbext_pk_Proc)
     
@@ -320,7 +320,7 @@ End Function
 '
 ' RETURNED VALUE
 ' Inserts the function in the target module provided it does not already exists.
-Public Sub InsertFunction(AWorkBook As Workbook, _
+Public Sub InsertFunction(AWorkbook As Workbook, _
                           ModuleName As String, _
                           FunctionName As String, _
                           ParameterNameArray As Variant, _
@@ -330,13 +330,13 @@ Public Sub InsertFunction(AWorkBook As Workbook, _
     Dim TmpStr As Variant
     
     ' Exit if the target module does not exists
-    If Not ModuleExistsQ(AWorkBook, ModuleName) Then Exit Sub
+    If Not ModuleExistsQ(AWorkbook, ModuleName) Then Exit Sub
     
     ' Exit if the function already exists in the given module and workbook
-    If FunctionExistsQ(AWorkBook, ModuleName, FunctionName) Then Exit Sub
+    If FunctionExistsQ(AWorkbook, ModuleName, FunctionName) Then Exit Sub
 
     ' Set reference to appropriate code module
-    Set CodeModule = AWorkBook.VBProject.VBComponents(ModuleName).CodeModule
+    Set CodeModule = AWorkbook.VBProject.VBComponents(ModuleName).CodeModule
 
     ' Create string to hold function body
     Let CodeString = "Public Function " & FunctionName
@@ -364,7 +364,7 @@ End Sub
 '
 ' RETURNED VALUE
 ' None
-Public Sub DeleteFunction(AWorkBook As Workbook, _
+Public Sub DeleteFunction(AWorkbook As Workbook, _
                           ModuleName As String, _
                           FunctionName As String)
     Dim CodeModule As VBIDE.CodeModule
@@ -374,7 +374,7 @@ Public Sub DeleteFunction(AWorkBook As Workbook, _
     On Error Resume Next
     
     ' Set reference to approrpriate code module
-    Set CodeModule = AWorkBook.VBProject.VBComponents(ModuleName).CodeModule
+    Set CodeModule = AWorkbook.VBProject.VBComponents(ModuleName).CodeModule
 
     ' Delete the funnction from the code module
     Call CodeModule.DeleteLines(CodeModule.ProcStartLine(FunctionName, vbext_pk_Proc), _
@@ -462,8 +462,174 @@ Public Function ParameterSplicingDelegate(FunctionName As String, N As Integer) 
     Let ParameterSplicingDelegate = Lambda("ArrayToSplice", _
                                            FunctionBody, _
                                            "run(" & Chr(34) & FunctionName & Chr(34) & _
-                                          "," & ParenString _
+                                           "," & ParenString _
                                           ).FunctionName
+Debug.Print "returning " & ParameterSplicingDelegate
 End Function
 
+' DESCRIPTION
+' Returns the documentation available before a routine's declaration line
+'
+' PARAMETERS
+' 1. AWorkbook - A reference of type Workbook
+' 2. ModuleName - Name of a module in AWorkbook
+' 2. RoutineName - The string name of the sub/function
+'
+' RETURNED VALUE
+' Returns the requested routine documentation
+Public Function GetDocumentation(AWorkbook As Workbook, _
+                                 ModuleName As String, _
+                                 RoutineName As String) As Variant
+    Dim FirstLine As Long
+    Dim DeclarationLine As Long
+    Dim TheRoutineName As String
+    Dim CodeModule As VBIDE.CodeModule
+    
+    ' Set default return value in case of error
+    Let GetDocumentation = Null
+    
+    ' Set default return value
+    On Error GoTo ErrorHandler
+    
+    ' Set reference to approrpriate code module
+    Set CodeModule = AWorkbook.VBProject.VBComponents(ModuleName).CodeModule
+    
+    ' Create rotuine name
+    Let TheRoutineName = MakeRoutineName(AWorkbook, ModuleName, RoutineName)
+    
+    If FunctionExistsQ(AWorkbook, ModuleName, RoutineName) Then
+        Let FirstLine = CodeModule.ProcStartLine(RoutineName, vbext_pk_Proc)
+        Let DeclarationLine = CodeModule.ProcBodyLine(RoutineName, vbext_pk_Proc)
+
+        Let GetDocumentation = _
+            Map(Lambda("ByVal s As String", _
+                       "If len(s)>2 Then" & vbCrLf & _
+                       "  Let s = Right(s, len(s)-2)" & vbCrLf & _
+                       "Else" & vbCrLf & _
+                       "  Let s = vbNullString" & vbCrLf & _
+                       "End If", _
+                       "s").FunctionName, _
+                Split(CodeModule.Lines(FirstLine, DeclarationLine - FirstLine), vbCrLf))
+        Let GetDocumentation = Join(GetDocumentation, vbCrLf)
+    End If
+    
+    Exit Function
+    
+ErrorHandler:
+    Let GetDocumentation = Null
+End Function
+
+' DESCRIPTION
+' Returns the documentation available before a routine's declaration line
+'
+' PARAMETERS
+' 1. AWorkbook - A reference of type Workbook
+' 2. ModuleName - Name of a module in AWorkbook
+' 2. RoutineName - The string name of the sub/function
+'
+' RETURNED VALUE
+' Returns the requested routine documentation
+Public Function GetRoutineNames(AWorkbook As Workbook, _
+                                ModuleName As String) As Variant
+    Dim CodeModule As VBIDE.CodeModule
+    Dim i As Long
+    Dim RoutineName As String
+    Dim aDict As Dictionary
+    
+    Set aDict = New Dictionary
+    
+    ' Find the code module for the project.
+    Set CodeModule = AWorkbook.VBProject.VBComponents(ModuleName).CodeModule
+
+    ' Scan through the code module, looking for procedures.
+    Let i = 1
+    Do While i < CodeModule.CountOfLines
+        Let RoutineName = CodeModule.ProcOfLine(i, vbext_pk_Proc)
+        If RoutineName <> vbNullString Then
+            If Not aDict.Exists(Key:=RoutineName) Then
+                Call aDict.Add(Key:=RoutineName, Item:=Empty)
+            End If
+            Let i = i + CodeModule.ProcCountLines(RoutineName, vbext_pk_Proc)
+        Else
+            Let i = i + 1
+        End If
+    Loop
+    
+    Let GetRoutineNames = aDict.Keys
+End Function
+
+' DESCRIPTION
+' Returns the documentation available before a routine's declaration line
+'
+' PARAMETERS
+' 1. AWorkbook - A reference of type Workbook
+' 2. ModuleName - Name of a module in AWorkbook
+' 2. RoutineName - The string name of the sub/function
+'
+' RETURNED VALUE
+' Returns the requested routine documentation
+Public Function GetModuleNames(AWorkbook As Workbook) As Variant
+    Dim i As Long
+    Dim aDict As Dictionary
+    
+    Set aDict = New Dictionary
+    
+    ' Scan through the code module, looking for procedures.
+    Let i = 1
+    Do While i < AWorkbook.VBProject.VBComponents.Count
+        If AWorkbook.VBProject.VBComponents(i).Name <> "License" And _
+           Not aDict.Exists(Key:=AWorkbook.VBProject.VBComponents(i).Name) Then
+            Call aDict.Add(Key:=AWorkbook.VBProject.VBComponents(i).Name, Item:=Empty)
+        End If
+        
+        Let i = i + 1
+    Loop
+    
+    Let GetModuleNames = aDict.Keys
+End Function
+
+' DESCRIPTION
+' Returns a procedures declaration
+'
+' PARAMETERS
+' 1. AWorkbook - A reference of type Workbook
+' 2. ModuleName - Name of a module in AWorkbook
+' 2. RoutineName - The string name of the sub/function
+'
+' RETURNED VALUE
+' Returns the requested procedure declaration
+Public Function GetRoutineDeclaration(AWorkbook As Workbook, _
+                                      ModuleName As String, _
+                                      RoutineName As String) As Variant
+    Dim s As String
+    Dim Declaration As String
+    
+    Dim DeclarationLine As Long
+    Dim TheRoutineName As String
+    Dim TheCodeModule As VBIDE.CodeModule
+    Dim ProcKind As VBIDE.vbext_ProcKind
+    
+    ' Set default return value in case of error
+    Let GetRoutineDeclaration = Null
+    
+    ' Set default return value
+    If Not FunctionExistsQ(AWorkbook, ModuleName, RoutineName) Then Exit Function
+    
+    ' Set reference to approrpriate code module
+    Set TheCodeModule = AWorkbook.VBProject.VBComponents(ModuleName).CodeModule
+    
+    ' Create rotuine name
+    Let TheRoutineName = MakeRoutineName(AWorkbook, ModuleName, RoutineName)
+    Let DeclarationLine = TheCodeModule.ProcBodyLine(RoutineName, vbext_pk_Proc)
+    
+    Let s = TheCodeModule.Lines(DeclarationLine, 1)
+    Do While Right(s, 1) = "_"
+        Let s = Left(s, Len(s) - 1) & " "
+        Let Declaration = Declaration & s
+        Let DeclarationLine = DeclarationLine + 1
+        Let s = TheCodeModule.Lines(DeclarationLine, 1)
+    Loop
+    
+    Let GetRoutineDeclaration = RemoveDuplicatedSpaces(Declaration & s)
+End Function
 

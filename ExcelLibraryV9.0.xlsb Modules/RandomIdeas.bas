@@ -5,7 +5,7 @@ Public Sub TestAddNewModule()
   Dim proj As VBIDE.VBProject
   Dim comp As VBIDE.VBComponent
   Dim codeMode As VBIDE.CodeModule
-  Dim lineNum As Integer
+  Dim LineNum As Integer
 
   Set proj = ActiveWorkbook.VBProject
   Set comp = proj.VBComponents.Add(vbext_ct_StdModule)
@@ -14,16 +14,16 @@ Public Sub TestAddNewModule()
   Set codeMode = comp.CodeModule
 
   With codeMode
-    lineNum = .CountOfLines + 1
-    .InsertLines lineNum, vbCrLf
-    lineNum = lineNum + 1
-    .InsertLines lineNum, vbCrLf
-    lineNum = lineNum + 1
-    .InsertLines lineNum, "Public Sub ANewSub()"
-    lineNum = lineNum + 1
-    .InsertLines lineNum, "  MsgBox " & """" & "I added a module!" & """"
-    lineNum = lineNum + 1
-    .InsertLines lineNum, "End Sub"
+    LineNum = .CountOfLines + 1
+    .InsertLines LineNum, vbCrLf
+    LineNum = LineNum + 1
+    .InsertLines LineNum, vbCrLf
+    LineNum = LineNum + 1
+    .InsertLines LineNum, "Public Sub ANewSub()"
+    LineNum = LineNum + 1
+    .InsertLines LineNum, "  MsgBox " & """" & "I added a module!" & """"
+    LineNum = LineNum + 1
+    .InsertLines LineNum, "End Sub"
   End With
 
     Debug.Print "ANewSub starts in line " & codeMode.ProcStartLine("ANewSub", vbext_pk_Proc)
@@ -62,7 +62,7 @@ Public Sub TestAddNewModule2()
     Dim proj As VBIDE.VBProject
     Dim comp As VBIDE.VBComponent
     Dim codeMode As VBIDE.CodeModule
-    Dim lineNum As Integer
+    Dim LineNum As Integer
     
     Set proj = ActiveWorkbook.VBProject
     Set comp = proj.VBComponents("MyNewModule")

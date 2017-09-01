@@ -629,12 +629,12 @@ End Function
 ' RETURNED VALUE
 ' Returns True or False depending on whether or not the given workbook has a worksheet with
 ' the given name
-Public Function WorksheetExistsQ(AWorkBook As Workbook, WorksheetName As String) As Boolean
+Public Function WorksheetExistsQ(AWorkbook As Workbook, WorksheetName As String) As Boolean
     Let WorksheetExistsQ = False
     
     On Error Resume Next
     
-    Let WorksheetExistsQ = AWorkBook.Worksheets(WorksheetName).Name <> ""
+    Let WorksheetExistsQ = AWorkbook.Worksheets(WorksheetName).Name <> ""
     Exit Function
     
     On Error GoTo 0
@@ -650,11 +650,11 @@ End Function
 ' RETURNED VALUE
 ' Returns True or False depending on whether or not the given workbook has a sheet with
 ' the given name
-Public Function SheetExistsQ(AWorkBook As Workbook, SheetName As String) As Boolean
+Public Function SheetExistsQ(AWorkbook As Workbook, SheetName As String) As Boolean
     Let SheetExistsQ = False
     
     On Error GoTo NoSuchSheet
-    If Len(AWorkBook.Sheets(SheetName).Name) > 0 Then
+    If Len(AWorkbook.Sheets(SheetName).Name) > 0 Then
         Let SheetExistsQ = True
         Exit Function
     End If
