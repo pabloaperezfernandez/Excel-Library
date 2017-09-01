@@ -71,7 +71,7 @@ Public Function Lambda(ParameterNameArray As Variant, _
                                vbCrLf & "Let " & FunctionName & "=" & ReturnExpression))
     
     ' Set the function name for Lambda instance
-    Let obj.FunctionName = "'" & ThisWorkbook.Name & "'!" & FunctionName
+    Let obj.FunctionName = MakeRoutineName(ThisWorkbook, "LambdaFunctionsTemp", FunctionName)
 
     ' Return the newly created Lambda class instance
     Set Lambda = obj

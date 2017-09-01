@@ -120,6 +120,7 @@ End Function
 ' An array with the results of applying a sequence of the functions to an element.
 Public Function Scan(ByVal ALambda As Variant, A1DArray As Variant) As Variant
     Dim var As Variant
+    Dim ProcName As String
     
     ' Set default return value
     Let Scan = Null
@@ -142,18 +143,18 @@ Public Function Scan(ByVal ALambda As Variant, A1DArray As Variant) As Variant
     
     On Error GoTo ErrorHandler
     
-    ' Compute the values from mapping the function over the array
+    ' Get the name of the function
     If StringQ(ALambda) Then
-        For Each var In A1DArray
-            ' Exit with Null if ALambda returs Null on current array element
-            If IsNull(Run(ALambda, var)) Then Exit Function
-        Next
+        Let ProcName = ALambda
     Else
-        For Each var In A1DArray
-            ' Exit with Null if ALambda returs Null on current array element
-            If IsNull(Run(ALambda.FunctionName, var)) Then Exit Function
-        Next
+        Let ProcName = ALambda.FunctionName
     End If
+    
+    ' Compute the values from mapping the function over the array
+    For Each var In A1DArray
+        ' Exit with Null if ALambda returs Null on current array element
+        If IsNull(Run(ProcName, var)) Then Exit Function
+    Next
 
     ' Return the array holding the mapped results
     Let Scan = True
@@ -186,6 +187,7 @@ Public Function Through(ALambdaArray As Variant, _
     Dim ReturnArray() As Variant
     Dim c As Long
     Dim var As Variant
+    Dim ProcName As String
     
     ' Set default return value in case of error
     Let Through = Null
@@ -220,11 +222,15 @@ Public Function Through(ALambdaArray As Variant, _
     ' Compute values from applying each function to AnElement
     For c = 1 To Length(ALambdaArray)
         Let var = ALambdaArray(c + LBound(ALambdaArray) - 1)
+
+        ' Get the name of the function
         If StringQ(var) Then
-            Let ReturnArray(c) = Run(var, AnElement)
+            Let ProcName = var
         Else
-            Let ReturnArray(c) = Run(var.FunctionName, AnElement)
+            Let ProcName = var.FunctionName
         End If
+        
+        Let ReturnArray(c) = Run(ProcName, AnElement)
     Next
     
     ' Return results array
@@ -370,21 +376,23 @@ ErrorHandler:
 End Function
 
 ' DESCRIPTION
-' Returns the result of performing a Mathematica-like MapThread.  It returns an array with the same
-' length as any of the array elements of parameter ArrayOfEqualLengthArrays after the sequential
-' application of the function with name ALambda to the arrays resulting from packing the ith
-' element of each of the arrays in ArrayOfEqualLengthArrays.
+' Returns the result of performing a Mathematica-like MapThread.  It returns an
+' array with the same length as any of the array elements of parameter
+' ArrayOfEqualLengthArrays after the sequential application of the function with
+' name ALambda to the arrays resulting from packing the ith element of each of the
+' arrays in ArrayOfEqualLengthArrays.
 '
 ' If the parameters are compatible with expectations, the function returns Null
 '
-' Example: ArrayMapThread("add", array(1,2,3), array(10,20,30)) -> (11, 22, 33)
+' Example: MapThread("add", array(1,2,3), array(10,20,30)) -> (11, 22, 33)
 '
 ' PARAMETERS
 ' 1. ALambda - An instance of class Lambda or string name of a function
 ' 2. ArrayOfEqualLengthArrays - A sequence of equal-length, atomic arrays
 '
 ' RETURNED VALUE
-' An array with the results of applying the given function to the threading of the parameter arrays
+' An array with the results of applying the given function to the threading of the
+' Parameter Arrays
 Public Function MapThread(ALambda As Variant, _
                           ParamArray ArrayOfEqualLengthArrays() As Variant) As Variant
     Dim ProcName As String

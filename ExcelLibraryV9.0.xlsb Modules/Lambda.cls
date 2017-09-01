@@ -7,12 +7,13 @@ Attribute VB_GlobalNameSpace = False
 Attribute VB_Creatable = False
 Attribute VB_PredeclaredId = False
 Attribute VB_Exposed = True
-' This class is used in conjunction with a number of array functions and routines
-' to specify ranges of indices.  It works identically to Mathematica's Span.  It
-' can be used as a parmeter for Arrays.Part() and other arrays slicing formulas.
+' This class is used to define the Lambda data type. Instances of this class are used as
+' arguments to many functional programming facilities. See for instance the FunctionalProgramming
+' module
 
 Option Base 1
 Option Explicit
 
-' Fully-qualified name including workbook name (e.g. "'MyBook.xlsb'!MyFunctionName")
+' Fully-qualified name including workbook name (e.g. "'MyBook.xlsb'!MyModule.MyFunctionName")
+' Does not have to be fully-qualified, but it can be.
 Public FunctionName As String
