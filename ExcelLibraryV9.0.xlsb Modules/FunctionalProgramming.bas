@@ -466,21 +466,20 @@ ErrorHandler:
 End Function
 
 ' DESCRIPTION
-' This function computes the sum of the elements of the given array.  If AnArray is a 2D array,
-' this function returns the sum of the columns.  This is equivalent to
-'
-' Total(AnArray, 1)
+' This function computes the sum of the elements of the given array.  If AnArray
+' is a 2D array, this function returns the sum of the columns.  This is equivalent
+' to Total(AnArray, 1)
 '
 ' To add the rows, use Total(AnArray, 2)
 '
 ' PARAMETERS
 ' 1. AnArray - a 1D or 2D numeric array
-' 2. DimensionalIndex (optional) - Set by default to 1, indicates whether to perform the operation
-'    along dimension 1 or 2
+' 2. DimensionalIndex (optional) - Set by default to 1, indicates whether to perform
+' the operation along dimension 1 or 2
 '
 ' RETURNED VALUE
-' The result of the operation the whole array for 1D arrays, the columns for 2D arrays, or the rows
-' if requested for a 2D array
+' The result of the operation the whole array for 1D arrays, the columns for 2D arrays,
+' or the rows if requested for a 2D array
 Public Function Total(AnArray As Variant, _
                       Optional DimensionalIndex As Integer = 1, _
                       Optional ParameterCheckQ As Boolean = True) As Variant
@@ -535,21 +534,20 @@ Public Function Total(AnArray As Variant, _
 End Function
 
 ' DESCRIPTION
-' This function computes the product of the elements of the given array.  If AnArray is a
-' 2D array, this function returns the product of the columns.  This is equivalent to
-'
-' Times(AnArray, 1)
+' This function computes the product of the elements of the given array. If
+' AnArray is a 2D array, this function returns the product of the columns.
+' This is equivalent to Times(AnArray, 1)
 '
 ' To add the rows, use Total(AnArray, 2)
 '
 ' PARAMETERS
 ' 1. AnArray - a 1D or 2D numeric array
-' 2. DimensionalIndex (optional) - Set by default to 1, indicates whether to perform the operation
-'    along dimension 1 or 2
+' 2. DimensionalIndex (optional) - Set by default to 1, indicates whether to
+'    perform the operation along dimension 1 or 2
 '
 ' RETURNED VALUE
-' The result of the operation the whole array for 1D arrays, the columns for 2D arrays, or the rows
-' if requested for a 2D array
+' The result of the operation the whole array for 1D arrays, the columns for
+' 2D arrays, or the rows if requested for a 2D array
 Public Function Times(AnArray As Variant, _
                       Optional DimensionalIndex As Integer = 1, _
                       Optional ParameterCheckQ As Boolean = True) As Variant
@@ -604,10 +602,11 @@ Public Function Times(AnArray As Variant, _
 End Function
 
 ' DESCRIPTION
-' This function computes the array that results from the successive addition of its elements. It
-' adds repeatedly along columns, returning a 1D array of 1D arrays.  When, applied to a 2D matrix,
-' it adds the rows repeatedly as if we had a sequence of rows, returning a 1D array of 1D
-' arrays. At the moment is does not work along the second dimension (adding along columns)
+' This function computes the array that results from the successive addition of
+' its elements. It adds repeatedly along columns, returning a 1D array of 1D arrays.
+' When, applied to a 2D matrix, it adds the rows repeatedly as if we had a sequence
+' of rows, returning a 1D array of 1D arrays. At the moment is does not work along
+' the second dimension (adding along columns)
 '
 ' PARAMETERS
 ' 1. AnArray - a 1D or 2D numeric array
@@ -661,8 +660,8 @@ Public Function Accumulate(AnArray As Variant, _
 End Function
 
 ' DESCRIPTION
-' Return the result of applying the given function N times iteratively to the given argument.
-' Returns the argument when N = 0.  Returns Null when N<0.
+' Return the result of applying the given function N times iteratively to the
+' given argument. Returns the argument when N = 0.  Returns Null when N<0.
 '
 ' Example: ArrayMapThread("StringJoin", array(1,2,3), array(10,20,30)) returns
 '          ("110", "220", "330")
