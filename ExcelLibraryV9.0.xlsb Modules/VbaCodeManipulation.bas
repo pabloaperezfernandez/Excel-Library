@@ -538,6 +538,8 @@ Public Function GetRoutineNames(AWorkbook As Workbook, _
     
     Set aDict = New Dictionary
     
+    On Error GoTo ErrorHandler
+    
     ' Find the code module for the project.
     Set CodeModule = AWorkbook.VBProject.VBComponents(ModuleName).CodeModule
 
@@ -556,6 +558,11 @@ Public Function GetRoutineNames(AWorkbook As Workbook, _
     Loop
     
     Let GetRoutineNames = aDict.Keys
+    
+    Exit Function
+    
+ErrorHandler:
+    Let GetRoutineNames = Null
 End Function
 
 ' DESCRIPTION
@@ -574,6 +581,8 @@ Public Function GetModuleNames(AWorkbook As Workbook) As Variant
     
     Set aDict = New Dictionary
     
+    On Error GoTo ErrorHandler
+    
     ' Scan through the code module, looking for procedures.
     Let i = 1
     Do While i < AWorkbook.VBProject.VBComponents.Count
@@ -586,50 +595,120 @@ Public Function GetModuleNames(AWorkbook As Workbook) As Variant
     Loop
     
     Let GetModuleNames = aDict.Keys
+
+    Exit Function
+    
+ErrorHandler:
+    Let GetModuleNames = Null
 End Function
 
 ' DESCRIPTION
-' Returns a procedures declaration
+' Returns the declaration of the procedure with the given procedure
 '
 ' PARAMETERS
 ' 1. AWorkbook - A reference of type Workbook
 ' 2. ModuleName - Name of a module in AWorkbook
-' 2. RoutineName - The string name of the sub/function
+' 3. RoutineName - The string name of the sub/function
 '
 ' RETURNED VALUE
 ' Returns the requested procedure declaration
 Public Function GetRoutineDeclaration(AWorkbook As Workbook, _
                                       ModuleName As String, _
                                       RoutineName As String) As Variant
-    Dim s As String
+    Dim ALine As String
     Dim Declaration As String
-    
     Dim DeclarationLine As Long
     Dim TheRoutineName As String
     Dim TheCodeModule As VBIDE.CodeModule
-    Dim ProcKind As VBIDE.vbext_ProcKind
     
     ' Set default return value in case of error
     Let GetRoutineDeclaration = Null
     
-    ' Set default return value
+    ' ErrorCheck: Exit with Null if the requested routine does not exist
     If Not FunctionExistsQ(AWorkbook, ModuleName, RoutineName) Then Exit Function
     
-    ' Set reference to approrpriate code module
+    On Error GoTo ErrorHandler
+    
+    ' Set reference to code module holding the routine
     Set TheCodeModule = AWorkbook.VBProject.VBComponents(ModuleName).CodeModule
     
     ' Create rotuine name
     Let TheRoutineName = MakeRoutineName(AWorkbook, ModuleName, RoutineName)
     Let DeclarationLine = TheCodeModule.ProcBodyLine(RoutineName, vbext_pk_Proc)
     
-    Let s = TheCodeModule.Lines(DeclarationLine, 1)
+    ' Starting from DeclarationLine, read one line at a timme. Concatenate these
+    ' lines until you find a line with no " _" as the last character. Declarations
+    ' are by definition one liners that maay be split across multiple lines by using
+    ' the " -" at the end of each physical code line.
+    Let ALine = TheCodeModule.Lines(DeclarationLine, 1)
     Do While Right(s, 1) = "_"
-        Let s = Left(s, Len(s) - 1) & " "
+        Let ALine = Left(s, Len(s) - 1) & " "
         Let Declaration = Declaration & s
         Let DeclarationLine = DeclarationLine + 1
-        Let s = TheCodeModule.Lines(DeclarationLine, 1)
+        Let ALine = TheCodeModule.Lines(DeclarationLine, 1)
     Loop
     
     Let GetRoutineDeclaration = RemoveDuplicatedSpaces(Declaration & s)
+    
+    Exit Function
+    
+ErrorHandler:
+    Let GetRoutineDeclaration = Null
 End Function
+
+' DESCRIPTION
+' Returns the documentation at the top of a code module
+'
+' PARAMETERS
+' 1. AWorkbook - A reference of type Workbook
+' 2. ModuleName - Name of a module in AWorkbook
+'
+' RETURNED VALUE
+' Returns the requested procedure declaration
+'***HERE
+Public Function GetModuleDocumentation(AWorkbook As Workbook, _
+                                       ModuleName As String, _
+                                       RoutineName As String) As Variant
+    Dim ALine As String
+    Dim Declaration As String
+    Dim DeclarationLine As Long
+    Dim TheRoutineName As String
+    Dim TheCodeModule As VBIDE.CodeModule
+    
+    ' Set default return value in case of error
+    Let GetModuleDocumentation = Null
+    
+    ' ErrorCheck: Exit with Null if the requested routine does not exist
+    If Not FunctionExistsQ(AWorkbook, ModuleName, RoutineName) Then Exit Function
+    
+    On Error GoTo ErrorHandler
+    
+    ' Set reference to code module holding the routine
+    Set TheCodeModule = AWorkbook.VBProject.VBComponents(ModuleName).CodeModule
+    
+    ' Create rotuine name
+    Let TheRoutineName = MakeRoutineName(AWorkbook, ModuleName, RoutineName)
+    Let DeclarationLine = TheCodeModule.ProcBodyLine(RoutineName, vbext_pk_Proc)
+    
+    ' Starting from DeclarationLine, read one line at a timme. Concatenate these
+    ' lines until you find a line with no " _" as the last character. Declarations
+    ' are by definition one liners that maay be split across multiple lines by using
+    ' the " -" at the end of each physical code line.
+    Let ALine = TheCodeModule.Lines(DeclarationLine, 1)
+    Do While Right(s, 1) = "_"
+        Let ALine = Left(s, Len(s) - 1) & " "
+        Let Declaration = Declaration & s
+        Let DeclarationLine = DeclarationLine + 1
+        Let ALine = TheCodeModule.Lines(DeclarationLine, 1)
+    Loop
+    
+    Let GetModuleDocumentation = RemoveDuplicatedSpaces(Declaration & s)
+    
+    Exit Function
+    
+ErrorHandler:
+    Let GetModuleDocumentation = Null
+End Function
+
+
 
