@@ -148,9 +148,7 @@ End Function
 '
 ' PARAMETERS
 ' 1. AnArray - A dimensioned 1D or 2D array
-' 2. ALambda (optional) - A string representing the predicates name
-' 3. WorkbookReference (optional) - A workbook reference to the workbook holding
-'    the predicate
+' 2. ALambda - An instance of class Lambda or string name of a function
 '
 ' RETURNED VALUE
 ' True or False depending on whether arg is dimensioned and all its elements fail
@@ -215,83 +213,90 @@ ErrorHandler:
 End Function
 
 ' DESCRIPTION
-' Boolean function returning True if all of the elements in AnArray fail the predicate whose
-' name is PredicateName.  If PredicateName is not provided, then the function returns True when
-' all of the elements of AnArray are False.  The predicate returns Null if PredicateName is not a
-' string. Returns True for an empty array.
+' Boolean function returning True if all of the elements in AnArray fail the
+' predicate ALambda.  If ALambda is not provided, then the function returns
+' True when all of the elements of AnArray are False.  The predicate returns
+' Null if ALambda is not a string. Returns True for an empty array.
 '
 ' PARAMETERS
 ' 1. AnArray - A dimensioned 1D array
-' 2. PredicateName (optional) - A string representing the predicates name
+' 2. ALambda - An instance of class Lambda or string name of a function
 '
 ' RETURNED VALUE
-' True or False depending on whether arg is dimensioned and all its elements fails the
-' predicate with name PredicateName or are True when PredicateName is missing.
+' True or False depending on whether arg is dimensioned and all its elements
+' fails the predicate with name ALambda or are True when ALambda is missing.
 Public Function AllFalseQ(AnArray As Variant, _
-                         Optional PredicateName As Variant) As Variant
+                          Optional ALambda As Variant) As Variant
+    Dim ProcName As String
     Dim var As Variant
     
     ' Set the default return value of True
     Let AllFalseQ = True
     
-    ' Exit with False if AnArrat is not dimensioned
+    ' ErrorCheck: Exit with False if AnArrat is not dimensioned
     If Not DimensionedQ(AnArray) Then
         Let AllFalseQ = False
         Exit Function
     End If
     
+    ' ErrorCheck: Exit with False if ALambdaOrFunctionName is neither a Lambda or a string
+    If Not IsMissing(ALambda) Then
+        If Not (LambdaQ(ALambda) Or StringQ(ALambda)) Then Exit Function
+    End If
+    
     ' Exit the True of AnArray is an empty array
     If EmptyArrayQ(AnArray) Then Exit Function
     
-    ' Exit with Null if PredicateName not missing and PredicateName not a string
-    ' Exit with Null if PredicateName missing and AnArray is not an array of Booleans
-    ' Cannot use BooleanArrayQ here because it would cause a circular definitional reference
-    If IsMissing(PredicateName) Then
-        For Each var In AnArray
-            If Not BooleanQ(var) Then
-                Let AllFalseQ = False
-                Exit Function
-            End If
-        Next
-    Else
-        If Not StringQ(PredicateName) Then
-            Let AllFalseQ = Null
-            Exit Function
+    ' Get the name of the predicate if provided
+    If Not IsMissing(ALambda) Then
+        If StringQ(ALambda) Then
+            Let ProcName = ALambda
+        Else
+            Let ProcName = ALambda.FunctionName
         End If
     End If
     
-    If Not IsMissing(PredicateName) Then
+    On Error GoTo ErrorHandler
+    
+    ' Cannot use BooleanArrayQ here because it would cause a circular definitional reference
+    If IsMissing(ALambda) Then
         For Each var In AnArray
-            If Run(PredicateName, var) Then
+            If TrueQ(var) Then
                 Let AllFalseQ = False
                 Exit Function
             End If
         Next
     Else
         For Each var In AnArray
-            If var Then
+            If TrueQ(Run(ProcName, var)) Then
                 Let AllFalseQ = False
                 Exit Function
             End If
         Next
     End If
+
+    Exit Function
+
+ErrorHandler:
+    Let AllFalseQ = False
 End Function
 
 ' DESCRIPTION
 ' Boolean function returning True if at least one of the elements in AnArray fails the
-' predicate whose name is PredicateName. If PredicateName is missing, the function returns
-' True if any of the elements in AnArray is True.  The predicate returns Null if PredicateName
-' is not a string.  The function returns False for an empty array.
+' predicate whose name is ALambda. If ALambda is missing, the function returns
+' True if any of the elements in AnArray is True.  The predicate returns Null if
+' ALambda is not a string.  The function returns False for an empty array.
 '
 ' PARAMETERS
 ' 1. arg - any value or object reference
-' 2. PredicateName (optional) - A string representing the predicates name
+' 2. ALambda - An instance of class Lambda or string name of a function
 '
 ' RETURNED VALUE
-' True or False depending on whether arg is dimensioned and at least one of its elements fails
-' the predicate with name PredicateName
+' True or False depending on whether arg is dimensioned and at least one of its elements
+' fails the predicate with name ALambda
 Public Function AnyFalseQ(AnArray As Variant, _
-                         Optional PredicateName As Variant) As Variant
+                         Optional ALambda As Variant) As Variant
+    Dim ProcName As String
     Dim var As Variant
     
     ' Set the default return value of True
@@ -303,105 +308,115 @@ Public Function AnyFalseQ(AnArray As Variant, _
         Exit Function
     End If
     
+    ' ErrorCheck: Exit with False if ALambdaOrFunctionName is neither a Lambda or a string
+    If Not IsMissing(ALambda) Then
+        If Not (LambdaQ(ALambda) Or StringQ(ALambda)) Then Exit Function
+    End If
+    
     ' Exit the False if AnArray is an empty array
     If EmptyArrayQ(AnArray) Then
         Exit Function
     End If
     
-    ' Exit with Null if PredicateName not missing and PredicateName not a string
-    ' Exit with Null if PredicateName missing and AnArray is not an array of Booleans
-    ' Cannot use BooleanArrayQ here because it would cause a circular definitional reference
-    If IsMissing(PredicateName) Then
-        For Each var In AnArray
-            If Not BooleanQ(var) Then
-                Let AnyFalseQ = False
-                Exit Function
-            End If
-        Next
-    Else
-        If Not StringQ(PredicateName) Then
-            Let AnyFalseQ = Null
-            Exit Function
+    ' Get the name of the predicate if provided
+    If Not IsMissing(ALambda) Then
+        If StringQ(ALambda) Then
+            Let ProcName = ALambda
+        Else
+            Let ProcName = ALambda.FunctionName
         End If
     End If
     
-    If Not IsMissing(PredicateName) Then
+    On Error GoTo ErrorHandler
+    
+    ' Cannot use BooleanArrayQ here because it would cause a circular definitional reference
+    If IsMissing(ALambda) Then
         For Each var In AnArray
-            If Not Run(PredicateName, var) Then
+            If FalseQ(var) Then
                 Let AnyFalseQ = True
                 Exit Function
             End If
         Next
     Else
         For Each var In AnArray
-        If Not var Then
-            Let AnyFalseQ = True
-            Exit Function
-        End If
+            If FalseQ(Run(ProcName, var)) Then
+                Let AnyFalseQ = True
+                Exit Function
+            End If
         Next
     End If
+    
+    Exit Function
+
+ErrorHandler:
+    Let AnyFalseQ = False
 End Function
 
 ' DESCRIPTION
-' Boolean function returning True if none of the elements in AnArray fail the predicate whose
-' name is PredicateName.  If PredicateName is missing, the function returns True when all
-' of AnArray are False.
+' Boolean function returning True if none of the elements in AnArray fail the
+' predicate ALambda.  If ALambda is missing, the function returns True when
+' all of AnArray are False.
 '
 ' PARAMETERS
 ' 1. AnArray - A dimensioned 1D or 2D array
-' 2. PredicateName (optional) - A string representing the predicates name
-' 3. WorkbookReference (optional) - A workbook reference to the workbook holding the predicate
+' 2. ALambda (optional) - A string representing the predicates name
 '
 ' RETURNED VALUE
-' True or False depending on whether arg is dimensioned and all its elements fail the
-' predicate with name PredicateName or are False when PredicateName is missing.
-Public Function NoneFalseQ(AnArray As Variant, _
-                          Optional PredicateName As Variant) As Boolean
+' True or False depending on whether arg is dimensioned and all its elements fail
+' the predicate ALambda or are False when ALambda is missing.
+Public Function NoneFalseQ(AnArray As Variant, Optional ALambda As Variant) As Boolean
+    Dim ProcName As String
     Dim var As Variant
     
     Let NoneFalseQ = True
                           
-    ' Exit with Null if AnArray is not dimensioned
-    If Not DimensionedQ(AnArray) Then
-        Let NoneFalseQ = False
-        Exit Function
+    ' Exit with True if AnArray is not dimensioned
+    If Not DimensionedQ(AnArray) Then Exit Function
+    
+    ' ErrorCheck: Exit with False if ALambda is not missing and isneither
+    ' a Lambda or a string
+    If Not IsMissing(ALambda) Then
+        If Not (LambdaQ(ALambda) Or StringQ(ALambda)) Then Exit Function
     End If
     
-    ' Exit with True if AnArray is empty. This case is necessary because NoneTrueQ is not logically
-    ' the negation of AllTrueQ.  For NoneTrueQ to be true, all elements of AnArray must be False.
-    ' However, all elements of AnArray are False if AnArray is an empty set.
+    ' Exit with True if AnArray is empty. This case is necessary because NoneTrueQ is
+    ' not logically the negation of AllTrueQ.  For NoneTrueQ to be true, all elements
+    ' of AnArray must be False. However, all elements of AnArray are False if AnArray
+    ' is an empty set.
     If EmptyArrayQ(AnArray) Then Exit Function
 
-    ' Exit with Null if PredicateName not missing and PredicateName not a string
-    ' Exit with Null if PredicateName missing and AnArray is not an array of Booleans
+    ' Get the name of the predicate if provided
+    If Not IsMissing(ALambda) Then
+        If StringQ(ALambda) Then
+            Let ProcName = ALambda
+        Else
+            Let ProcName = ALambda.FunctionName
+        End If
+    End If
+    
+    On Error GoTo ErrorHandler
+    
     ' Cannot use BooleanArrayQ here because it would cause a circular definitional reference
-    If IsMissing(PredicateName) Then
+    If IsMissing(ALambda) Then
         For Each var In AnArray
-            If Not BooleanQ(var) Then
+            If FalseQ(var) Then
                 Let NoneFalseQ = False
                 Exit Function
             End If
         Next
     Else
-        If Not StringQ(PredicateName) Then
-            Let NoneFalseQ = False
-            Exit Function
-        End If
+        For Each var In AnArray
+            If FalseQ(Run(ProcName, var)) Then
+                Let NoneFalseQ = False
+                Exit Function
+            End If
+        Next
     End If
-    
-    For Each var In AnArray
-        If Not IsMissing(PredicateName) Then
-            If Application.Run(PredicateName, var) Then
-                Let NoneFalseQ = False
-                Exit Function
-            End If
-        Else
-            If var Then
-                Let NoneFalseQ = False
-                Exit Function
-            End If
-        End If
-    Next
+
+    Exit Function
+
+ErrorHandler:
+    Let NoneFalseQ = False
 End Function
 
 ' DESCRIPTION
