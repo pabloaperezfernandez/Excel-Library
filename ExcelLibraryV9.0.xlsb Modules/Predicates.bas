@@ -34,7 +34,9 @@ Public Function GetAtomicTypePredicateNames() As Variant
                                             "NegativeWholeNumberQ", _
                                             "NonPositiveWholeNumberQ", _
                                             "NonNegativeWholeNumberQ", _
-                                            "NonZeroWholeNumberQ")
+                                            "NonZeroWholeNumberQ", _
+                                            "TrueQ", _
+                                            "FalseQ")
 End Function
 
 ' DESCRIPTION
@@ -51,7 +53,9 @@ Public Function GetPrintableTypePredicateNames() As Variant
                                                "NumberQ", _
                                                "StringQ", _
                                                "EmptyQ", _
-                                               "NullQ")
+                                               "NullQ", _
+                                               "TrueQ", _
+                                               "FalseQ")
 End Function
 
 ' DESCRIPTION
@@ -107,6 +111,38 @@ Attribute AtomicQ.VB_Description = "This is the documentation"
     Next
     
     Let AtomicQ = False
+End Function
+
+' DESCRIPTION
+' Boolean function returning True if its argument is True. Returns False otherwise.
+'
+' PARAMETERS
+' 1. arg - any value or object reference
+'
+' RETURNED VALUE
+' True or False depending on whether or not its argument is equal to True
+Public Function TrueQ(vValue As Variant) As Boolean
+    If IsObject(vValue) Then
+        Let TrueQ = False
+    Else
+        Let TrueQ = (vValue = True)
+    End If
+End Function
+
+' DESCRIPTION
+' Boolean function returning True if its argument is False. Returns False otherwise.
+'
+' PARAMETERS
+' 1. arg - any value or object reference
+'
+' RETURNED VALUE
+' True or False depending on whether or not its argument is equal to False
+Public Function FalseQ(vValue As Variant) As Boolean
+    If IsObject(vValue) Then
+        Let FalseQ = False
+    Else
+        Let FalseQ = (vValue = False)
+    End If
 End Function
 
 ' DESCRIPTION

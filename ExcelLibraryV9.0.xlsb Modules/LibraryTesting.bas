@@ -345,6 +345,9 @@ Public Sub TestFunctionalPredicatesAllTrueQ()
     Debug.Assert Not AllTrueQ(Array([{1,2;3,4}], Array(Array(1, 2), Array(3, 5))), "MatrixQ")
     Debug.Assert AllTrueQ(Array(True, True, True))
     Debug.Assert Not AllTrueQ(Array(True, True, False))
+    Debug.Assert AllTrueQ([{2,3,4}], Lambda("x", "", "x>1"))
+    Debug.Assert Not AllTrueQ([{0,2,3,4}], Lambda("x", "", "x>1"))
+
 End Sub
 
 Public Sub TestFunctionalPredicatesAnyTrueQ()
@@ -365,6 +368,11 @@ Public Sub TestFunctionalPredicatesAnyTrueQ()
     Debug.Assert Not AnyTrueQ(UndimensionedArray, "StringQ")
     Debug.Assert AnyTrueQ(Array(True, True, True))
     Debug.Assert AnyTrueQ(Array(True, True, False))
+    Debug.Assert AnyTrueQ(Array(2, 4, 6), Lambda("x", "", "x>1"))
+    Debug.Assert AnyTrueQ(Array(2, 4, 6), Lambda("x", "", "x=4"))
+    Debug.Assert Not AnyTrueQ(Array(2, 4, 6), Lambda("x", "", "x<0"))
+    Debug.Assert Not AnyTrueQ(Array(2, 4, 6), Lambda("x", "", "StringQ(x)"))
+    Debug.Assert AnyTrueQ(Array("a", 4, 6), Lambda("x", "", "StringQ(x)"))
 End Sub
 
 Public Sub TestFunctionalPredicatesNoneTrueQ()
@@ -383,6 +391,10 @@ Public Sub TestFunctionalPredicatesNoneTrueQ()
     Debug.Assert Not NoneTrueQ(Array(True, True, True))
     Debug.Assert Not NoneTrueQ(Array(True, True, False))
     Debug.Assert NoneTrueQ(Array(False, False, False))
+    Debug.Assert Not NoneTrueQ(Array("a", "b", Empty), Lambda("x", "", "StringQ(x)"))
+    Debug.Assert Not NoneTrueQ(Array("a", "b"), Lambda("x", "", "StringQ(x)"))
+    Debug.Assert NoneTrueQ(Array(1, 2, Empty), Lambda("x", "", "StringQ(x)"))
+    Debug.Assert NoneTrueQ(Array(1, 2), Lambda("x", "", "StringQ(x)"))
 End Sub
 
 Public Sub TestFunctionalPredicatesAllFalseQ()
