@@ -677,7 +677,7 @@ Public Function CreateIndexSequenceFromSpan(AnArray As Variant, _
     If Not DimensionedQ(AnArray) Or EmptyArrayQ(AnArray) Then Exit Function
     
     ' Exit with Null if TheDimension>NumberOfDimensions(AnArray)
-    If TheDimension < 1 Or TheDimension > NumberOfDimensions(AnArray) Then Exit Function '***HERE
+    If TheDimension < 1 Or TheDimension > NumberOfDimensions(AnArray) Then Exit Function
 
     ' Turn the spans start and end points into positive indices relative
     ' to the array's intrinsic convention
@@ -3021,7 +3021,6 @@ Public Function ReplaceRangeValues(ValuesToReplace As Variant, _
     Let ReplaceRangeValues = True
 End Function
 
-'***HERE
 ' DESCRIPTION
 ' This function sorts the given 2D matrix by the columns whose positions are given by
 ' ArrayOfColPos. The sorting orientation in each column are in ArrayOfColsSortOrder
@@ -3392,7 +3391,6 @@ Public Function SwapRangeRows(TheRange As Range, FirstRowIndex As Long, SecondRo
 End Function
 
 ' This function swaps two columns from a range, returning the resulting matrix if the operation is successful or False if it is not
-'***HERE
 Public Function SwapMatrixColumns(TheMatrix As Variant, FirstColumnIndex As Long, SecondColumIndex As Long) As Variant
     Dim col1 As Variant
     
@@ -3411,7 +3409,6 @@ Public Function SwapMatrixColumns(TheMatrix As Variant, FirstColumnIndex As Long
 End Function
 
 ' This function swaps two columns from a range, returning  the resulting matrix if the operation is successful or False if it is not
-'***HERE
 Public Function SwapMatrixRows(TheMatrix As Variant, FirstRowIndex As Long, SecondRowIndex As Long) As Variant
     Dim Row1 As Variant
 
@@ -5046,6 +5043,16 @@ Public Function ReorderColumns(A2DArray As Variant, ColumnNamesInDesiredOrder As
     Let ReorderColumns = TransposeMatrix(Pack2DArray(ReturnArray))
 End Function
 
+' DESCRIPTION
+' The purpose of this function is to add additional quotes around the
+' strings in a variant array so they may be printed correctly. Without
+' it, the strings in the array print unquoted.
+'
+' PARAMETERS
+' 1. AnArray - An array
+'
+' RETURNED VALUE
+' The properly quoted array for printing purposes
 Public Function QuoteStringsInArray(ByVal AnArray As Variant) As Variant
     Dim i As Long
     

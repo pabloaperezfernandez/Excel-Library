@@ -357,7 +357,7 @@ Public Sub TestPredicatesMemberQ()
 End Sub
 
 Public Sub TestPredicatesFreeQ()
-    Debug.Assert Not FreeQ([{1,2,3}], 2)
+    Debug.Assert Not FreeQ(Array(1, 2, 3), 2)
     Debug.Assert Not FreeQ(Array(Empty, ThisWorkbook), ThisWorkbook)
     Debug.Assert FreeQ(Array(Empty, Null), ThisWorkbook)
     Debug.Assert Not FreeQ(Array(Empty, Null), Null)
@@ -2141,7 +2141,7 @@ End Sub
 Private Function ArrayMapHelper1(arg As Variant) As Integer
     Let ArrayMapHelper1 = arg * 10
 End Function
-'***HERE
+
 Public Sub TestFunctionalProgrammingMapThread()
     PrintArray MapThread(Lambda([{"x1","x2", "x3", "x4"}], "", "x1+x2+x3+X4"), _
                          [{1,2,3}], _

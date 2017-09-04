@@ -820,7 +820,7 @@ Public Function EqualQ(x As Variant, y As Variant) As Boolean
         Let EqualQ = True
     ElseIf NumberQ(x) And NumberQ(y) Then
         Let EqualQ = (x = y) And (TypeName(x) = TypeName(y))
-    ElseIf IsNull(x) And IsNull(x) Then
+    ElseIf IsNull(x) And IsNull(y) Then
         Let EqualQ = True
     ElseIf IsObject(x) And IsObject(y) Then
         Let EqualQ = (x Is y)
