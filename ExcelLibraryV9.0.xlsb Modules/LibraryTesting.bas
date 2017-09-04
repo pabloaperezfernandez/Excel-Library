@@ -1,4 +1,9 @@
 Attribute VB_Name = "LibraryTesting"
+' PURPOSE OF THIS MODULE
+'
+' The purpose of this module is to record unit testing for this library. it
+' also serves as examples of how to use the library.
+
 Option Explicit
 Option Base 1
 
@@ -320,6 +325,46 @@ Public Sub TestNumberOfDimensionsForUnDimensionedArray()
     Debug.Print "The number of dimensions of AnArray2(1 to 2) is " & NumberOfDimensions(AnArray2)
 End Sub
 
+Public Sub TestPredicatesEqualQ()
+    Debug.Assert EqualQ(Error(1), Error(2))
+    Debug.Assert Not EqualQ(Error(1), Error(3))
+    Debug.Assert Not EqualQ(1, 1.2)
+    Debug.Assert EqualQ(Array(1, 2), Array(1, 2))
+    Debug.Assert Not EqualQ([{1, 2}], Array(1, 2))
+    Debug.Assert EqualQ([{1,2;3,4}], [{1,2;3,4}])
+    Debug.Assert Not EqualQ([{1,2;3,4}], [{1,2;3,5}])
+    Debug.Assert EqualQ(Array(ThisWorkbook, TempComputation), _
+                        Array(ThisWorkbook, TempComputation))
+    Debug.Assert Not EqualQ(Array(ThisWorkbook, ThisWorkbook), _
+                            Array(ThisWorkbook, TempComputation))
+    Debug.Assert EqualQ(Array(Array(Array(1, 2), 3)), _
+                        Array(Array(Array(1, 2), 3)))
+    Debug.Assert Not EqualQ(Array(Array(Array(1, 2), 3)), _
+                            Array(Array(Array(1, 2), 3#)))
+    Debug.Assert EqualQ(Null, Null)
+    Debug.Assert EqualQ(Null, Empty)
+End Sub
+
+Public Sub TestPredicatesMemberQ()
+    Debug.Assert MemberQ(Array(1, 2, 3), 2)
+    Debug.Assert MemberQ(Array(Empty, ThisWorkbook), ThisWorkbook)
+    Debug.Assert Not MemberQ(Array(Empty, Null), ThisWorkbook)
+    Debug.Assert MemberQ(Array(Empty, Null), Null)
+    Debug.Assert MemberQ(Array(CVErr(1), 1), CVErr(1))
+    Debug.Assert Not MemberQ(Array(CVErr(2), CVErr(3)), CVErr(1))
+    Debug.Assert MemberQ(Array(Array(1, 2), 3), Array(1, 2))
+    Debug.Assert Not MemberQ(Array(Array(1, 2), 3), 1)
+End Sub
+
+Public Sub TestPredicatesFreeQ()
+    Debug.Assert Not FreeQ([{1,2,3}], 2)
+    Debug.Assert Not FreeQ(Array(Empty, ThisWorkbook), ThisWorkbook)
+    Debug.Assert FreeQ(Array(Empty, Null), ThisWorkbook)
+    Debug.Assert Not FreeQ(Array(Empty, Null), Null)
+    Debug.Assert Not FreeQ(Array(CVErr(1), 1), CVErr(1))
+    Debug.Assert FreeQ(Array(CVErr(2), CVErr(3)), CVErr(1))
+End Sub
+
 '********************************************************************************************
 ' FunctionalPredicates
 '********************************************************************************************
@@ -425,7 +470,7 @@ Public Sub TestFunctionalPredicatesAllFalseQ()
     Debug.Assert AllFalseQ([{1,2,3,4}], Lambda("x", "", "x<0"))
 End Sub
 
-Public Sub TestPredicatesAnyFalseQ()
+Public Sub TestFunctionalPredicatesAnyFalseQ()
     Dim UndimensionedArray() As Variant
     Dim var As Variant
     
@@ -446,7 +491,7 @@ Public Sub TestPredicatesAnyFalseQ()
     Debug.Assert AnyFalseQ(Array(True, True), Lambda("x", "", "FalseQ(x)"))
 End Sub
 
-Public Sub TestPredicatesNoneFalseQ()
+Public Sub TestFunctionalPredicatesNoneFalseQ()
     Dim UndimensionedArray() As Variant
 
     Debug.Assert NoneFalseQ(Array(1, 2, 4), "WholeNumberQ")
@@ -466,6 +511,9 @@ Public Sub TestPredicatesNoneFalseQ()
     Debug.Assert Not NoneFalseQ([{1,2,3}], Lambda("x", "", "x<3"))
 End Sub
 
+'********************************************************************************************
+' Predicates
+'********************************************************************************************
 Public Sub TestPredicatesDimensionedQ()
     Dim a() As Variant
     Dim b(1 To 2) As Variant
@@ -2026,7 +2074,14 @@ End Sub
 ' FunctionalProgramming
 '********************************************************************************************
 Public Sub TestFunctionalProgrammingEval()
+    Dim f As Lambda
+
     Debug.Assert Eval(Lambda("x", "", "2*x"), 20) = 40
+
+    Set f = Lambda("x", "", "TypeName(First(x))")
+    Debug.Assert TypeName(Array(1, 2)(1)) = "Integer"
+    Debug.Assert Eval(f, [{1}]) = "Double"
+    Debug.Assert Eval(f, ToIntegers([{1}])) = "Integer"
 End Sub
 
 Public Sub TestFunctionalProgrammingApply()
@@ -2036,7 +2091,7 @@ End Sub
 
 Public Sub TestFunctionalProgrammingScan()
     Call Scan("ScanHelper1", NumericalSequence(1, 10))
-End Sub '***HERE
+End Sub
 
 Private Sub ScanHelper1(arg As Variant)
     Debug.Print "The time for interation " & arg & " is " & Now()

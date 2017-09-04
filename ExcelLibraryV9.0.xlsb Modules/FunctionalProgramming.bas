@@ -3,8 +3,8 @@ Option Explicit
 Option Base 1
 
 ' DESCRIPTION
-' Returns the value from applying the given instance of Lambda to the given parameter.
-' This function cannot be used to evaluate built-in functions.
+' Returns the value from applying the given instance of Lambda to the given
+' parameter. This function cannot be used to evaluate built-in functions.
 '
 ' Example: Eval(Lambda("x", "", "2*x), 5) ->
 '          Lambda("x"<-5, "", "2*x") -> 2*5 = 10
@@ -21,7 +21,8 @@ Attribute Eval.VB_ProcData.VB_Invoke_Func = " \n14"
     ' Set default return value in case of error
     Let Eval = Null
 
-    ' ErrorCheck: Exit with Null if ALambdaOrFunctionName is neither a Lambda or a string
+    ' ErrorCheck: Exit with Null if ALambdaOrFunctionName is neither a Lambda
+    ' or a string
     If Not (LambdaQ(ALambda) Or StringQ(ALambda)) Then
         Exit Function
     End If
@@ -42,9 +43,9 @@ End Function
 
 ' DESCRIPTION
 ' Returns the result from the application of a lambda to the values of the
-' given array as the values of its parameters. This function does not checking to
-' ensure that the length of the parameter array and the number of required funcitonal
-' parameters are equal.
+' given array as the values of its parameters. This function does not checking
+' to ensure that the length of the parameter array and the number of required
+' funcitonal parameters are equal.
 '
 ' Example: Apply(Lambda([{"x","y"}], "", "2*x*y"), [{1,2}]) ->
 '          Lambda([{"x"<-1,"y"<-2}], "", "2*x*y") -> 2*1*2 = 4
@@ -77,7 +78,8 @@ Public Function Apply(ByVal ALambda As Variant, ByVal ParameterArray As Variant)
     ' ErrorCheck: Exit with Null if ParameterArray is empty
     If EmptyArrayQ(ParameterArray) Then Exit Function
     
-    ' ErrorCheck: Exit with Null if ALambdaOrFunctionName is neither a Lambda or a string
+    ' ErrorCheck: Exit with Null if ALambdaOrFunctionName is neither a Lambda
+    ' or a string
     If Not (LambdaQ(ALambda) Or StringQ(ALambda)) Then
         Exit Function
     End If
@@ -101,23 +103,23 @@ ErrorHandler:
 End Function
 
 ' DESCRIPTION
-' This function is the equivalent of Mathematica's Scan.  It applies the function or
-' sub with name ALambda to each element of A1DArray without storing the returned
-' result.  Usage examples include:
+' This function is the equivalent of Mathematica's Scan.  It applies the
+' function or sub with name ALambda to each element of A1DArray without
+' storing the returned result.  Usage examples include:
 '
 ' Call Scan("MySub", Array(1, 2, 3, 4))
 '
-' Applies a function to an array of atomic elements, returning an array with the results.
-' This function returns Null if the array of elements is not atomic. This function returns an
-' empty array if the array of elements is empty.  This function interprets a 2D array as a
-' 1D arrays of its rows.
+' Applies a function to an array of atomic elements, returning an array with
+' the results. This function returns Null if the array of elements is not
+' atomic. This function returns an empty array if the array of elements is
+' empty.  This function interprets a 2D array as a 1D arrays of its rows.
 '
 ' PARAMETERS
 ' 1. ALambda - An instance of class Lambda or string name of a function
 ' 2. A1DArray - An array of atomic elements
 '
 ' RETURNED VALUE
-' An array with the results of applying a sequence of the functions to an element.
+' Array with the results of applying a sequence of the functions to an element.
 Public Function Scan(ByVal ALambda As Variant, A1DArray As Variant) As Variant
     Dim var As Variant
     Dim ProcName As String
@@ -125,7 +127,8 @@ Public Function Scan(ByVal ALambda As Variant, A1DArray As Variant) As Variant
     ' Set default return value
     Let Scan = Null
 
-    ' ErrorCheck: Exit with Null if ALambdaOrFunctionName is neither a Lambda or a string
+    ' ErrorCheck: Exit with Null if ALambdaOrFunctionName is neither a Lambda
+    ' or a string
     If Not (LambdaQ(ALambda) Or StringQ(ALambda)) Then
         Exit Function
     End If
@@ -166,21 +169,21 @@ ErrorHandler:
 End Function
 
 ' DESCRIPTION
-' Applies a sequence of functions to an element, returning an array holding the result
-' of applying each of the functions to the element. This function returns Null if the
-' function array fails Predicates.StringArrayQ.  This function returns an empty array
-' if the array of function names is empty. This function returns Null if AnElement is
-' not atomic.
+' Applies a sequence of functions to an element, returning an array
+' holding the result of applying each of the functions to the element.
+' This function returns Null if the function array fails
+' Predicates.StringArrayQ.  This function returns an empty array if the
+' array of function names is empty. This function returns Null if AnElement
+' is not atomic.
 '
 ' PARAMETERS
 ' 1. ALambdaArray - An array of Lambda instances or function names
 ' 2. AnElement - Any element to which each of the functions can be applied
-' 3. ParameterCheckQ (optional) - If this explicitly set to False, no parameter
-'    consistency checks are
-'    perform.
+' 3. ParameterCheckQ (optional) - If this explicitly set to False, no
+'    parameter consistency checks are performed.
 '
 ' RETURNED VALUE
-' An array with the results of applying a sequence of the functions to an element.
+' Array with results of applying a function array to an element
 Public Function Through(ALambdaArray As Variant, _
                         AnElement As Variant, _
                         Optional ParameterCheckQ As Boolean = True) As Variant
@@ -207,8 +210,8 @@ Public Function Through(ALambdaArray As Variant, _
             Exit Function
         End If
         
-        ' Exit with Null if ALambdaArray has any elements that are not Lambda instances
-        ' or strings
+        ' Exit with Null if ALambdaArray has any elements that are not Lambda
+        ' instances or strings
         For Each var In ALambdaArray
             If Not (StringQ(var) Or LambdaQ(var)) Then Exit Function
         Next
@@ -243,17 +246,18 @@ ErrorHandler:
 End Function
 
 ' DESCRIPTION
-' Applies a function to an array of atomic elements, returning an array with the results.
-' This function returns Null if the array of elements is not atomic. This function returns an
-' empty array if the array of elements is empty.  This function interprets a 2D array as a
-' 1D arrays of its rows.
+' Applies a function to an array of atomic elements, returning an
+' array with the results. This function returns Null if the array
+' of elements is not atomic. This function returns an empty array
+' if the array of elements is empty.  This function interprets a
+' 2D array as a 1D arrays of its rows.
 '
 ' PARAMETERS
 ' 1. ALambda - An instance of class Lambda or string name of a function
 ' 2. A1DArray - An array of atomic elements
 '
 ' RETURNED VALUE
-' An array with the results of applying a sequence of the functions to an element.
+' Array with the results from applying a function to an array
 Public Function Map(ALambda As Variant, A1DArray As Variant) As Variant
     Dim ReturnArray As Variant
     Dim ProcName As String
@@ -272,7 +276,8 @@ Public Function Map(ALambda As Variant, A1DArray As Variant) As Variant
         Exit Function
     End If
     
-    ' ErrorCheck: Exit with Null if ALambdaOrFunctionName is neither a Lambda or a string
+    ' ErrorCheck: Exit with Null if ALambdaOrFunctionName is neither
+    ' a Lambda or a string
     If Not (LambdaQ(ALambda) Or StringQ(ALambda)) Then
         Exit Function
     End If
@@ -304,17 +309,20 @@ ErrorHandler:
 End Function
 
 ' DESCRIPTION
-' Returns an array with the elements in the given array returning True when applying the
-' given function. This function returns Null if the array of elements is not atomic. It
-' returns an empty array if the array of elements is empty. This function works only on
-' 1D and 2D arrays at the moment.
+' Returns an array with the elements in the given array returning True
+' when applying the given function. This function returns Null if the
+' array of elements is not atomic. It returns an empty array if the
+' array of elements is empty. This function works only on 1D and 2D
+' arrays at the moment.
 '
 ' PARAMETERS
 ' 1. AnArray - An array of atomic elements
-' 2. ALambda - The name of the function to apply to each of the elements in the array
+' 2. ALambda - The name of the function to apply to each of the elements
+'    in the array
 '
 ' RETURNED VALUE
-' An array with the results of applying a sequence of the functions to an element.
+' An array with the results of applying a sequence of the functions to an
+' element.
 Public Function Filter(AnArray As Variant, ALambda As Variant) As Variant
     Dim ProcName As String
     Dim ReturnArray As Variant
@@ -686,11 +694,12 @@ Public Function Nest(aFunctionName As String, _
 End Function
 
 ' DESCRIPTION
-' Return an array recording the result of applying the given function iterativesly N
-' times to the given argument. Returns the argument when N = 0.  Returns Null when N<0.
+' Return an array recording the result of applying the given function
+' iterativesly N times to the given argument. Returns the argument
+' when N = 0.  Returns Null when N<0.
 '
-' Example: ArrayMapThread("StringJoin", array(1,2,3), array(10,20,30)) returns
-'          ("110", "220", "330")
+' Example: ArrayMapThread("StringJoin", array(1,2,3), array(10,20,30))
+'          returns ("110", "220", "330")
 '
 ' PARAMETERS
 ' 1. AFunctionName - Name of the function to apply
@@ -698,7 +707,8 @@ End Function
 ' 3. N - Number of times to apply functional nesting
 '
 ' RETURNED VALUE
-' Returns array with the iterative application of a function to an argument
+' Returns array with the iterative application of a function to an
+' argument
 Public Function NestList(aFunctionName As String, _
                          arg As Variant, _
                          N As Long) As Variant
@@ -725,8 +735,9 @@ Public Function NestList(aFunctionName As String, _
 End Function
 
 ' DESCRIPTION
-' Return the result of applying the given function N times iteratively to the given
-' argument. Returns the argument when N = 0.  Returns Null when N<0.
+' Return the result of applying the given function N times iteratively
+' to the given argument. Returns the argument when N = 0.  Returns Null
+' when N<0.
 '
 ' The function with name aFunctionName must accept two arguments.
 '
@@ -751,21 +762,24 @@ Public Function Fold(aFunctionName As String, _
     ' Exit with Null if AnArrayForSecordArgs is not dimensioned
     If Not DimensionedQ(AnArrayForSecondArgs) Then Exit Function
     
-    ' Return an empty list if AnArrayForSecondArgs is not array or undimensioned
+    ' Return an empty list if AnArrayForSecondArgs is not array or
+    ' undimensioned
     If Not DimensionedQ(AnArrayForSecondArgs) Then Exit Function
     
     Let CurrentValue = FirstArg
     For i = 1 To Length(AnArrayForSecondArgs)
-        Let CurrentValue = Run(aFunctionName, CurrentValue, Part(AnArrayForSecondArgs, i))
+        Let CurrentValue = Run(aFunctionName, CurrentValue, _
+                               Part(AnArrayForSecondArgs, i))
     Next
     
     Let Fold = CurrentValue
 End Function
 
 ' DESCRIPTION
-' Return an array with each step in the computation resulting from applying the given
-' function N times iteratively to the given argument. Returns a 1D array with FirstArg
-' as its sole element when N = 0. Returns Null when N<0.
+' Return an array with each step in the computation resulting from
+' applying the given function N times iteratively to the given argument.
+' Returns a 1D array with FirstArg as its sole element when N = 0.
+' Returns Null when N<0.
 '
 ' The function with name aFunctionName must accept two arguments.
 '
@@ -799,7 +813,8 @@ Public Function FoldList(aFunctionName As String, _
     ReDim ResultArray(1 To 1 + Length(AnArrayForSecondArgs))
     Let ResultArray(1) = FirstArg
     For i = 1 To Length(AnArrayForSecondArgs)
-        Let ResultArray(i + 1) = Run(aFunctionName, ResultArray(i), Part(AnArrayForSecondArgs, i))
+        Let ResultArray(i + 1) = Run(aFunctionName, ResultArray(i), _
+                                     Part(AnArrayForSecondArgs, i))
     Next
     
     Let FoldList = ResultArray

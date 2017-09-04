@@ -1,126 +1,106 @@
 Attribute VB_Name = "LambdaFunctionsTemp"
-Public Function Lambda38(x) As Variant
-
-
-Let Lambda38 = x > 1
-End Function
-Public Function Lambda37(x) As Variant
-
-
-Let Lambda37 = x > 1
-End Function
-Public Function Lambda36(x) As Variant
-
-
-Let Lambda36 = StringQ(x)
-End Function
-Public Function Lambda35(x) As Variant
-
-
-Let Lambda35 = StringQ(x)
-End Function
-Public Function Lambda34(x) As Variant
-
-
-Let Lambda34 = x < 0
-End Function
-Public Function Lambda33(x) As Variant
-
-
-Let Lambda33 = x = 4
-End Function
-Public Function Lambda32(x) As Variant
-
-
-Let Lambda32 = x > 1
-End Function
-Public Function Lambda31(x) As Variant
-
-
-Let Lambda31 = StringQ(x)
-End Function
-Public Function Lambda30(x) As Variant
-
-
-Let Lambda30 = StringQ(x)
-End Function
-Public Function Lambda29(x) As Variant
-
-
-Let Lambda29 = StringQ(x)
-End Function
-Public Function Lambda28(x) As Variant
-
-
-Let Lambda28 = StringQ(x)
-End Function
-Public Function Lambda27(x) As Variant
-
-
-Let Lambda27 = x < 0
-End Function
-Public Function Lambda26(x) As Variant
-
-
-Let Lambda26 = x < 3
-End Function
-Public Function Lambda25(x) As Variant
-
-
-Let Lambda25 = x < 5
-End Function
-Public Function Lambda24(x) As Variant
-
-
-Let Lambda24 = FalseQ(x)
-End Function
-Public Function Lambda23(x) As Variant
-
-
-Let Lambda23 = x < 3
-End Function
-Public Function Lambda22(x) As Variant
-
-
-Let Lambda22 = x < 5
-End Function
-Public Function Lambda21(x) As Variant
-
-
-Let Lambda21 = x < 3
-End Function
 Public Function Lambda20(x) As Variant
 
 
-Let Lambda20 = x < 3
+Let Lambda20 = TypeName(First(x))
 End Function
 Public Function Lambda19(x) As Variant
 
 
-Let Lambda19 = x < 5
+Let Lambda19 = 2 * x
 End Function
 Public Function Lambda18(x) As Variant
 
 
-Let Lambda18 = x < 5
+Let Lambda18 = TypeName(First(x))
 End Function
 Public Function Lambda17(x) As Variant
 
 
-Let Lambda17 = FalseQ(x)
+Let Lambda17 = 2 * x
 End Function
 Public Function Lambda16(x) As Variant
 
 
-Let Lambda16 = FalseQ(x)
+Let Lambda16 = TypeName(First(x))
 End Function
 Public Function Lambda15(x) As Variant
 
 
-Let Lambda15 = FalseQ(x)
+Let Lambda15 = 2 * x
 End Function
 Public Function Lambda14(x) As Variant
 
 
-Let Lambda14 = FalseQ(x)
+Let Lambda14 = TypeName(First(x))
+End Function
+Public Function Lambda13(x) As Variant
+
+
+Let Lambda13 = 2 * x
+End Function
+Public Function Lambda12(x) As Variant
+
+
+Let Lambda12 = TypeName(First(x))
+End Function
+Public Function Lambda11(x) As Variant
+
+
+Let Lambda11 = 2 * x
+End Function
+Public Function Lambda10(x) As Variant
+
+
+Let Lambda10 = TypeName(First(x))
+End Function
+Public Function Lambda9(x) As Variant
+
+
+Let Lambda9 = 2 * x
+End Function
+Public Function Lambda8(x) As Variant
+
+
+Let Lambda8 = TypeName(First(x))
+End Function
+Public Function Lambda7(x) As Variant
+
+
+Let Lambda7 = 2 * x
+End Function
+Public Function Lambda6(x) As Variant
+
+
+Let Lambda6 = TypeName(First(x))
+End Function
+Public Function Lambda5(x) As Variant
+
+
+Let Lambda5 = 2 * x
+End Function
+Public Function Lambda4(x) As Variant
+
+
+Let Lambda4 = TypeName(First(x))
+End Function
+Public Function Lambda3(x) As Variant
+
+
+Let Lambda3 = 2 * x
+End Function
+Public Function Lambda2(x) As Variant
+
+
+Let Lambda2 = TypeName(First(x))
+End Function
+Public Function Lambda1(x) As Variant
+
+
+Let Lambda1 = TypeName(First(x))
+End Function
+Public Function Lambda0(x) As Variant
+Debug.Print TypeName(First(x))
+
+Let Lambda0 = Empty
 End Function

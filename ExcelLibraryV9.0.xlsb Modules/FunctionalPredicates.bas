@@ -1,4 +1,16 @@
 Attribute VB_Name = "FunctionalPredicates"
+' PURPOSE OF THIS MODULE
+'
+' The purpose of this module is to a collection of fundamental functional
+' predicates. Examples include AllTrueQ(AnArray, Optional ALambda) that
+' accept an optional Lambda. All of the functions in this module return
+' Booleans.
+'
+' By convention, predicates in this module return True when acting on an
+' empty array or any object or value that is not an array. From a logical
+' point of view, AllTrueQ returns True for empty arrays and anything that
+' is not an array because the statement "for all x in S," is vacously true.
+
 Option Explicit
 Option Base 1
 
@@ -13,8 +25,8 @@ Option Base 1
 ' 2. ALambda - An instance of class Lambda or string name of a function
 '
 ' RETURNED VALUE
-' True or False depending on whether arg is dimensioned and all its elements satisfy
-' ALambda or are True when ALambda is missing.
+' True or False depending on whether arg is dimensioned and all its elements
+' satisfy ALambda or are True when ALambda is missing.
 Public Function AllTrueQ(AnArray As Variant, _
                          Optional ALambda As Variant) As Variant
     Dim var As Variant
@@ -29,7 +41,8 @@ Public Function AllTrueQ(AnArray As Variant, _
         Exit Function
     End If
     
-    ' ErrorCheck: Exit with Null if ALambdaOrFunctionName is neither a Lambda or a string
+    ' ErrorCheck: Exit with Null if ALambdaOrFunctionName is neither a
+    ' Lambda or a string
     If Not IsMissing(ALambda) Then
         If Not (LambdaQ(ALambda) Or StringQ(ALambda)) Then Exit Function
     End If
@@ -417,65 +430,4 @@ Public Function NoneFalseQ(AnArray As Variant, Optional ALambda As Variant) As B
 
 ErrorHandler:
     Let NoneFalseQ = False
-End Function
-
-' DESCRIPTION
-' Boolean function returning True if TheValue is in the given 1D array.
-'
-' PARAMETERS
-' 1. TheArray - A 1D array
-' 2. TheValue - Any Excel value or reference
-'
-' RETURNED VALUE
-' Returns True or False depending on whether or not the given value is in the given array
-Public Function MemberQ(TheArray As Variant, TheValue As Variant) As Boolean
-    Dim i As Long
-    Dim var As Variant
-    
-    ' Assume result is False and change TheValue is in any one column of TheArray
-    Let MemberQ = False
-    
-    ' Exit if TheArray is not a 1D array
-    If NumberOfDimensions(TheArray) <> 1 Then Exit Function
-    
-    For Each var In TheArray
-        If IsError(var) Then
-            Let MemberQ = False
-            Exit Function
-        End If
-        
-        If IsEmpty(var) And IsEmpty(TheValue) Then
-            Let MemberQ = True
-            Exit Function
-        End If
-        
-        If IsNull(var) And IsNull(TheValue) Then
-            Let MemberQ = True
-            Exit Function
-        End If
-        
-        If IsObject(var) Then
-            Let MemberQ = TheValue Is var
-            Exit Function
-        End If
-
-        If VarType(var) = VarType(TheValue) And var = TheValue Then
-            Let MemberQ = True
-            Exit Function
-        End If
-    Next
-End Function
-
-' DESCRIPTION
-' Boolean function returning True if TheValue is not in the given 1D array. TheValue must
-' satisfy NumberOrStringQ. Every element in TheArray must also satisfy NumberOfStringQ
-'
-' PARAMETERS
-' 1. TheArray - A 1D array satisfying PrintableArrayQ
-' 2. TheValue - Any value satisfying PrintableQ
-'
-' RETURNED VALUE
-' Returns True or False depending on whether or not the given value is in the given array
-Public Function FreeQ(TheArray As Variant, TheValue As Variant) As Boolean
-    Let FreeQ = IsArray(TheArray) And Not MemberQ(TheArray, TheValue)
 End Function

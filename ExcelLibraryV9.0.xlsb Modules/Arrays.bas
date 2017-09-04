@@ -44,14 +44,16 @@ Public Function EmptyArray() As Variant
 End Function
 
 ' DESCRIPTION
-' This function returns the number of dimensions of any VBA expression.  Non-array expressions all have
-' 0 dimensions.  Undimemsioned arrays have 0 dimensions.
+' This function returns the number of dimensions of any VBA expression.
+' Non-array expressions all have 0 dimensions.  Undimemsioned arrays
+' have 0 dimensions.
 '
 ' PARAMETERS
 ' 1. arg - any value or object reference
 '
 ' RETURNED VALUE
-' Number of dimensions for its argument.  Dimensioned arrays are the only expressions returning non-zero.
+' Number of dimensions for its argument.  Dimensioned arrays are the
+' only expressions returning non-zero.
 Public Function NumberOfDimensions(MyArray As Variant) As Long
     Dim temp As Long
     Dim i As Long
@@ -82,6 +84,21 @@ Public Function NumberOfDimensions(MyArray As Variant) As Long
 FinalDimension:
     Let NumberOfDimensions = i - 1
     Exit Function
+End Function
+
+' DESCRIPTION
+' Alias for Arrays.NumberOfDimensions().  This function returns the
+' number of dimensions of any VBA expression. Non-array expressions
+' all have 0 dimensions.  Undimemsioned arrays have 0 dimensions.
+'
+' PARAMETERS
+' 1. arg - any value or object reference
+'
+' RETURNED VALUE
+' Number of dimensions for its argument.  Dimensioned arrays are the
+' only expressions returning non-zero.
+Public Function Dimensions(arg As Variant) As Long
+    Let Dimensions = NumberOfDimensions(arg)
 End Function
 
 ' DESCRIPTION
