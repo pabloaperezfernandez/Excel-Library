@@ -21,7 +21,7 @@ Public Sub SendNoAttachmentEmail(Recipient As String, Subject As String, Body As
     Set olMail = olApp.CreateItem(0) 'olMailItem
 
     With olMail
-        .to = Recipient
+        .To = Recipient
         .Subject = Subject
         .Body = Body
         .Send
@@ -60,7 +60,7 @@ Public Sub SendAsAttachment(Recipient As String, FirstName As String, Subject As
     CurrFile = ActiveWorkbook.Path & "\" & FirstName & "-Distribution-" & ".xlsm"
 
     With olMail
-        .to = Recipient
+        .To = Recipient
         .Subject = Subject
         .Body = Body
         .Attachments.Add CurrFile

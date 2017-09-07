@@ -59,6 +59,13 @@ Public Function GetRoutineDocumentation(AWorkbook As Workbook, _
                 Split(CodeModule.Lines(FirstLine, DeclarationLine - FirstLine), vbCrLf))
         Let GetRoutineDocumentation = Join(GetRoutineDocumentation, vbCrLf)
     End If
+
+    ' Through away everything before the first non-newline character
+    While (Len(GetRoutineDocumentation) > 0 And _
+          (Left(GetRoutineDocumentation, 1) = vbCrLf Or Left(GetRoutineDocumentation, 1) = vbCr Or _
+           Left(GetRoutineDocumentation, 1) = vbLf))
+        Let GetRoutineDocumentation = Right(GetRoutineDocumentation, Len(GetRoutineDocumentation) - 1)
+    Wend
     
     Exit Function
     

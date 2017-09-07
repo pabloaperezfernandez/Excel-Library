@@ -3197,21 +3197,21 @@ End Sub
 '*******************************************************************************************
 
 Public Sub TestDictionariesTranslateUsingDictionary()
-    Dim aDict As Dictionary
+    Dim ADict As Dictionary
     Dim i As Integer
     Dim AnArray As Variant
     
-    Set aDict = New Dictionary
+    Set ADict = New Dictionary
     
     For i = 1 To 10
-        Call aDict.Add(Key:=i, Item:=i ^ 2)
+        Call ADict.Add(Key:=i, Item:=i ^ 2)
     Next
     
     Let AnArray = NumericalSequence(1, 10)
     Debug.Print "The array is:"
     PrintArray AnArray
     
-    Let AnArray = TranslateUsingDictionary(AnArray, aDict)
+    Let AnArray = TranslateUsingDictionary(AnArray, ADict)
     
     PrintArray AnArray
 End Sub
@@ -3332,7 +3332,6 @@ Public Sub TestAddListObject()
     Call MsgBox("Inspect TempComputation. Only 1st three rows and column 1 should be the listobject")
 End Sub
 
-
 '********************************************************************************************
 ' StringFormulas
 '********************************************************************************************
@@ -3340,3 +3339,25 @@ Public Sub TestVbaCodeManipulationMakeRoutineName()
     Debug.Assert "'ExcelLibraryV9.0.xlsb'!MyMod.MyFunc" = _
                  MakeRoutineName(ThisWorkbook, "MyMod", "MyFunc")
 End Sub
+
+'********************************************************************************************
+' Documentation
+'********************************************************************************************
+Public Sub TestDocumentationGetReferences()
+    Dim RefsDict As Dictionary
+    Dim RefDict As Dictionary
+    Dim i As Integer
+    
+    Set RefsDict = GetReferences(ThisWorkbook)
+    
+    Debug.Print "We got " & RefsDict.Count & " non-builtin references."
+    For i = 0 To RefsDict.Count - 1
+        Set RefDict = RefsDict.Items(i)
+        
+        Debug.Print
+        Debug.Print "Name: " & RefDict.Keys(0)
+        Debug.Print "Description: " & RefDict.Item(Key:="Description")
+        Debug.Print "Description: " & RefDict.Item(Key:="FullPath")
+    Next
+End Sub
+

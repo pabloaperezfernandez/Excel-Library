@@ -3,8 +3,8 @@ Option Base 1
 Option Explicit
 
 ' DESCRIPTION
-' This function returns an instance of class Span. It makes sense only when used in the context
-' of a given array and relative to one of the array's dimensions.
+' This function returns an instance of class Span. It makes sense only when used in the
+' context of a given array and relative to one of the array's dimensions.
 '
 ' For details on how to call this function, see Arrays.NumericalSequence.
 '

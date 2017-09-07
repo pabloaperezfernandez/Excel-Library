@@ -2969,7 +2969,7 @@ Public Function ReplaceRangeValues(ValuesToReplace As Variant, _
                                    ReplacementValue As Variant, _
                                    aRange As Range, _
                                    Optional ReplaceErrorsQ As Boolean = True) As Variant
-    Dim aDict As Dictionary
+    Dim ADict As Dictionary
     Dim r As Long
     Dim c As Integer
     Dim DumpArray As Variant
@@ -2989,10 +2989,10 @@ Public Function ReplaceRangeValues(ValuesToReplace As Variant, _
     
     If aRange Is Nothing Then Exit Function
     
-    Set aDict = New Dictionary
+    Set ADict = New Dictionary
     For r = 1 To Length(ValuesToReplace)
-        If Not aDict.Exists(Key:=Part(ValuesToReplace, r)) Then
-            Call aDict.Add(Key:=Part(ValuesToReplace, r), Item:=Empty)
+        If Not ADict.Exists(Key:=Part(ValuesToReplace, r)) Then
+            Call ADict.Add(Key:=Part(ValuesToReplace, r), Item:=Empty)
         End If
     Next
     
@@ -3008,7 +3008,7 @@ Public Function ReplaceRangeValues(ValuesToReplace As Variant, _
                 End If
             End If
             
-            If aDict.Exists(Key:=aRange(r, c).Value2) Then
+            If ADict.Exists(Key:=aRange(r, c).Value2) Then
                 Let DumpArray(r, 1) = ReplacementValue
             Else
                 Let DumpArray(r, 1) = aRange(r, c).Value2

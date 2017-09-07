@@ -1,26 +1,46 @@
 Attribute VB_Name = "LambdaFunctionsTemp"
-Public Function Lambda2(ArrayToSplice) As Variant
-Dim x1 As Variant
-Dim x2 As Variant
-Let x1 = Part(ArrayToSplice, 1)
-Let x2 = Part(ArrayToSplice, 2)
+Public Function Lambda7(ByVal s As String) As Variant
+If Len(s) > 2 Then
+    Let s = Right(s, Len(s) - 2)
+Else
+    Let s = vbNullString
+End If
 
-Let Lambda2 = Run("Add", x1, x2)
+Let Lambda7 = s
 End Function
-Public Function Lambda1(ArrayToSplice) As Variant
-Dim x1 As Variant
-Dim x2 As Variant
-Dim x3 As Variant
-Dim x4 As Variant
-Let x1 = Part(ArrayToSplice, 1)
-Let x2 = Part(ArrayToSplice, 2)
-Let x3 = Part(ArrayToSplice, 3)
-Let x4 = Part(ArrayToSplice, 4)
+Public Function Lambda6(ByVal s As String) As Variant
+If Len(s) > 2 Then
+    Let s = Right(s, Len(s) - 2)
+Else
+    Let s = vbNullString
+End If
 
-Let Lambda1 = Run("'ExcelLibraryV9.0.xlsb'!LambdaFunctionsTemp.Lambda0", x1, x2, x3, x4)
+Let Lambda6 = s
 End Function
-Public Function Lambda0(x1, x2, x3, x4) As Variant
+Public Function Lambda5(ByVal s As String) As Variant
+If Len(s) > 2 Then
+    Let s = Right(s, Len(s) - 2)
+Else
+    Let s = vbNullString
+End If
 
+Let Lambda5 = s
+End Function
+Public Function Lambda4(ByVal s As String) As Variant
+If Len(s) > 2 Then
+    Let s = Right(s, Len(s) - 2)
+Else
+    Let s = vbNullString
+End If
 
-Let Lambda0 = x1 + x2 + x3 + x4
+Let Lambda4 = s
+End Function
+Public Function Lambda3(ByVal s As String) As Variant
+If Len(s) > 2 Then
+    Let s = Right(s, Len(s) - 2)
+Else
+    Let s = vbNullString
+End If
+
+Let Lambda3 = s
 End Function

@@ -13,7 +13,7 @@ Public Function CreateDictionary(TheKeys As Variant, _
                                  TheItems As Variant, _
                                  Optional AppendQ As Boolean = False, _
                                  Optional AnExistingDict As Variant) As Variant
-    Dim aDict As Dictionary
+    Dim ADict As Dictionary
     Dim KeysIndex As Long
     Dim ItemsIndex As Long
     Dim r As Long
@@ -44,7 +44,7 @@ Public Function CreateDictionary(TheKeys As Variant, _
     If AppendQ And IsMissing(AnExistingDict) Then Exit Function
     
     ' If the code gets here, the arguments are consistent with expectations
-    Set aDict = New Dictionary
+    Set ADict = New Dictionary
     
     ' We chose to append data to an existing dictionary then copy data from the existing dictionary
     ' to the dictionary we are going to return
@@ -52,7 +52,7 @@ Public Function CreateDictionary(TheKeys As Variant, _
         If Not (AnExistingDict Is Nothing) Then
             If AnExistingDict.Count > 0 Then
                 For r = LBound(AnExistingDict.Keys) To UBound(AnExistingDict.Keys)
-                    Call aDict.Add(Key:=AnExistingDict.Keys(r), _
+                    Call ADict.Add(Key:=AnExistingDict.Keys(r), _
                                    Item:=AnExistingDict.Item(r))
                 Next
             End If
@@ -61,14 +61,14 @@ Public Function CreateDictionary(TheKeys As Variant, _
 
     Let ItemsIndex = LBound(TheItems)
     For KeysIndex = LBound(TheKeys) To UBound(TheKeys)
-        If Not aDict.Exists(Key:=TheKeys(KeysIndex)) Then
-            Call aDict.Add(Key:=TheKeys(KeysIndex), Item:=TheItems(ItemsIndex))
+        If Not ADict.Exists(Key:=TheKeys(KeysIndex)) Then
+            Call ADict.Add(Key:=TheKeys(KeysIndex), Item:=TheItems(ItemsIndex))
         End If
         
         Let ItemsIndex = ItemsIndex + 1
     Next KeysIndex
     
-    Set CreateDictionary = aDict
+    Set CreateDictionary = ADict
 End Function
 
 
@@ -86,13 +86,13 @@ End Function
 ' AnAtomicArrayOrTable after applying aDict to each of its elements.  If an element in AnAtomicArrayOrTable
 ' is not found in the dictionary, that element is not translated.
 Public Function TranslateUsingDictionary(AnAtomicArrayOrTable As Variant, _
-                                         aDict As Dictionary, _
+                                         ADict As Dictionary, _
                                          Optional ParameterCheckQ As Boolean = False) As Variant
     Dim ReturnArray() As Variant
     Dim r As Long
     Dim c As Long
 
-    If aDict.Count = 0 Then
+    If ADict.Count = 0 Then
         Let TranslateUsingDictionary = AnAtomicArrayOrTable
         Exit Function
     End If
@@ -123,8 +123,8 @@ Public Function TranslateUsingDictionary(AnAtomicArrayOrTable As Variant, _
         ReDim ReturnArray(LBound(AnAtomicArrayOrTable, 1) To UBound(AnAtomicArrayOrTable, 1))
         
         For r = LBound(AnAtomicArrayOrTable, 1) To UBound(AnAtomicArrayOrTable, 1)
-            If aDict.Exists(Key:=AnAtomicArrayOrTable(r)) Then
-                Let ReturnArray(r) = aDict.Item(Key:=AnAtomicArrayOrTable(r))
+            If ADict.Exists(Key:=AnAtomicArrayOrTable(r)) Then
+                Let ReturnArray(r) = ADict.Item(Key:=AnAtomicArrayOrTable(r))
             Else
                 Let ReturnArray(r) = AnAtomicArrayOrTable(r)
             End If
@@ -135,8 +135,8 @@ Public Function TranslateUsingDictionary(AnAtomicArrayOrTable As Variant, _
                           
         For r = LBound(AnAtomicArrayOrTable, 1) To UBound(AnAtomicArrayOrTable, 1)
             For c = LBound(AnAtomicArrayOrTable, 2) To UBound(AnAtomicArrayOrTable, 2)
-                If aDict.Exists(Key:=AnAtomicArrayOrTable(r, c)) Then
-                    Let ReturnArray(r, c) = aDict.Item(Key:=AnAtomicArrayOrTable(r, c))
+                If ADict.Exists(Key:=AnAtomicArrayOrTable(r, c)) Then
+                    Let ReturnArray(r, c) = ADict.Item(Key:=AnAtomicArrayOrTable(r, c))
                 Else
                     Let ReturnArray(r, c) = AnAtomicArrayOrTable(r, c)
                 End If
