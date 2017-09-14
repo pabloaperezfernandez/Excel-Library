@@ -409,9 +409,39 @@ End Function
 ' 1. arg - any Excel value or reference
 '
 ' RETURNED VALUE
-' Returns True or False depending on whether or not its argument is an array of class Soab instances
+' Returns True or False depending on whether or not its argument is an array of class
+' Span instances
 Public Function SpanArrayQ(arg As Variant) As Boolean
     Let SpanArrayQ = AllTrueQ(arg, "SpanQ")
+End Function
+
+' DESCRIPTION
+' Boolean function returning True if its argument is an array of class Lambda instances
+'
+' PARAMETERS
+' 1. arg - any Excel value or reference
+'
+' RETURNED VALUE
+' Returns True or False depending on whether or not its argument is an array of class
+' Lambda instances
+Public Function LambdaArrayQ(arg As Variant) As Boolean
+    Dim ALambda As Lambda
+    Dim var As Variant
+    
+    Let LambdaArrayQ = False
+    
+    If Not DimensionedQ(arg) Then Exit Function
+    If EmptyArrayQ(arg) Then
+        Let LambdaArrayQ = True
+        Exit Function
+    End If
+
+    Set ALambda = Lambda("", "", """""")
+    For Each var In arg
+        If Not (TypeName(var) = TypeName(ALambda)) Then Exit Function
+    Next
+    
+    Let LambdaArrayQ = True
 End Function
 
 ' DESCRIPTION

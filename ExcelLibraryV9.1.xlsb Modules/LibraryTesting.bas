@@ -1,4 +1,9 @@
 Attribute VB_Name = "LibraryTesting"
+' PURPOSE OF THIS MODULE
+'
+' The purpose of this module is to record unit testing for this library. it
+' also serves as examples of how to use the library.
+
 Option Explicit
 Option Base 1
 
@@ -137,14 +142,14 @@ Public Sub TestPredicatesPrintableQ()
     Dim aBoolean As Boolean
     Dim aString As String
     Dim aWorksheet As Worksheet
-    Dim AWorkBook As Workbook
+    Dim AWorkbook As Workbook
     Dim aListObject As ListObject
     Dim aDictionary As Dictionary
     Dim ANumericArray(1 To 2) As Integer
     Dim var2 As Variant
     
     Set aWorksheet = ActiveSheet
-    Set AWorkBook = ThisWorkbook
+    Set AWorkbook = ThisWorkbook
     Set aListObject = AddListObject(TempComputation.Range("A1"))
     Set aDictionary = New Dictionary
     
@@ -162,7 +167,7 @@ Public Sub TestPredicatesPrintableQ()
                            Array("aString", aString), _
                            Array("CVErr(1)", CVErr(1)), _
                            Array("aWorksheet", aWorksheet), _
-                           Array("aWorkbook", AWorkBook), _
+                           Array("aWorkbook", AWorkbook), _
                            Array("aListObject", aListObject), _
                            Array("ANumericArray", ANumericArray), _
                            Array("aDictionary", aDictionary), _
@@ -181,7 +186,7 @@ Public Sub TestPredicatesAtomicPredicates()
     Dim aBoolean As Boolean
     Dim aString As String
     Dim aWorksheet As Worksheet
-    Dim AWorkBook As Workbook
+    Dim AWorkbook As Workbook
     Dim aListObject As ListObject
     Dim aDictionary As Dictionary
     Dim aVariant As Variant
@@ -190,7 +195,7 @@ Public Sub TestPredicatesAtomicPredicates()
     Dim var2 As Variant
     
     Set aWorksheet = ActiveSheet
-    Set AWorkBook = ThisWorkbook
+    Set AWorkbook = ThisWorkbook
     Set aListObject = AddListObject(TempComputation.Range("A1"))
     Set aDictionary = New Dictionary
     Let aVariant = 1
@@ -209,7 +214,7 @@ Public Sub TestPredicatesAtomicPredicates()
                                Array("aString", aString), _
                                Array("CVErr(1)", CVErr(1)), _
                                Array("aWorksheet", aWorksheet), _
-                               Array("aWorkbook", AWorkBook), _
+                               Array("aWorkbook", AWorkbook), _
                                Array("aListObject", aListObject), _
                                Array("aVariant", aVariant), _
                                Array("AnArray", AnArray), _
@@ -320,6 +325,46 @@ Public Sub TestNumberOfDimensionsForUnDimensionedArray()
     Debug.Print "The number of dimensions of AnArray2(1 to 2) is " & NumberOfDimensions(AnArray2)
 End Sub
 
+Public Sub TestPredicatesEqualQ()
+    Debug.Assert EqualQ(Error(1), Error(2))
+    Debug.Assert Not EqualQ(Error(1), Error(3))
+    Debug.Assert Not EqualQ(1, 1.2)
+    Debug.Assert EqualQ(Array(1, 2), Array(1, 2))
+    Debug.Assert Not EqualQ([{1, 2}], Array(1, 2))
+    Debug.Assert EqualQ([{1,2;3,4}], [{1,2;3,4}])
+    Debug.Assert Not EqualQ([{1,2;3,4}], [{1,2;3,5}])
+    Debug.Assert EqualQ(Array(ThisWorkbook, TempComputation), _
+                        Array(ThisWorkbook, TempComputation))
+    Debug.Assert Not EqualQ(Array(ThisWorkbook, ThisWorkbook), _
+                            Array(ThisWorkbook, TempComputation))
+    Debug.Assert EqualQ(Array(Array(Array(1, 2), 3)), _
+                        Array(Array(Array(1, 2), 3)))
+    Debug.Assert Not EqualQ(Array(Array(Array(1, 2), 3)), _
+                            Array(Array(Array(1, 2), 3#)))
+    Debug.Assert EqualQ(Null, Null)
+    Debug.Assert EqualQ(Null, Empty)
+End Sub
+
+Public Sub TestPredicatesMemberQ()
+    Debug.Assert MemberQ(Array(1, 2, 3), 2)
+    Debug.Assert MemberQ(Array(Empty, ThisWorkbook), ThisWorkbook)
+    Debug.Assert Not MemberQ(Array(Empty, Null), ThisWorkbook)
+    Debug.Assert MemberQ(Array(Empty, Null), Null)
+    Debug.Assert MemberQ(Array(CVErr(1), 1), CVErr(1))
+    Debug.Assert Not MemberQ(Array(CVErr(2), CVErr(3)), CVErr(1))
+    Debug.Assert MemberQ(Array(Array(1, 2), 3), Array(1, 2))
+    Debug.Assert Not MemberQ(Array(Array(1, 2), 3), 1)
+End Sub
+
+Public Sub TestPredicatesFreeQ()
+    Debug.Assert Not FreeQ(Array(1, 2, 3), 2)
+    Debug.Assert Not FreeQ(Array(Empty, ThisWorkbook), ThisWorkbook)
+    Debug.Assert FreeQ(Array(Empty, Null), ThisWorkbook)
+    Debug.Assert Not FreeQ(Array(Empty, Null), Null)
+    Debug.Assert Not FreeQ(Array(CVErr(1), 1), CVErr(1))
+    Debug.Assert FreeQ(Array(CVErr(2), CVErr(3)), CVErr(1))
+End Sub
+
 '********************************************************************************************
 ' FunctionalPredicates
 '********************************************************************************************
@@ -345,6 +390,9 @@ Public Sub TestFunctionalPredicatesAllTrueQ()
     Debug.Assert Not AllTrueQ(Array([{1,2;3,4}], Array(Array(1, 2), Array(3, 5))), "MatrixQ")
     Debug.Assert AllTrueQ(Array(True, True, True))
     Debug.Assert Not AllTrueQ(Array(True, True, False))
+    Debug.Assert AllTrueQ([{2,3,4}], Lambda("x", "", "x>1"))
+    Debug.Assert Not AllTrueQ([{0,2,3,4}], Lambda("x", "", "x>1"))
+
 End Sub
 
 Public Sub TestFunctionalPredicatesAnyTrueQ()
@@ -365,6 +413,11 @@ Public Sub TestFunctionalPredicatesAnyTrueQ()
     Debug.Assert Not AnyTrueQ(UndimensionedArray, "StringQ")
     Debug.Assert AnyTrueQ(Array(True, True, True))
     Debug.Assert AnyTrueQ(Array(True, True, False))
+    Debug.Assert AnyTrueQ(Array(2, 4, 6), Lambda("x", "", "x>1"))
+    Debug.Assert AnyTrueQ(Array(2, 4, 6), Lambda("x", "", "x=4"))
+    Debug.Assert Not AnyTrueQ(Array(2, 4, 6), Lambda("x", "", "x<0"))
+    Debug.Assert Not AnyTrueQ(Array(2, 4, 6), Lambda("x", "", "StringQ(x)"))
+    Debug.Assert AnyTrueQ(Array("a", 4, 6), Lambda("x", "", "StringQ(x)"))
 End Sub
 
 Public Sub TestFunctionalPredicatesNoneTrueQ()
@@ -383,6 +436,10 @@ Public Sub TestFunctionalPredicatesNoneTrueQ()
     Debug.Assert Not NoneTrueQ(Array(True, True, True))
     Debug.Assert Not NoneTrueQ(Array(True, True, False))
     Debug.Assert NoneTrueQ(Array(False, False, False))
+    Debug.Assert Not NoneTrueQ(Array("a", "b", Empty), Lambda("x", "", "StringQ(x)"))
+    Debug.Assert Not NoneTrueQ(Array("a", "b"), Lambda("x", "", "StringQ(x)"))
+    Debug.Assert NoneTrueQ(Array(1, 2, Empty), Lambda("x", "", "StringQ(x)"))
+    Debug.Assert NoneTrueQ(Array(1, 2), Lambda("x", "", "StringQ(x)"))
 End Sub
 
 Public Sub TestFunctionalPredicatesAllFalseQ()
@@ -410,9 +467,10 @@ Public Sub TestFunctionalPredicatesAllFalseQ()
     Debug.Assert Not AllFalseQ(Array(True, True, False))
     Debug.Assert AllFalseQ(Array(False, False, False))
     Debug.Assert Not AllFalseQ(Empty)
+    Debug.Assert AllFalseQ([{1,2,3,4}], Lambda("x", "", "x<0"))
 End Sub
 
-Public Sub TestPredicatesAnyFalseQ()
+Public Sub TestFunctionalPredicatesAnyFalseQ()
     Dim UndimensionedArray() As Variant
     Dim var As Variant
     
@@ -430,26 +488,32 @@ Public Sub TestPredicatesAnyFalseQ()
     Debug.Assert Not AnyFalseQ(UndimensionedArray, "StringQ")
     Debug.Assert Not AnyFalseQ(Array(True, True, True))
     Debug.Assert AnyFalseQ(Array(True, True, False))
+    Debug.Assert AnyFalseQ(Array(True, True), Lambda("x", "", "FalseQ(x)"))
 End Sub
 
-Public Sub TestPredicatesNoneFalseQ()
+Public Sub TestFunctionalPredicatesNoneFalseQ()
     Dim UndimensionedArray() As Variant
 
-    Debug.Assert Not NoneFalseQ(Array(1, 2, 4), "WholeNumberQ")
-    Debug.Assert Not NoneFalseQ(Array(1, 2, 4#), "WholeNumberQ")
-    Debug.Assert Not NoneFalseQ(Array(1, 2, 4), "NumberQ")
-    Debug.Assert Not NoneFalseQ(Array(1, 2, 4#), "NumberQ")
-    Debug.Assert NoneFalseQ(Array(1, 2, 4#), "StringQ")
+    Debug.Assert NoneFalseQ(Array(1, 2, 4), "WholeNumberQ")
+    Debug.Assert NoneFalseQ(Array(1, 2, 4#), "WholeNumberQ")
+    Debug.Assert NoneFalseQ(Array(1, 2, 4), "NumberQ")
+    Debug.Assert NoneFalseQ(Array(1, 2, 4#), "NumberQ")
+    Debug.Assert Not NoneFalseQ(Array(1, 2, 4#), "StringQ")
     Debug.Assert Not NoneFalseQ(Array("a", "b", Empty), "StringQ")
-    Debug.Assert Not NoneFalseQ(Array("a", "b"), "StringQ")
+    Debug.Assert NoneFalseQ(Array("a", "b"), "StringQ")
     Debug.Assert NoneFalseQ(EmptyArray(), "StringQ")
-    Debug.Assert Not NoneFalseQ(UndimensionedArray, "StringQ")
-    Debug.Assert Not NoneFalseQ(UndimensionedArray, "StringQ")
-    Debug.Assert Not NoneFalseQ(Array(True, True, True))
+    Debug.Assert NoneFalseQ(UndimensionedArray, "StringQ")
+    Debug.Assert NoneFalseQ(UndimensionedArray, "StringQ")
+    Debug.Assert NoneFalseQ(Array(True, True, True))
     Debug.Assert Not NoneFalseQ(Array(True, True, False))
-    Debug.Assert NoneFalseQ(Array(False, False, False))
+    Debug.Assert Not NoneFalseQ(Array(False, False, False))
+    Debug.Assert NoneFalseQ([{1,2,3}], Lambda("x", "", "x<5"))
+    Debug.Assert Not NoneFalseQ([{1,2,3}], Lambda("x", "", "x<3"))
 End Sub
 
+'********************************************************************************************
+' Predicates
+'********************************************************************************************
 Public Sub TestPredicatesDimensionedQ()
     Dim a() As Variant
     Dim b(1 To 2) As Variant
@@ -483,13 +547,13 @@ Public Sub TestPredicatesAtomicArrayQ()
     Dim aBoolean As Boolean
     Dim aString As String
     Dim aWorksheet As Worksheet
-    Dim AWorkBook As Workbook
+    Dim AWorkbook As Workbook
     Dim aListObject As ListObject
     Dim aVariant As Variant
     Dim AnArray(1 To 2) As Integer
     
     Set aWorksheet = ActiveSheet
-    Set AWorkBook = ThisWorkbook
+    Set AWorkbook = ThisWorkbook
     Set aListObject = AddListObject(TempComputation.Range("A1"))
     
     Debug.Assert AtomicArrayQ(Array(anInteger, aDouble))
@@ -1502,6 +1566,20 @@ Public Sub TestArrayPredicatesElementwiseArithmeticParameterConsistentQ()
     Debug.Assert ElementwiseArithmeticParameterConsistentQ([{1,2,3, 44;4,5,6,66}], [{1,2,3,4;5,6,7,8}])
 End Sub
 
+Public Sub TestArrayPredicatesLambdaArrayQ()
+    Dim l1 As Lambda, l2 As Lambda
+    
+    Set l1 = Lambda("", "", """""")
+    Set l2 = Lambda("", "", """""")
+    
+    Debug.Print "l1 -> " & LambdaQ(l1)
+    Debug.Print "l2 -> " & LambdaQ(l2)
+    
+    Debug.Print "LambdaArrayQ(Array(l1, l2) should be True. It is: " & LambdaArrayQ(Array(l1, l2))
+    Debug.Print
+    Debug.Print "LambdaArrayQ(EmptyArray()) is " & LambdaArrayQ(EmptyArray())
+End Sub
+
 Public Sub TestPredicatesRowVectorQ()
     Dim var As Variant
     Dim aListObject As ListObject
@@ -1995,6 +2073,22 @@ End Sub
 '********************************************************************************************
 ' FunctionalProgramming
 '********************************************************************************************
+Public Sub TestFunctionalProgrammingEval()
+    Dim f As Lambda
+
+    Debug.Assert Eval(Lambda("x", "", "2*x"), 20) = 40
+
+    Set f = Lambda("x", "", "TypeName(First(x))")
+    Debug.Assert TypeName(Array(1, 2)(1)) = "Integer"
+    Debug.Assert Eval(f, [{1}]) = "Double"
+    Debug.Assert Eval(f, ToIntegers([{1}])) = "Integer"
+End Sub
+
+Public Sub TestFunctionalProgrammingApply()
+    Debug.Assert Apply(Lambda([{"x","y"}], "", "2*x*y"), [{20,30}]) = 1200
+    Debug.Assert Apply("add", [{20,30}]) = 50
+End Sub
+
 Public Sub TestFunctionalProgrammingScan()
     Call Scan("ScanHelper1", NumericalSequence(1, 10))
 End Sub
@@ -2007,7 +2101,7 @@ Public Sub TestFunctionalProgrammingThrough()
     PrintArray Through([{"NumberQ", "StringQ","BooleanQ"}], 123)
 End Sub
 
-Public Sub TestFunctionalProgrammingArrayMap()
+Public Sub TestFunctionalProgrammingMap()
     Dim a As Variant
     Dim VariantArrayOfStringArrays(1 To 2) As Variant
     
@@ -2019,65 +2113,59 @@ Public Sub TestFunctionalProgrammingArrayMap()
     Debug.Print "All entries in a are strings."
     Debug.Print
     
-    Let a = ArrayMap("StringConcatenate", a)
+    Let a = Map("StringConcatenate", a)
     Debug.Print "Let a = TransposeMatrix(Pack2DArray(Array(Array(""1"", ""2"", ""3""), Array(""4"", ""5"", ""6"")))"
-    Debug.Print "Let a = ArrayMap(""StringConcatenate"", a)"
+    Debug.Print "Let a = Map(""StringConcatenate"", a)"
     PrintArray a
     
     Debug.Print
-    Debug.Print "We are showing how to do MapThread using ArrayMap."
+    Debug.Print "We are showing how to do MapThread using Map."
     Debug.Print
     Let VariantArrayOfStringArrays(1) = ToStrings(Array("1", "2", "3"))
     Let VariantArrayOfStringArrays(2) = ToStrings(Array("4", "5", "6"))
     Debug.Print "StringArray is:"
     PrintArray Pack2DArray(VariantArrayOfStringArrays)
-    PrintArray ArrayMap("StringConcatenate", VariantArrayOfStringArrays)
+    Debug.Print "The concatenation of each row is:"
+    PrintArray Map("StringConcatenate", VariantArrayOfStringArrays)
     
     Debug.Print
 
-    PrintArray ArrayMap("ArrayMapHelper1", NumericalSequence(1, 10))
+    Debug.Print "We are not showing to multiply each element in " & PrintArray(NumericalSequence(1, 10), True)
+    PrintArray Map("ArrayMapHelper1", NumericalSequence(1, 10))
+    
+    Debug.Print
+    Debug.Print "We are evaluating: Map(Lambda(""x"", """", ""10*x""), NumericalSequence(1, 10))"
+    PrintArray Map(Lambda("x", "", "10*x"), NumericalSequence(1, 10))
 End Sub
 
 Private Function ArrayMapHelper1(arg As Variant) As Integer
     Let ArrayMapHelper1 = arg * 10
 End Function
 
-Public Sub TestFunctionalProgrammingArrayMapThread()
-    PrintArray ArrayMapThread("StringJoin", _
-                              Array("1", "2", "3"), _
-                              Array("-11", "-22", "-33"))
-    Debug.Print
+Public Sub TestFunctionalProgrammingMapThread()
+    PrintArray MapThread(Lambda([{"x1","x2", "x3", "x4"}], "", "x1+x2+x3+X4"), _
+                         [{1,2,3}], _
+                         [{10,20,30}], _
+                         [{100,200,300}], _
+                         [{1000,2000,3000}])
+
+    Debug.Print "Test 2"
     
-    PrintArray ArrayMapThread("StringJoin", _
-                              Array("1", "2", "3"), _
-                              Array("-11", "-22", "-33"), _
-                              Array("-111", "-222", "-332"))
-    Debug.Print
-    
-    PrintArray ArrayMapThread("Total", _
-                              [{1,2,3}], _
-                              [{10,20,30}])
-                              
-    Debug.Print
-    
-    PrintArray ArrayMapThread("Total", _
-                              [{1,2,3}], _
-                              [{10,20,30}], _
-                              [{100,200,300}], _
-                              [{1000,2000,3000}])
+    PrintArray MapThread("Add", [{1,2,3,4,5}], [{10, 20, 30, 40, 50}])
 End Sub
 
-Public Sub TestFunctionalProgrammingArraySelect()
-    PrintArray ArraySelect(NumericalSequence(1, 100), "ArraySelectHelper1")
-    PrintArray ArraySelect(Array("aPAPa", "bbbPAP", "sdgasdkh"), "ArraySelectHelper2")
+Public Sub TestFunctionalProgrammingFilter()
+    PrintArray Filter(NumericalSequence(1, 100), "FilterHelper1")
+    PrintArray Filter(Array("aPAPa", "bbbPAP", "sdgasdkh"), "FilterHelper2")
+    PrintArray Filter(Array("aPAPa", "bbbPAP", "sdgasdkh"), Lambda("x", "", "InStr(1, x, ""PAP"")"))
 End Sub
 
-Private Function ArraySelectHelper1(arg As Variant) As Boolean
-    Let ArraySelectHelper1 = arg > 1 And arg < 6
+Private Function FilterHelper1(arg As Variant) As Boolean
+    Let FilterHelper1 = arg > 1 And arg < 6
 End Function
 
-Private Function ArraySelectHelper2(arg As Variant) As Boolean
-    Let ArraySelectHelper2 = InStr(1, arg, "PAP")
+Private Function FilterHelper2(arg As Variant) As Boolean
+    Let FilterHelper2 = InStr(1, arg, "PAP")
 End Function
 
 Public Sub TestFunctionalProgrammingTotal()
@@ -3109,21 +3197,21 @@ End Sub
 '*******************************************************************************************
 
 Public Sub TestDictionariesTranslateUsingDictionary()
-    Dim aDict As Dictionary
+    Dim ADict As Dictionary
     Dim i As Integer
     Dim AnArray As Variant
     
-    Set aDict = New Dictionary
+    Set ADict = New Dictionary
     
     For i = 1 To 10
-        Call aDict.Add(Key:=i, Item:=i ^ 2)
+        Call ADict.Add(Key:=i, Item:=i ^ 2)
     Next
     
     Let AnArray = NumericalSequence(1, 10)
     Debug.Print "The array is:"
     PrintArray AnArray
     
-    Let AnArray = TranslateUsingDictionary(AnArray, aDict)
+    Let AnArray = TranslateUsingDictionary(AnArray, ADict)
     
     PrintArray AnArray
 End Sub
@@ -3242,5 +3330,34 @@ Public Sub TestAddListObject()
     
     Set lo = AddListObject(TempComputation.Range("A1").Resize(3, 1), UseCurrentRegionQ:=False)
     Call MsgBox("Inspect TempComputation. Only 1st three rows and column 1 should be the listobject")
+End Sub
+
+'********************************************************************************************
+' StringFormulas
+'********************************************************************************************
+Public Sub TestVbaCodeManipulationMakeRoutineName()
+    Debug.Assert "'ExcelLibraryV9.0.xlsb'!MyMod.MyFunc" = _
+                 MakeRoutineName(ThisWorkbook, "MyMod", "MyFunc")
+End Sub
+
+'********************************************************************************************
+' Documentation
+'********************************************************************************************
+Public Sub TestDocumentationGetReferences()
+    Dim RefsDict As Dictionary
+    Dim RefDict As Dictionary
+    Dim i As Integer
+    
+    Set RefsDict = GetReferences(ThisWorkbook)
+    
+    Debug.Print "We got " & RefsDict.Count & " non-builtin references."
+    For i = 0 To RefsDict.Count - 1
+        Set RefDict = RefsDict.Items(i)
+        
+        Debug.Print
+        Debug.Print "Name: " & RefDict.Keys(0)
+        Debug.Print "Description: " & RefDict.Item(Key:="Description")
+        Debug.Print "Description: " & RefDict.Item(Key:="FullPath")
+    Next
 End Sub
 

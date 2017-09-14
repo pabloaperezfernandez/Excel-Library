@@ -44,14 +44,16 @@ Public Function EmptyArray() As Variant
 End Function
 
 ' DESCRIPTION
-' This function returns the number of dimensions of any VBA expression.  Non-array expressions all have
-' 0 dimensions.  Undimemsioned arrays have 0 dimensions.
+' This function returns the number of dimensions of any VBA expression.
+' Non-array expressions all have 0 dimensions.  Undimemsioned arrays
+' have 0 dimensions.
 '
 ' PARAMETERS
 ' 1. arg - any value or object reference
 '
 ' RETURNED VALUE
-' Number of dimensions for its argument.  Dimensioned arrays are the only expressions returning non-zero.
+' Number of dimensions for its argument.  Dimensioned arrays are the
+' only expressions returning non-zero.
 Public Function NumberOfDimensions(MyArray As Variant) As Long
     Dim temp As Long
     Dim i As Long
@@ -82,6 +84,21 @@ Public Function NumberOfDimensions(MyArray As Variant) As Long
 FinalDimension:
     Let NumberOfDimensions = i - 1
     Exit Function
+End Function
+
+' DESCRIPTION
+' Alias for Arrays.NumberOfDimensions().  This function returns the
+' number of dimensions of any VBA expression. Non-array expressions
+' all have 0 dimensions.  Undimemsioned arrays have 0 dimensions.
+'
+' PARAMETERS
+' 1. arg - any value or object reference
+'
+' RETURNED VALUE
+' Number of dimensions for its argument.  Dimensioned arrays are the
+' only expressions returning non-zero.
+Public Function Dimensions(arg As Variant) As Long
+    Let Dimensions = NumberOfDimensions(arg)
 End Function
 
 ' DESCRIPTION
@@ -660,7 +677,7 @@ Public Function CreateIndexSequenceFromSpan(AnArray As Variant, _
     If Not DimensionedQ(AnArray) Or EmptyArrayQ(AnArray) Then Exit Function
     
     ' Exit with Null if TheDimension>NumberOfDimensions(AnArray)
-    If TheDimension < 1 Or TheDimension > NumberOfDimensions(AnArray) Then Exit Function '***HERE
+    If TheDimension < 1 Or TheDimension > NumberOfDimensions(AnArray) Then Exit Function
 
     ' Turn the spans start and end points into positive indices relative
     ' to the array's intrinsic convention
@@ -2952,7 +2969,7 @@ Public Function ReplaceRangeValues(ValuesToReplace As Variant, _
                                    ReplacementValue As Variant, _
                                    aRange As Range, _
                                    Optional ReplaceErrorsQ As Boolean = True) As Variant
-    Dim aDict As Dictionary
+    Dim ADict As Dictionary
     Dim r As Long
     Dim c As Integer
     Dim DumpArray As Variant
@@ -2972,10 +2989,10 @@ Public Function ReplaceRangeValues(ValuesToReplace As Variant, _
     
     If aRange Is Nothing Then Exit Function
     
-    Set aDict = New Dictionary
+    Set ADict = New Dictionary
     For r = 1 To Length(ValuesToReplace)
-        If Not aDict.Exists(Key:=Part(ValuesToReplace, r)) Then
-            Call aDict.Add(Key:=Part(ValuesToReplace, r), Item:=Empty)
+        If Not ADict.Exists(Key:=Part(ValuesToReplace, r)) Then
+            Call ADict.Add(Key:=Part(ValuesToReplace, r), Item:=Empty)
         End If
     Next
     
@@ -2991,7 +3008,7 @@ Public Function ReplaceRangeValues(ValuesToReplace As Variant, _
                 End If
             End If
             
-            If aDict.Exists(Key:=aRange(r, c).Value2) Then
+            If ADict.Exists(Key:=aRange(r, c).Value2) Then
                 Let DumpArray(r, 1) = ReplacementValue
             Else
                 Let DumpArray(r, 1) = aRange(r, c).Value2
@@ -3004,7 +3021,6 @@ Public Function ReplaceRangeValues(ValuesToReplace As Variant, _
     Let ReplaceRangeValues = True
 End Function
 
-'***HERE
 ' DESCRIPTION
 ' This function sorts the given 2D matrix by the columns whose positions are given by
 ' ArrayOfColPos. The sorting orientation in each column are in ArrayOfColsSortOrder
@@ -3375,7 +3391,6 @@ Public Function SwapRangeRows(TheRange As Range, FirstRowIndex As Long, SecondRo
 End Function
 
 ' This function swaps two columns from a range, returning the resulting matrix if the operation is successful or False if it is not
-'***HERE
 Public Function SwapMatrixColumns(TheMatrix As Variant, FirstColumnIndex As Long, SecondColumIndex As Long) As Variant
     Dim col1 As Variant
     
@@ -3394,7 +3409,6 @@ Public Function SwapMatrixColumns(TheMatrix As Variant, FirstColumnIndex As Long
 End Function
 
 ' This function swaps two columns from a range, returning  the resulting matrix if the operation is successful or False if it is not
-'***HERE
 Public Function SwapMatrixRows(TheMatrix As Variant, FirstRowIndex As Long, SecondRowIndex As Long) As Variant
     Dim Row1 As Variant
 
@@ -5029,6 +5043,16 @@ Public Function ReorderColumns(A2DArray As Variant, ColumnNamesInDesiredOrder As
     Let ReorderColumns = TransposeMatrix(Pack2DArray(ReturnArray))
 End Function
 
+' DESCRIPTION
+' The purpose of this function is to add additional quotes around the
+' strings in a variant array so they may be printed correctly. Without
+' it, the strings in the array print unquoted.
+'
+' PARAMETERS
+' 1. AnArray - An array
+'
+' RETURNED VALUE
+' The properly quoted array for printing purposes
 Public Function QuoteStringsInArray(ByVal AnArray As Variant) As Variant
     Dim i As Long
     

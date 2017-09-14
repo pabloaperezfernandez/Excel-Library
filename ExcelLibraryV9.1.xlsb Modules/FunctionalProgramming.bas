@@ -3,28 +3,135 @@ Option Explicit
 Option Base 1
 
 ' DESCRIPTION
-' This function is the equivalent of Mathematica's Scan.  It applies the function or
-' sub with name AFunctionName to each element of A1DArray without storing the returned
-' result.  Usage examples include:
+' Returns the value from applying the given instance of Lambda to the given
+' parameter. This function cannot be used to evaluate built-in functions.
+'
+' Example: Eval(Lambda("x", "", "2*x), 5) ->
+'          Lambda("x"<-5, "", "2*x") -> 2*5 = 10
+'
+' PARAMETERS
+' 1. ALambda - An instance of class Lambda or string name of a function.
+' 2. TheParam - The parameter on which to evaluate ALambda
+'
+' RETURNED VALUE
+' ALambda(TheParam)
+Public Function Eval(ByVal ALambda As Variant, ByVal TheParam) As Variant
+Attribute Eval.VB_Description = "A function provided by the Mathematica Link add-in. Please see Mathematica Link documentation for more information on this function."
+Attribute Eval.VB_ProcData.VB_Invoke_Func = " \n14"
+    ' Set default return value in case of error
+    Let Eval = Null
+
+    ' ErrorCheck: Exit with Null if ALambdaOrFunctionName is neither a Lambda
+    ' or a string
+    If Not (LambdaQ(ALambda) Or StringQ(ALambda)) Then
+        Exit Function
+    End If
+    
+    On Error GoTo ErrorHandler
+    
+    If StringQ(ALambda) Then
+        Let Eval = Run(ALambda, TheParam)
+    Else
+        Let Eval = Run(ALambda.FunctionName, TheParam)
+    End If
+    
+    Exit Function
+    
+ErrorHandler:
+    Let Eval = Null
+End Function
+
+' DESCRIPTION
+' Returns the result from the application of a lambda to the values of the
+' given array as the values of its parameters. This function does not checking
+' to ensure that the length of the parameter array and the number of required
+' funcitonal parameters are equal.
+'
+' Example: Apply(Lambda([{"x","y"}], "", "2*x*y"), [{1,2}]) ->
+'          Lambda([{"x"<-1,"y"<-2}], "", "2*x*y") -> 2*1*2 = 4
+'
+' PARAMETERS
+' 1. ALambda - An instance of class Lambda or string name of a function.
+' 2. ParameterArray - The array holding the values to evaluate the lambda
+'
+' RETURNED VALUE
+' The result from evaluating the function with parameter values specified by the
+' given array
+Public Function Apply(ByVal ALambda As Variant, ByVal ParameterArray As Variant) As Variant
+    Dim ParentExpr As String
+    Dim ParamNames As Variant
+    Dim FunctionBody() As String
+    Dim VarName As Variant
+    Dim i As Long
+    Dim LambdaName As String
+    Dim LambdaCounter As Integer
+
+    ' Set default return value in case of error
+    Let Apply = Null
+    
+    ' ErrorCheck: Exit with Null if ParameterArray not an array
+    If Not IsArray(ParameterArray) Then Exit Function
+    
+    ' ErrorCheck: Exit with Null if ParameterArray not initialized and non-empty
+    If Not DimensionedQ(ParameterArray) Then Exit Function
+    
+    ' ErrorCheck: Exit with Null if ParameterArray is empty
+    If EmptyArrayQ(ParameterArray) Then Exit Function
+    
+    ' ErrorCheck: Exit with Null if ALambdaOrFunctionName is neither a Lambda
+    ' or a string
+    If Not (LambdaQ(ALambda) Or StringQ(ALambda)) Then
+        Exit Function
+    End If
+    
+    ' Create delegating function
+    If StringQ(ALambda) Then
+        Let LambdaName = ParameterSplicingDelegate(CStr(ALambda), Length(ParameterArray))
+    Else
+        Let LambdaName = ParameterSplicingDelegate(ALambda.FunctionName, Length(ParameterArray))
+    End If
+
+    On Error GoTo ErrorHandler
+
+    ' Apply the delegation funciton to the parameter array
+    Let Apply = Run(LambdaName, ParameterArray)
+    
+    Exit Function
+    
+ErrorHandler:
+    Let Apply = Null
+End Function
+
+' DESCRIPTION
+' This function is the equivalent of Mathematica's Scan.  It applies the
+' function or sub with name ALambda to each element of A1DArray without
+' storing the returned result.  Usage examples include:
 '
 ' Call Scan("MySub", Array(1, 2, 3, 4))
 '
-' Applies a function to an array of atomic elements, returning an array with the results.
-' This function returns Null if the array of elements is not atomic. This function returns an
-' empty array if the array of elements is empty.  This function interprets a 2D array as a
-' 1D arrays of its rows.
+' Applies a function to an array of atomic elements, returning an array with
+' the results. This function returns Null if the array of elements is not
+' atomic. This function returns an empty array if the array of elements is
+' empty.  This function interprets a 2D array as a 1D arrays of its rows.
 '
 ' PARAMETERS
-' 1. AFunctionName - The name of the function to apply to each of the elements in the array
+' 1. ALambda - An instance of class Lambda or string name of a function
 ' 2. A1DArray - An array of atomic elements
 '
 ' RETURNED VALUE
-' An array with the results of applying a sequence of the functions to an element.
-Public Function Scan(aFunctionName As String, A1DArray As Variant) As Variant
+' Array with the results of applying a sequence of the functions to an element.
+Public Function Scan(ByVal ALambda As Variant, A1DArray As Variant) As Variant
     Dim var As Variant
+    Dim ProcName As String
     
     ' Set default return value
     Let Scan = Null
+
+    ' ErrorCheck: Exit with Null if ALambdaOrFunctionName is neither a Lambda
+    ' or a string
+    If Not (LambdaQ(ALambda) Or StringQ(ALambda)) Then
+        Exit Function
+    End If
     
     ' Exit with Null if A1DArray is not dimensioned
     If Not DimensionedQ(A1DArray) Then Exit Function
@@ -37,138 +144,217 @@ Public Function Scan(aFunctionName As String, A1DArray As Variant) As Variant
         Exit Function
     End If
     
+    On Error GoTo ErrorHandler
+    
+    ' Get the name of the function
+    If StringQ(ALambda) Then
+        Let ProcName = ALambda
+    Else
+        Let ProcName = ALambda.FunctionName
+    End If
+    
     ' Compute the values from mapping the function over the array
     For Each var In A1DArray
-        ' Exit with Null if AFunctionName returs Null on current array element
-        If IsNull(Run(aFunctionName, var)) Then Exit Function
+        ' Exit with Null if ALambda returs Null on current array element
+        If IsNull(Run(ProcName, var)) Then Exit Function
     Next
 
     ' Return the array holding the mapped results
     Let Scan = True
+    
+    Exit Function
+
+ErrorHandler:
+    Let Scan = Null
 End Function
 
 ' DESCRIPTION
-' Applies a sequence of functions to an element, returning an array holding the result of applying
-' each of the functions to the element. This function returns Null if the function array fails
-' Predicates.StringArrayQ.  This function returns an empty array if the array of function names is empty.
-' This function returns Null if AnElement is not atomic.
+' Applies a sequence of functions to an element, returning an array
+' holding the result of applying each of the functions to the element.
+' This function returns Null if the function array fails
+' Predicates.StringArrayQ.  This function returns an empty array if the
+' array of function names is empty. This function returns Null if AnElement
+' is not atomic.
 '
 ' PARAMETERS
-' 1. AFunctionNameArray - An array of function names
+' 1. ALambdaArray - An array of Lambda instances or function names
 ' 2. AnElement - Any element to which each of the functions can be applied
-' 3. ParameterCheckQ (optional) - If this explicitly set to False, no parameter consistency checks are
-'    perform.
+' 3. ParameterCheckQ (optional) - If this explicitly set to False, no
+'    parameter consistency checks are performed.
 '
 ' RETURNED VALUE
-' An array with the results of applying a sequence of the functions to an element.
-Public Function Through(AFunctionNameArray As Variant, _
+' Array with results of applying a function array to an element
+Public Function Through(ALambdaArray As Variant, _
                         AnElement As Variant, _
                         Optional ParameterCheckQ As Boolean = True) As Variant
     Dim ReturnArray() As Variant
     Dim c As Long
+    Dim var As Variant
+    Dim ProcName As String
     
-    ' Set default return value
+    ' Set default return value in case of error
     Let Through = Null
     
     ' Check parameters for consistency only if ParameterCheckQ is True
     If ParameterCheckQ Then
-        ' Exit with Null if AFunctionNameArray is undimensioned or not 1D
-        If Not StringArrayQ(AFunctionNameArray) Then Exit Function
+        ' Exit with Null if ALambdaArray is not an array
+        If Not IsArray(ALambdaArray) Then Exit Function
         
-        ' Exit the empty array if AFunctionNameArray satisfies EmptyArrayQ
-        If EmptyArrayQ(AFunctionNameArray) Then
+        ' Exit with Null if ALambdaArray not dimensioned
+        If Not DimensionedQ(ALambdaArray) Then Exit Function
+        
+        ' Exit the empty array if ALambdaArray satisfies EmptyArrayQ
+        If EmptyArrayQ(ALambdaArray) Then
             Let Through = EmptyArray()
             
             Exit Function
         End If
+        
+        ' Exit with Null if ALambdaArray has any elements that are not Lambda
+        ' instances or strings
+        For Each var In ALambdaArray
+            If Not (StringQ(var) Or LambdaQ(var)) Then Exit Function
+        Next
     End If
     
     ' Pre-allocate array to hold results
-    ReDim ReturnArray(1 To Length(AFunctionNameArray))
+    ReDim ReturnArray(1 To Length(ALambdaArray))
+    
+    On Error GoTo ErrorHandler
     
     ' Compute values from applying each function to AnElement
-    For c = 1 To Length(AFunctionNameArray)
-        Let ReturnArray(c) = Run(AFunctionNameArray(c + LBound(AFunctionNameArray) - 1), _
-                                 AnElement)
+    For c = 1 To Length(ALambdaArray)
+        Let var = ALambdaArray(c + LBound(ALambdaArray) - 1)
+
+        ' Get the name of the function
+        If StringQ(var) Then
+            Let ProcName = var
+        Else
+            Let ProcName = var.FunctionName
+        End If
+        
+        Let ReturnArray(c) = Run(ProcName, AnElement)
     Next
     
     ' Return results array
     Let Through = ReturnArray
+    
+    Exit Function
+    
+ErrorHandler:
+    Let Through = Null
 End Function
 
 ' DESCRIPTION
-' Applies a function to an array of atomic elements, returning an array with the results.
-' This function returns Null if the array of elements is not atomic. This function returns an
-' empty array if the array of elements is empty.  This function interprets a 2D array as a
-' 1D arrays of its rows.
+' Applies a function to an array of atomic elements, returning an
+' array with the results. This function returns Null if the array
+' of elements is not atomic. This function returns an empty array
+' if the array of elements is empty.  This function interprets a
+' 2D array as a 1D arrays of its rows.
 '
 ' PARAMETERS
-' 1. AFunctionName - The name of the function to apply to each of the elements in the array
+' 1. ALambda - An instance of class Lambda or string name of a function
 ' 2. A1DArray - An array of atomic elements
 '
 ' RETURNED VALUE
-' An array with the results of applying a sequence of the functions to an element.
-Public Function Map(aFunctionName As String, A1DArray As Variant) As Variant
+' Array with the results from applying a function to an array
+Public Function Map(ALambda As Variant, A1DArray As Variant) As Variant
     Dim ReturnArray As Variant
+    Dim ProcName As String
     Dim c As Long
     
-    ' Set default return value
+    ' Set default return value in case of error
     Let Map = Null
-    
-    ' Exit with Null if A1DArray is not dimensioned
+
+    ' ErrorCheck: Exit with Null if A1DArray is not dimensioned
     If Not DimensionedQ(A1DArray) Then Exit Function
-    
-    ' Check parameters for consistency
-    ' Exit with the empty array if A1DArray is empty
+
+    ' ErrorCheck: Exit with the empty array if A1DArray is empty
     If EmptyArrayQ(A1DArray) Then
         Let Map = EmptyArray()
         
         Exit Function
     End If
-
+    
+    ' ErrorCheck: Exit with Null if ALambdaOrFunctionName is neither
+    ' a Lambda or a string
+    If Not (LambdaQ(ALambda) Or StringQ(ALambda)) Then
+        Exit Function
+    End If
+    
     ' Pre-allocate results array
     ReDim ReturnArray(1 To Length(A1DArray))
-    
+
+    On Error GoTo ErrorHandler
+
+    ' Get the name of the function
+    If StringQ(ALambda) Then
+        Let ProcName = ALambda
+    Else
+        Let ProcName = ALambda.FunctionName
+    End If
+
     ' Compute the values from mapping the function over the array
     For c = 1 To Length(A1DArray)
-        Let ReturnArray(c) = Run(aFunctionName, Part(A1DArray, c))
+        Let ReturnArray(c) = Run(ProcName, Part(A1DArray, c))
     Next c
-
+    
     ' Return the array holding the mapped results
     Let Map = ReturnArray
+    
+    Exit Function
+    
+ErrorHandler:
+    Let Map = Null
 End Function
 
 ' DESCRIPTION
-' Returns an array with the elements in the given array returning True when applying the
-' given function. This function returns Null if the array of elements is not atomic. It
-' returns an empty array if the array of elements is empty.
+' Returns an array with the elements in the given array returning True
+' when applying the given function. This function returns Null if the
+' array of elements is not atomic. It returns an empty array if the
+' array of elements is empty. This function works only on 1D and 2D
+' arrays at the moment.
 '
 ' PARAMETERS
 ' 1. AnArray - An array of atomic elements
-' 2. AFunctionName - The name of the function to apply to each of the elements in the array
-' 3. ParameterCheckQ (optional) - If this explicitly set to False, no parameter consistency checks are
-'    perform.
+' 2. ALambda - The name of the function to apply to each of the elements
+'    in the array
 '
 ' RETURNED VALUE
-' An array with the results of applying a sequence of the functions to an element.
-Public Function ArraySelect(AnArray As Variant, aFunctionName As String) As Variant
+' An array with the results of applying a sequence of the functions to an
+' element.
+Public Function Filter(AnArray As Variant, ALambda As Variant) As Variant
+    Dim ProcName As String
     Dim ReturnArray As Variant
     Dim i As Long
     Dim c As Long
     
-    ' Set default return value
-    Let ArraySelect = Null
+    ' Default return value in case of error
+    Let Filter = Null
+
+    ' ErrorCheck: Exit with Null if ALambdaOrFunctionName is neither a Lambda or a string
+    If Not (LambdaQ(ALambda) Or StringQ(ALambda)) Then Exit Function
     
-    ' Check parameters for consistency
+    ' ErrorCheck: Exit with Null if AnArray is not dimensioned
     If Not DimensionedQ(AnArray) Then Exit Function
-    
+
+    ' ErrorCheck: Exit with Null if AnArray is not 1 or 2-dimensional
     If NumberOfDimensions(AnArray) < 1 Or NumberOfDimensions(AnArray) > 2 Then Exit Function
     
     ' Exit with the empty array if AnArray is empty
     If EmptyArrayQ(AnArray) Then
-        Let ArraySelect = EmptyArray
+        Let Filter = EmptyArray
         
         Exit Function
+    End If
+    
+    On Error GoTo ErrorHandler
+
+    ' Get the name of the function
+    If StringQ(ALambda) Then
+        Let ProcName = ALambda
+    Else
+        Let ProcName = ALambda.FunctionName
     End If
     
     ' Pre-allocated array to return at most all of the elements in the array
@@ -177,39 +363,47 @@ Public Function ArraySelect(AnArray As Variant, aFunctionName As String) As Vari
     ' Cycle through the array, adding to the return array those elements yielding True
     Let c = 0
     For i = 1 To Length(AnArray)
-        If Run(aFunctionName, Part(AnArray, i)) Then
+        If Run(ProcName, Part(AnArray, i)) Then
             Let c = c + 1
             Let ReturnArray(c) = Part(AnArray, i)
         End If
     Next
     
     If c = 0 Then
-        Let ArraySelect = EmptyArray()
+        Let Filter = EmptyArray()
     Else
         ' Throw away the unused slots in ReturnArray
         ReDim Preserve ReturnArray(1 To c)
-        Let ArraySelect = ReturnArray
+        Let Filter = ReturnArray
     End If
+
+    Exit Function
+    
+ErrorHandler:
+    Let Filter = Null
 End Function
 
 ' DESCRIPTION
-' Returns the result of performing a Mathematica-like MapThread.  It returns an array with the same
-' length as any of the array elements of parameter ArrayOfEqualLength1DArrays after the sequential
-' application of the function with name AFunctionName to the arrays resulting from packing the ith
-' element of each of the arrays in ArrayOfEqualLength1DArrays.
+' Returns the result of performing a Mathematica-like MapThread.  It returns an
+' array with the same length as any of the array elements of parameter
+' ArrayOfEqualLengthArrays after the sequential application of the function with
+' name ALambda to the arrays resulting from packing the ith element of each of the
+' arrays in ArrayOfEqualLengthArrays.
 '
 ' If the parameters are compatible with expectations, the function returns Null
 '
-' Example: ArrayMapThread("add", array(1,2,3), array(10,20,30)) -> (11, 22, 33)
+' Example: MapThread("add", array(1,2,3), array(10,20,30)) -> (11, 22, 33)
 '
 ' PARAMETERS
-' 1. AFunctionName - Name of the function to apply
-' 2. ArrayOfEqualLength1DArrays - A sequence of equal-length, atomic arrays
+' 1. ALambda - An instance of class Lambda or string name of a function
+' 2. ArrayOfEqualLengthArrays - A sequence of equal-length, atomic arrays
 '
 ' RETURNED VALUE
-' An array with the results of applying the given function to the threading of the parameter arrays
-Public Function MapThread(aFunctionName As String, _
-                          ParamArray ArrayOfEqualLength1DArrays() As Variant) As Variant
+' An array with the results of applying the given function to the threading of the
+' Parameter Arrays
+Public Function MapThread(ALambda As Variant, _
+                          ParamArray ArrayOfEqualLengthArrays() As Variant) As Variant
+    Dim ProcName As String
     Dim var As Variant
     Dim N As Long
     Dim r As Long
@@ -225,17 +419,17 @@ Public Function MapThread(aFunctionName As String, _
     Let MapThread = Null
     
     ' Make a copy of array of parameters so we may apply other functions to it
-    Let ParamsArray = CopyParamArray(ArrayOfEqualLength1DArrays)
+    Let ParamsArray = CopyParamArray(ArrayOfEqualLengthArrays)
     
     ' Exit with Null if ParamsArray is not dimensioned
     If Not DimensionedQ(ParamsArray) Then Exit Function
-    
+
     ' Exit with Null if ParamsArray is empty
     If EmptyArrayQ(ParamsArray) Then
         Let MapThread = EmptyArray
         Exit Function
     End If
-    
+
     ' Get the length of the first parameter array
     Let N = Length(First(ParamsArray))
     
@@ -243,13 +437,22 @@ Public Function MapThread(aFunctionName As String, _
     For Each var In ParamsArray
         If Length(var) <> N Then Exit Function
     Next
-    
+
+    On Error GoTo ErrorHandler
+
+    ' Get the name of the function
+    If StringQ(ALambda) Then
+        Let ProcName = ALambda
+    Else
+        Let ProcName = ALambda.FunctionName
+    End If
+
     ' Pre-allocate array to hold results and each function call's array
     ReDim ReturnArray(1 To N)
     ReDim CallArray(1 To Length(ParamsArray))
-    
+
     ' Create splicing delegate name
-    Let SplicingDelegateName = ParameterSplicingDelegate(aFunctionName, Length(ParamsArray))
+    Let SplicingDelegateName = ParameterSplicingDelegate(ProcName, Length(ParamsArray))
 
     ' Loop over the array elements to compute results to return
     For r = 1 To N
@@ -263,24 +466,28 @@ Public Function MapThread(aFunctionName As String, _
     
     ' Return the array used
     Let MapThread = ReturnArray
+
+    Exit Function
+    
+ErrorHandler:
+    Let MapThread = Null
 End Function
 
 ' DESCRIPTION
-' This function computes the sum of the elements of the given array.  If AnArray is a 2D array,
-' this function returns the sum of the columns.  This is equivalent to
-'
-' Total(AnArray, 1)
+' This function computes the sum of the elements of the given array.  If AnArray
+' is a 2D array, this function returns the sum of the columns.  This is equivalent
+' to Total(AnArray, 1)
 '
 ' To add the rows, use Total(AnArray, 2)
 '
 ' PARAMETERS
 ' 1. AnArray - a 1D or 2D numeric array
-' 2. DimensionalIndex (optional) - Set by default to 1, indicates whether to perform the operation
-'    along dimension 1 or 2
+' 2. DimensionalIndex (optional) - Set by default to 1, indicates whether to perform
+' the operation along dimension 1 or 2
 '
 ' RETURNED VALUE
-' The result of the operation the whole array for 1D arrays, the columns for 2D arrays, or the rows
-' if requested for a 2D array
+' The result of the operation the whole array for 1D arrays, the columns for 2D arrays,
+' or the rows if requested for a 2D array
 Public Function Total(AnArray As Variant, _
                       Optional DimensionalIndex As Integer = 1, _
                       Optional ParameterCheckQ As Boolean = True) As Variant
@@ -335,21 +542,20 @@ Public Function Total(AnArray As Variant, _
 End Function
 
 ' DESCRIPTION
-' This function computes the product of the elements of the given array.  If AnArray is a
-' 2D array, this function returns the product of the columns.  This is equivalent to
-'
-' Times(AnArray, 1)
+' This function computes the product of the elements of the given array. If
+' AnArray is a 2D array, this function returns the product of the columns.
+' This is equivalent to Times(AnArray, 1)
 '
 ' To add the rows, use Total(AnArray, 2)
 '
 ' PARAMETERS
 ' 1. AnArray - a 1D or 2D numeric array
-' 2. DimensionalIndex (optional) - Set by default to 1, indicates whether to perform the operation
-'    along dimension 1 or 2
+' 2. DimensionalIndex (optional) - Set by default to 1, indicates whether to
+'    perform the operation along dimension 1 or 2
 '
 ' RETURNED VALUE
-' The result of the operation the whole array for 1D arrays, the columns for 2D arrays, or the rows
-' if requested for a 2D array
+' The result of the operation the whole array for 1D arrays, the columns for
+' 2D arrays, or the rows if requested for a 2D array
 Public Function Times(AnArray As Variant, _
                       Optional DimensionalIndex As Integer = 1, _
                       Optional ParameterCheckQ As Boolean = True) As Variant
@@ -404,10 +610,11 @@ Public Function Times(AnArray As Variant, _
 End Function
 
 ' DESCRIPTION
-' This function computes the array that results from the successive addition of its elements. It
-' adds repeatedly along columns, returning a 1D array of 1D arrays.  When, applied to a 2D matrix,
-' it adds the rows repeatedly as if we had a sequence of rows, returning a 1D array of 1D
-' arrays. At the moment is does not work along the second dimension (adding along columns)
+' This function computes the array that results from the successive addition of
+' its elements. It adds repeatedly along columns, returning a 1D array of 1D arrays.
+' When, applied to a 2D matrix, it adds the rows repeatedly as if we had a sequence
+' of rows, returning a 1D array of 1D arrays. At the moment is does not work along
+' the second dimension (adding along columns)
 '
 ' PARAMETERS
 ' 1. AnArray - a 1D or 2D numeric array
@@ -461,8 +668,8 @@ Public Function Accumulate(AnArray As Variant, _
 End Function
 
 ' DESCRIPTION
-' Return the result of applying the given function N times iteratively to the given argument.
-' Returns the argument when N = 0.  Returns Null when N<0.
+' Return the result of applying the given function N times iteratively to the
+' given argument. Returns the argument when N = 0.  Returns Null when N<0.
 '
 ' Example: ArrayMapThread("StringJoin", array(1,2,3), array(10,20,30)) returns
 '          ("110", "220", "330")
@@ -487,11 +694,12 @@ Public Function Nest(aFunctionName As String, _
 End Function
 
 ' DESCRIPTION
-' Return an array recording the result of applying the given function iterativesly N
-' times to the given argument. Returns the argument when N = 0.  Returns Null when N<0.
+' Return an array recording the result of applying the given function
+' iterativesly N times to the given argument. Returns the argument
+' when N = 0.  Returns Null when N<0.
 '
-' Example: ArrayMapThread("StringJoin", array(1,2,3), array(10,20,30)) returns
-'          ("110", "220", "330")
+' Example: ArrayMapThread("StringJoin", array(1,2,3), array(10,20,30))
+'          returns ("110", "220", "330")
 '
 ' PARAMETERS
 ' 1. AFunctionName - Name of the function to apply
@@ -499,7 +707,8 @@ End Function
 ' 3. N - Number of times to apply functional nesting
 '
 ' RETURNED VALUE
-' Returns array with the iterative application of a function to an argument
+' Returns array with the iterative application of a function to an
+' argument
 Public Function NestList(aFunctionName As String, _
                          arg As Variant, _
                          N As Long) As Variant
@@ -526,8 +735,9 @@ Public Function NestList(aFunctionName As String, _
 End Function
 
 ' DESCRIPTION
-' Return the result of applying the given function N times iteratively to the given
-' argument. Returns the argument when N = 0.  Returns Null when N<0.
+' Return the result of applying the given function N times iteratively
+' to the given argument. Returns the argument when N = 0.  Returns Null
+' when N<0.
 '
 ' The function with name aFunctionName must accept two arguments.
 '
@@ -552,21 +762,24 @@ Public Function Fold(aFunctionName As String, _
     ' Exit with Null if AnArrayForSecordArgs is not dimensioned
     If Not DimensionedQ(AnArrayForSecondArgs) Then Exit Function
     
-    ' Return an empty list if AnArrayForSecondArgs is not array or undimensioned
+    ' Return an empty list if AnArrayForSecondArgs is not array or
+    ' undimensioned
     If Not DimensionedQ(AnArrayForSecondArgs) Then Exit Function
     
     Let CurrentValue = FirstArg
     For i = 1 To Length(AnArrayForSecondArgs)
-        Let CurrentValue = Run(aFunctionName, CurrentValue, Part(AnArrayForSecondArgs, i))
+        Let CurrentValue = Run(aFunctionName, CurrentValue, _
+                               Part(AnArrayForSecondArgs, i))
     Next
     
     Let Fold = CurrentValue
 End Function
 
 ' DESCRIPTION
-' Return an array with each step in the computation resulting from applying the given
-' function N times iteratively to the given argument. Returns a 1D array with FirstArg
-' as its sole element when N = 0. Returns Null when N<0.
+' Return an array with each step in the computation resulting from
+' applying the given function N times iteratively to the given argument.
+' Returns a 1D array with FirstArg as its sole element when N = 0.
+' Returns Null when N<0.
 '
 ' The function with name aFunctionName must accept two arguments.
 '
@@ -600,54 +813,10 @@ Public Function FoldList(aFunctionName As String, _
     ReDim ResultArray(1 To 1 + Length(AnArrayForSecondArgs))
     Let ResultArray(1) = FirstArg
     For i = 1 To Length(AnArrayForSecondArgs)
-        Let ResultArray(i + 1) = Run(aFunctionName, ResultArray(i), Part(AnArrayForSecondArgs, i))
+        Let ResultArray(i + 1) = Run(aFunctionName, ResultArray(i), _
+                                     Part(AnArrayForSecondArgs, i))
     Next
     
     Let FoldList = ResultArray
-End Function
-
-' DESCRIPTION
-' Returns the result from the application of a function with the values of the
-' given array as the values of its parameters. This function does not checking to
-' ensure that the length of the parameter array and the number of required funcitonal
-' parameters are equal.
-'
-' Example: Apply(Lambda([{"x","y"}], "", "2*x*y"), [{1,2}]) ->
-'          Lambda([{"x"<-1,"y"<-2}], "", "2*x*y") -> 2*1*2 = 4
-'
-' PARAMETERS
-' 1. FunctionName - The name of the function
-' 2. ParameterArray - The array holding the values to evaluate the function
-'
-' RETURNED VALUE
-' The result from evaluating the function with parameter values specified by the
-' given array
-Public Function Apply(ByVal FunctionName As String, _
-                      ByVal ParameterArray As Variant) As Variant
-    Dim ParentExpr As String
-    Dim ParamNames As Variant
-    Dim FunctionBody() As String
-    Dim VarName As Variant
-    Dim i As Long
-    Dim LambdaName As String
-    Dim LambdaCounter As Integer
-
-    ' Set default return value in case of error
-    Let Apply = Null
-    
-    ' ErrorCheck: Exit with Null if ParameterArray not an array
-    If Not IsArray(ParameterArray) Then Exit Function
-    
-    ' ErrorCheck: Exit with Null if ParameterArray not initialized and non-empty
-    If Not DimensionedQ(ParameterArray) Then Exit Function
-    
-    ' ErrorCheck: Exit with Null if ParameterArray is empty
-    If EmptyArrayQ(ParameterArray) Then Exit Function
-    
-    ' Create delegating function
-    Let LambdaName = ParameterSplicingDelegate(FunctionName, Length(ParameterArray))
-    
-    ' Apply the delegation funciton to the parameter array
-    Let Apply = Run(LambdaName, ParameterArray)
 End Function
 

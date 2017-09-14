@@ -249,7 +249,7 @@ End Sub
 '
 ' RETURNED VALUE
 ' True or False according to the exitence of the module
-Public Function ModuleExistsQ(AWorkBook As Workbook, _
+Public Function ModuleExistsQ(AWorkbook As Workbook, _
                               ModuleName As String) As Boolean
     Dim CodeModule As VBIDE.CodeModule
     Dim AVar As Variant
@@ -261,7 +261,7 @@ Public Function ModuleExistsQ(AWorkBook As Workbook, _
     Let ModuleExistsQ = True
     
     ' Set reference to target code module
-    Set CodeModule = AWorkBook.VBProject.VBComponents(ModuleName).CodeModule
+    Set CodeModule = AWorkbook.VBProject.VBComponents(ModuleName).CodeModule
     
     ' Exit before ErrorHandler since no error occured.
     Exit Function
@@ -281,7 +281,7 @@ End Function
 '
 ' RETURNED VALUE
 ' True or False according to the exitence of the function
-Public Function FunctionExistsQ(AWorkBook As Workbook, _
+Public Function FunctionExistsQ(AWorkbook As Workbook, _
                                 ModuleName As String, _
                                 FunctionName As String) As Boolean
     Dim CodeModule As VBIDE.CodeModule
@@ -294,7 +294,7 @@ Public Function FunctionExistsQ(AWorkBook As Workbook, _
     Let FunctionExistsQ = True
     
     ' Set reference to target code module
-    Set CodeModule = AWorkBook.VBProject.VBComponents(ModuleName).CodeModule
+    Set CodeModule = AWorkbook.VBProject.VBComponents(ModuleName).CodeModule
 
     Let AVar = CodeModule.ProcStartLine(FunctionName, vbext_pk_Proc)
     
@@ -320,7 +320,7 @@ End Function
 '
 ' RETURNED VALUE
 ' Inserts the function in the target module provided it does not already exists.
-Public Sub InsertFunction(AWorkBook As Workbook, _
+Public Sub InsertFunction(AWorkbook As Workbook, _
                           ModuleName As String, _
                           FunctionName As String, _
                           ParameterNameArray As Variant, _
@@ -330,13 +330,13 @@ Public Sub InsertFunction(AWorkBook As Workbook, _
     Dim TmpStr As Variant
     
     ' Exit if the target module does not exists
-    If Not ModuleExistsQ(AWorkBook, ModuleName) Then Exit Sub
+    If Not ModuleExistsQ(AWorkbook, ModuleName) Then Exit Sub
     
     ' Exit if the function already exists in the given module and workbook
-    If FunctionExistsQ(AWorkBook, ModuleName, FunctionName) Then Exit Sub
+    If FunctionExistsQ(AWorkbook, ModuleName, FunctionName) Then Exit Sub
 
     ' Set reference to appropriate code module
-    Set CodeModule = AWorkBook.VBProject.VBComponents(ModuleName).CodeModule
+    Set CodeModule = AWorkbook.VBProject.VBComponents(ModuleName).CodeModule
 
     ' Create string to hold function body
     Let CodeString = "Public Function " & FunctionName
@@ -364,7 +364,7 @@ End Sub
 '
 ' RETURNED VALUE
 ' None
-Public Sub DeleteFunction(AWorkBook As Workbook, _
+Public Sub DeleteFunction(AWorkbook As Workbook, _
                           ModuleName As String, _
                           FunctionName As String)
     Dim CodeModule As VBIDE.CodeModule
@@ -374,7 +374,7 @@ Public Sub DeleteFunction(AWorkBook As Workbook, _
     On Error Resume Next
     
     ' Set reference to approrpriate code module
-    Set CodeModule = AWorkBook.VBProject.VBComponents(ModuleName).CodeModule
+    Set CodeModule = AWorkbook.VBProject.VBComponents(ModuleName).CodeModule
 
     ' Delete the funnction from the code module
     Call CodeModule.DeleteLines(CodeModule.ProcStartLine(FunctionName, vbext_pk_Proc), _
@@ -441,7 +441,7 @@ Public Function ParameterSplicingDelegate(FunctionName As String, N As Integer) 
     
     ' Create parameter list for anonymous function
     Let ParamNames = GenerateStringSequence("Param", 1, N)
-    
+
     ' Create the function body
     
     ' Construct a let statement for bind each var to its intended value
@@ -462,8 +462,8 @@ Public Function ParameterSplicingDelegate(FunctionName As String, N As Integer) 
     Let ParameterSplicingDelegate = Lambda("ArrayToSplice", _
                                            FunctionBody, _
                                            "run(" & Chr(34) & FunctionName & Chr(34) & _
-                                          "," & ParenString _
-                                          )
+                                           "," & ParenString _
+                                          ).FunctionName
+Debug.Print "returning " & ParameterSplicingDelegate
 End Function
-
 

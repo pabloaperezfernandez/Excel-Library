@@ -333,6 +333,7 @@ Public Function GetReferences(wbk As Workbook) As Dictionary
     Set GetReferences = ADict
 End Function
 
+
 ' DESCRIPTION
 ' Generates Org-formatted documentation for a workbook
 '
@@ -342,7 +343,10 @@ End Function
 '
 ' RETURNED VALUE
 ' Produces the requested documentation file
-Public Sub GenerateOrgDocumentation(wbk As Workbook, FullPathFileName As String)
+Public Sub GenerateOrgDocumentation(wbk As Workbook, _
+                                    FullPathFileName As String, _
+                                    AuthorName As String, _
+                                    AuthorEmail As String)
     Dim ModuleNames As Variant
     Dim AModuleName As Variant
     Dim RoutineNames As Variant
@@ -357,13 +361,12 @@ Public Sub GenerateOrgDocumentation(wbk As Workbook, FullPathFileName As String)
     
     Open FullPathFileName For Output As #1
     
-    Print #1, "#+TITLE: Project Planner"
-    Print #1, "#+AUTHOR: Pablo A. Perez-Fernandez, Ph.D."
-    Print #1, "#+DATE: February 9, 2014"
-    Print #1, "#+EMAIL: Pablo.Perez-Fernandez@gmail.com"
-    Print #1, "#+INFOJS_OPT: view:info"
-    Print #1, vbCrLf
-    
+    Print #1, "#+TITLE: Functional Documentation for " & wbk.Name
+    Print #1, "#+AUTHOR: " & AuthorName
+    Print #1, "#+DATE: " & Format(Now, "YYYYMMDD")
+    Print #1, "#+EMAIL: " & AuthorEmail
+    Print #1, "#+INFOJS_OPT: view:info" & vbNewLine
+
     Print #1, "* References"
     Print #1, "This workbook has " & RefsDict.Count & " non-built-in references."
     For i = 0 To RefsDict.Count - 1

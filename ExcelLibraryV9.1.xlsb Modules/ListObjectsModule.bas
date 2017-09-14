@@ -436,8 +436,8 @@ Public Function CreateListObjectDictionary(aListObject As ListObject, _
                                            IndexColumnName As String, _
                                            ItemColumnNames As Variant, _
                                            Optional RowsAsDictionariesQ As Variant = True) As Dictionary
-    Dim aDict As Dictionary
-    Dim rowDict As Dictionary
+    Dim ADict As Dictionary
+    Dim RowDict As Dictionary
     Dim r As Long
     Dim c As Long
     Dim var As Variant
@@ -487,21 +487,21 @@ Public Function CreateListObjectDictionary(aListObject As ListObject, _
     Next
     
     ' If the code gets to this point, all inputs are consistent
-    Set aDict = New Dictionary
+    Set ADict = New Dictionary
     
     For r = 1 To aListObject.ListRows.Count
         Let TheKey = aListObject.ListColumns(IndexColumnName).DataBodyRange(r, 1).Value2
         
-        If Not aDict.Exists(Key:=TheKey) Then
+        If Not ADict.Exists(Key:=TheKey) Then
             If RowsAsDictionariesQ Then
-                Set rowDict = New Dictionary
+                Set RowDict = New Dictionary
                 
                 For Each var In ItemColumnNames
-                    Call rowDict.Add(Key:=CStr(var), _
+                    Call RowDict.Add(Key:=CStr(var), _
                                      Item:=aListObject.ListColumns(var).DataBodyRange(r, 1).Value2)
                 Next
                 
-                Call aDict.Add(Key:=TheKey, Item:=rowDict)
+                Call ADict.Add(Key:=TheKey, Item:=RowDict)
             Else
                 ReDim TempVariantArray(LBound(ItemColumnNames) To UBound(ItemColumnNames))
                 
@@ -510,12 +510,12 @@ Public Function CreateListObjectDictionary(aListObject As ListObject, _
                     Let TempVariantArray(c) = aListObject.ListColumns(var).DataBodyRange(r, 1).Value2
                 Next c
                 
-                Call aDict.Add(Key:=TheKey, Item:=TempVariantArray)
+                Call ADict.Add(Key:=TheKey, Item:=TempVariantArray)
             End If
         End If
     Next r
     
-    Set CreateListObjectDictionary = aDict
+    Set CreateListObjectDictionary = ADict
 End Function
 
 ' The purpose of this routine is to export the given listobject as a CSV file.

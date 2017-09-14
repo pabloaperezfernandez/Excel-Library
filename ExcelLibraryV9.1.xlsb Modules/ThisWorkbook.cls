@@ -8,5 +8,5 @@ Attribute VB_Creatable = False
 Attribute VB_PredeclaredId = True
 Attribute VB_Exposed = True
 Private Sub Workbook_Open()
-    call vbacodemanipulation.
+    Call VbaCodeManipulation.ClearLambdaFunctionsData
 End Sub

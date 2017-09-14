@@ -2,6 +2,8 @@ Attribute VB_Name = "Predicates"
 Option Explicit
 Option Base 1
 
+Dim SampleLambda As New Lambda
+
 ' DESCRIPTION
 ' This function returns an array of strings with the names the predicates used to
 ' identify atomic values.
@@ -32,7 +34,9 @@ Public Function GetAtomicTypePredicateNames() As Variant
                                             "NegativeWholeNumberQ", _
                                             "NonPositiveWholeNumberQ", _
                                             "NonNegativeWholeNumberQ", _
-                                            "NonZeroWholeNumberQ")
+                                            "NonZeroWholeNumberQ", _
+                                            "TrueQ", _
+                                            "FalseQ")
 End Function
 
 ' DESCRIPTION
@@ -49,7 +53,9 @@ Public Function GetPrintableTypePredicateNames() As Variant
                                                "NumberQ", _
                                                "StringQ", _
                                                "EmptyQ", _
-                                               "NullQ")
+                                               "NullQ", _
+                                               "TrueQ", _
+                                               "FalseQ")
 End Function
 
 ' DESCRIPTION
@@ -105,6 +111,38 @@ Attribute AtomicQ.VB_Description = "This is the documentation"
     Next
     
     Let AtomicQ = False
+End Function
+
+' DESCRIPTION
+' Boolean function returning True if its argument is True. Returns False otherwise.
+'
+' PARAMETERS
+' 1. arg - any value or object reference
+'
+' RETURNED VALUE
+' True or False depending on whether or not its argument is equal to True
+Public Function TrueQ(vValue As Variant) As Boolean
+    If IsObject(vValue) Then
+        Let TrueQ = False
+    Else
+        Let TrueQ = (vValue = True)
+    End If
+End Function
+
+' DESCRIPTION
+' Boolean function returning True if its argument is False. Returns False otherwise.
+'
+' PARAMETERS
+' 1. arg - any value or object reference
+'
+' RETURNED VALUE
+' True or False depending on whether or not its argument is equal to False
+Public Function FalseQ(vValue As Variant) As Boolean
+    If IsObject(vValue) Then
+        Let FalseQ = False
+    Else
+        Let FalseQ = (vValue = False)
+    End If
 End Function
 
 ' DESCRIPTION
@@ -549,10 +587,7 @@ End Function
 ' RETURNED VALUE
 ' Returns True or False depending on whether or not its argument is an instance of class Span
 Public Function LambdaQ(arg As Variant) As Boolean
-    Dim ALambda As New Lambda
-    
-    Debug.Print "type is " & TypeName(ALambda)
-    Let LambdaQ = TypeName(arg) = TypeName(ALambda)
+    Let LambdaQ = TypeName(arg) = TypeName(Predicates.SampleLambda)
 End Function
 
 ' DESCRIPTION
@@ -632,35 +667,166 @@ End Function
 ' RETURNED VALUE
 ' Returns True or False depending on whether or not the given workbook has a worksheet with
 ' the given name
-Public Function WorksheetExistsQ(AWorkBook As Workbook, WorksheetName As String) As Boolean
+Public Function WorksheetExistsQ(AWorkbook As Workbook, WorksheetName As String) As Boolean
     Let WorksheetExistsQ = False
     
     On Error Resume Next
     
-    Let WorksheetExistsQ = AWorkBook.Worksheets(WorksheetName).Name <> ""
+    Let WorksheetExistsQ = AWorkbook.Worksheets(WorksheetName).Name <> ""
     Exit Function
     
     On Error GoTo 0
 End Function
 
 ' DESCRIPTION
-' Boolean function returning True if the given workbook has a sheet with the given name.
+' Boolean function returning True if the given workbook has a sheet with
+' the given name.
 '
 ' PARAMETERS
 ' 1. aWorkbook - A workbook reference
 ' 2. WorksheetName - A worksheet reference
 '
 ' RETURNED VALUE
-' Returns True or False depending on whether or not the given workbook has a sheet with
-' the given name
-Public Function SheetExistsQ(AWorkBook As Workbook, SheetName As String) As Boolean
+' Returns True or False depending on whether or not the given workbook has
+' a sheet with the given name
+Public Function SheetExistsQ(AWorkbook As Workbook, SheetName As String) As Boolean
     Let SheetExistsQ = False
     
     On Error GoTo NoSuchSheet
-    If Len(AWorkBook.Sheets(SheetName).Name) > 0 Then
+    If Len(AWorkbook.Sheets(SheetName).Name) > 0 Then
         Let SheetExistsQ = True
         Exit Function
     End If
 
 NoSuchSheet:
+End Function
+
+' DESCRIPTION
+' Boolean function returning True if TheValue is in the given 1D array.
+' This function cannot compare arrays at the moment. For instance,
+' MemberQ(Array(Array(1,2)), Array(1,2)) -> True. Objects are equal
+' if they are references to the same object.
+'
+' PARAMETERS
+' 1. TheArray - A 1D array
+' 2. TheValue - Any Excel value or reference
+'
+' RETURNED VALUE
+' Returns True or False depending on whether or not the given value is
+' in the given array
+Public Function MemberQ(TheArray As Variant, TheValue As Variant) As Boolean
+    Dim i As Long
+    
+    ' Assume result is False and change TheValue is in any one column
+    ' of TheArray
+    Let MemberQ = False
+    
+    ' Exit if TheArray is not a 1D array
+    If NumberOfDimensions(TheArray) <> 1 Then Exit Function
+    
+    For i = 1 To Length(TheArray)
+        If EqualQ(Part(TheArray, i), TheValue) Then
+            Let MemberQ = True
+            Exit Function
+        End If
+    Next
+End Function
+
+' DESCRIPTION
+' Boolean function returning True if TheValue is not in the given 1D
+' array. TheValue must satisfy NumberOrStringQ. Every element in
+' TheArray must also satisfy NumberOfStringQ
+'
+' PARAMETERS
+' 1. TheArray - A 1D array satisfying PrintableArrayQ
+' 2. TheValue - Any value satisfying PrintableQ
+'
+' RETURNED VALUE
+' Returns True or False depending on whether or not the given value is
+' in the given array
+Public Function FreeQ(TheArray As Variant, TheValue As Variant) As Boolean
+    Let FreeQ = IsArray(TheArray) And Not MemberQ(TheArray, TheValue)
+End Function
+
+' DESCRIPTION
+' Boolean function returning True if its two parameters are equal according
+' to the following rules:
+'
+' 1. If IsNull(x) and IsNull(y) then EqualQ(x,y) -> True
+' 2. If IsObject(x) and IsObject(y) and (x Is y) then EqualQ(x,y)->True
+' 3. If neither of x,y Null or Object then x=y -> EqualQ(x,y)
+' 4. If x,y arrays then x,y is they have the same dimensions and
+'    the corresponding elements all satisfy EqualQ
+'
+' Arguments to this function can be any valid expression. However, it returns
+' false is any element at any level has more than two dimensions. This could
+' be implemented, but I can only think about how to write it by writing code
+' dynamically.
+'
+' PARAMETERS
+' 1. x - any expression
+' 2. y - any expression
+'
+' RETURNED VALUE
+' True if the arguments are the same and False otherwise
+Public Function EqualQ(x As Variant, y As Variant) As Boolean
+    Dim i As Long
+    Dim j As Long
+    
+    ' Assume result is False and change TheValue is in any one column
+    ' of TheArray
+    Let EqualQ = False
+    
+    ' Exit if the two objects don't have the same dimensions. That means
+    ' that either one is an array and the other is not or that they are
+    ' arrays of different dimensions.
+    If Dimensions(x) <> Dimensions(y) Then Exit Function
+    
+    ' Exit with False if either x or y has dimension larger than 2
+    If Dimensions(x) > 2 Or Dimensions(y) > 2 Then Exit Function
+    
+    ' If we two 1D arrays, we recurse on each element and exit on the
+    ' first False
+    If IsArray(x) And IsArray(y) Then
+        If Dimensions(x) = 1 And Dimensions(y) = 1 Then
+            If Length(x) = Length(y) Then
+                For i = 1 To Length(x)
+                    If Not EqualQ(Part(x, i), Part(y, i)) Then Exit Function
+                Next
+                
+                Let EqualQ = True
+                Exit Function
+            Else
+                Exit Function
+            End If
+        ElseIf Dimensions(x) = 2 And Dimensions(y) = 2 Then
+            If NumberOfRows(x) = NumberOfRows(y) And _
+               NumberOfColumns(x) = NumberOfColumns(y) Then
+                For i = 1 To NumberOfRows(x)
+                    For j = 1 To NumberOfColumns(x)
+                        If Not EqualQ(Part(x, i, j), Part(y, i, j)) Then
+                            Exit Function
+                        End If
+                    Next
+                Next
+                
+                Let EqualQ = True
+                Exit Function
+            End If
+        Else
+            Exit Function
+        End If
+        
+        Let EqualQ = True
+    ElseIf NumberQ(x) And NumberQ(y) Then
+        Let EqualQ = (x = y) And (TypeName(x) = TypeName(y))
+    ElseIf IsNull(x) And IsNull(y) Then
+        Let EqualQ = True
+    ElseIf IsObject(x) And IsObject(y) Then
+        Let EqualQ = (x Is y)
+    ElseIf IsError(x) And IsError(y) Then
+        Let EqualQ = (CLng(x) = CLng(y))
+    ElseIf TypeName(x) = TypeName(y) Then
+        Let EqualQ = (x = y)
+    End If
 End Function
