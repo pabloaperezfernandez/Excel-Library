@@ -1,11 +1,16 @@
 Attribute VB_Name = "Statistics"
+' The purpose of this module is to provide facilities for statistical
+' computations and exploration.  Here, we implement a number of ideas
+' from Tukey's 1976 Exploratory Data Analysis (EDA).
+
 Option Base 1
 Option Explicit
 
-' Notes:
-' 1. Some of these functions require the workbook to have a worksheet called "TempComputations."
-'    This is necessary because the on-demand creation and deletion of a temp worksheet is time
-'    consuming.
+Public Enum TukeyStemAndLeafSqueezedSpecification ' See top of p. 12 in EDA.
+    tslNone        ' stands for no squeezed specification
+    tslStarDot     ' stands for *, .
+    tslStarTFSDot  ' stands for *, t, f, s, *
+End Enum
 
 ' All of the array parameter must be 1D arrays of the same length
 Public Function ComputeSCurvedZScores(FactorValues() As Double, _
@@ -598,7 +603,7 @@ Public Function Minimum(NumArray As Variant, Optional ParameterCheckQ As Boolean
     If Not DimensionedQ(NumArray) Then Exit Function
     
     ' Error Check: Return Null if NumArray has more than 1 dimension
-    If NumberOfDimensions(NumArray) Then Exit Function
+    If NumberOfDimensions(NumArray) > 1 Then Exit Function
     
     ' If ParameterCheckQ then check this is a numeric array
     If Not NumberArrayQ(NumArray) Then Exit Function
@@ -627,12 +632,12 @@ Public Function Maximum(NumArray As Variant, Optional ParameterCheckQ As Boolean
     If Not DimensionedQ(NumArray) Then Exit Function
     
     ' Error Check: Return Null if NumArray has more than 1 dimension
-    If NumberOfDimensions(NumArray) Then Exit Function
+    If NumberOfDimensions(NumArray) > 1 Then Exit Function
     
     ' If ParameterCheckQ then check this is a numeric array
     If Not NumberArrayQ(NumArray) Then Exit Function
     
-    Let Maximum = Application.Min(NumArray)
+    Let Maximum = Application.Max(NumArray)
 End Function
 
 ' DESCRIPTION
@@ -656,7 +661,7 @@ Public Function Median(NumArray As Variant, Optional ParameterCheckQ As Boolean 
     If Not DimensionedQ(NumArray) Then Exit Function
     
     ' Error Check: Return Null if NumArray has more than 1 dimension
-    If NumberOfDimensions(NumArray) Then Exit Function
+    If NumberOfDimensions(NumArray) > 1 Then Exit Function
     
     ' If ParameterCheckQ then check this is a numeric array
     If Not NumberArrayQ(NumArray) Then Exit Function
@@ -685,7 +690,7 @@ Public Function Average(NumArray As Variant, Optional ParameterCheckQ As Boolean
     If Not DimensionedQ(NumArray) Then Exit Function
     
     ' Error Check: Return Null if NumArray has more than 1 dimension
-    If NumberOfDimensions(NumArray) Then Exit Function
+    If NumberOfDimensions(NumArray) > 1 Then Exit Function
     
     ' If ParameterCheckQ then check this is a numeric array
     If Not NumberArrayQ(NumArray) Then Exit Function
@@ -693,4 +698,166 @@ Public Function Average(NumArray As Variant, Optional ParameterCheckQ As Boolean
     Let Average = Application.Average(NumArray)
 End Function
 
+' DESCRIPTION
+' Rounds the given number. When the optional second argument is passed,
+' the function returns multiple of this second number closest to the
+' first. This function matches the results of Mathematica's Round[].
+'
+' PARAMETERS
+' 1. ANumber - Any number
+' 2. Optional RoundToClosestMultipleOf = 1 - Any number
+'
+' RETURNED VALUE
+' The rounded number
+Public Function Round(ANumber As Double, Optional RoundToClosestMultipleOf As Double = 1) As Variant
+    Dim TheQuotient As Double
+    Dim TheRemainder As Double
+    
+    If RoundToClosestMultipleOf = 1 Then
+        Let Round = Application.Round(ANumber, 0)
+        Exit Function
+    End If
+    
+    Let TheQuotient = Application.Quotient(ANumber, RoundToClosestMultipleOf)
+    Let TheRemainder = ANumber - TheQuotient * RoundToClosestMultipleOf
+    ' Cannot use the mod operator because it casts floating points to whole numbers
+    
+    ' Determine if TheQuotient or TheQuotient+1 is the closest multiple to ANumber
+    If Abs(ANumber - TheQuotient * RoundToClosestMultipleOf) <= _
+       Abs(ANumber - (TheQuotient + 1) * RoundToClosestMultipleOf) Then
+        Let Round = TheQuotient * RoundToClosestMultipleOf
+    Else
+        Let Round = (TheQuotient + 1) * RoundToClosestMultipleOf
+    End If
+End Function
+
+' DESCRIPTION
+' Returns a steam-and-leaf diagram for the given array of numbers.
+'
+' PARAMETERS
+' 1. DataSet - 1 1D array of numbers to process
+' 2. NumberOfLeafDigits - How many digits to display on the leaf after
+'    optionally rounding and the application of the multiplicative factor
+' 3. Optional Factor = 1 - A number by which we multiply every element in
+'    DataSet. Typically a power of 10 to deal with decimals. It is set to 1.
+' 4. Optional SqueezedSpec = tlsNone - Implements Tukey's squeezed display.
+'    The stems are identified with:
+'      + * - 0 and 1
+'      + t - 1 and 2
+'      + f - 4 and 5
+'      + s - 6 and 7
+'      + . - for 8 and 9
+'    It allows the following values tslNone, tslStarDot, tslFull. This
+'    specification applies only to the last digit after the application
+'    of the multiplicative factor.
+' 4. Optional NumberRanges = Null - When given, it specifies the stems
+'    for the diagram. It can also specify An array of ordered pairs to serve
+'    as the stems of the diagram.  When
+' 5. Optional RoundFactor = Null - Decimal place to be rounded. For
+'    example:
+'      + Null means no rounding
+'      + -1 means to round 2.345 -> 2.300
+'      + 0 means to round 2.3 -> 2.0
+'      + 1 means to round 25.4 -> 30.0
+' 6. Optional ReturnCountsQ = False - Boolean indicating whether of not
+'    to return counts. Returns one count per stem.
+' 7. Optional StorageQ = False - When True, separates the leaves,
+'    with commas
+'
+' RETURNED VALUE
+' Returns a 2D array with 2 or 3 columns. The fist column always contains
+' the stems. The second column contains the data for the leafs. However,
+' whether the element in column 2 could be a string of digits or an array
+' of numbers. If StorageQ is passed explicit as True, each leaf for the
+' given stem is an entry in a 1D array. If StorageQ is omitted or passed
+' explicitly as False, the leafs are concatenated into a single string of
+' digits. This is in keeping with Tukey's ways as described on page 14
+' of his EDA. If StorageQ is passeed explicit, the leaves are returned
+' as a 1D array of numbers after the optional application of the
+' multiplicative factor and rounding.
+'
+' The values for SqueezedSpec are defined at the top of p. 12 in EDA.
+Public Function StemAndLeafDiagram(ByVal DataSet As Variant, _
+                                   ByVal NumberOfLeafDigits As Integer, _
+                                   Optional ByVal Factor As Double = 1#, _
+                                   Optional ByVal SqueezedSpec As TukeyStemAndLeafSqueezedSpecification, _
+                                   Optional ByVal NumberRanges As Variant = Null, _
+                                   Optional ByVal RoundFactor As Variant = Null, _
+                                   Optional ByVal ReturnCountsQ As Boolean = False, _
+                                   Optional ByVal StorageQ As Boolean = False) As Variant
+    Dim DiagramDict As Dictionary
+    Dim SortedDiagramDict As Dictionary
+    Dim VarNum As Variant
+    Dim AStem As String
+    Dim ALeaf As String
+    Dim MissingStems As Variant
+    Dim SmallestStem As Long
+    Dim LargestStem As Long
+                                   
+    ' Set default return value to Null in case of error
+    Let StemAndLeafDiagram = Null
+    
+    ' Error Check: Exit with Null if DataSet is not a number array
+    If Not DimensionedNonEmptyArrayQ(DataSet) Then Exit Function
+    
+    ' Error Check: Exit with Null if DataSet not an array of numbers
+    If Not NumberArrayQ(DataSet) Then Exit Function
+    
+    ' Error Check: Exit with Null if NumberOfLeadDigits is more than one less than length of the largest
+    ' integer part
+    If NumberOfLeafDigits + 1 > Maximum(Map(Lambda("x", "", "Len(CStr(CLng(x)))"), DataSet)) Then Exit Function
+    
+    ' Error Check: Exit with Null if RoundFactor is neither Null nor a number
+    If Not (NullQ(RoundFactor) Or NumberQ(RoundFactor)) Then Exit Function
+    
+    ' Apply the factor if not equal to 1. Round all decimals to whole numbers
+    If Factor <> 1 Then Let DataSet = Map(Lambda("x", "", Factor & "*x"), DataSet)
+    
+    ' Round all the numbers after the application of the factor
+    If NullQ(RoundFactor) Then
+        Let DataSet = Map("Round", DataSet)
+    Else
+        Let DataSet = Map(Lambda("x", "", "Round(x," & RoundFactor & ")"), DataSet)
+    End If
+    
+    ' Instantatiate dictionary to hold the diagrams data
+    Set DiagramDict = New Dictionary
+    
+    ' Assign leaves to their stems
+    Let SmallestStem = Left(First(DataSet), Len(CStr(First(DataSet))) - NumberOfLeafDigits)
+    Let LargestStem = 0
+    For Each VarNum In DataSet
+        ' Extract the stem and the leaf for this number
+        Let AStem = Left(VarNum, Len(CStr(VarNum)) - NumberOfLeafDigits)
+        Let ALeaf = Right(CStr(VarNum), NumberOfLeafDigits)
+        
+        ' Store new smallest and largest stems
+        If CLng(AStem) < SmallestStem Then Let SmallestStem = CLng(AStem)
+        If CLng(AStem) > LargestStem Then Let LargestStem = CLng(AStem)
+        
+        ' Store this number's leaf in the correct location
+        If DiagramDict.Exists(Key:=AStem) Then
+            Let DiagramDict.Item(Key:=AStem) = DiagramDict.Item(Key:=AStem) & ALeaf
+        Else
+            Call DiagramDict.Add(Key:=AStem, Item:=ALeaf)
+        End If
+    Next
+    
+    ' Determine numbers missing stems
+    Let MissingStems = ComplementOfSets(NumericalSequence(SmallestStem, LargestStem, 1, True), _
+                                        Map(Lambda("x", "", "Clng(x)"), DiagramDict.Keys))
+
+    ' Add empty entries for the missing stems
+    For Each VarNum In MissingStems
+        Call DiagramDict.Add(Key:=CStr(VarNum), Item:=vbNullString)
+    Next
+    
+    ' Make sure the dictionary is sorted by its stems
+    Set SortedDiagramDict = New Dictionary
+    For Each VarNum In NumericalSequence(SmallestStem, LargestStem, 1, True)
+        Call SortedDiagramDict.Add(Key:=CStr(VarNum), Item:=DiagramDict.Item(Key:=CStr(VarNum)))
+    Next
+    
+    Set StemAndLeafDiagram = SortedDiagramDict
+End Function
 

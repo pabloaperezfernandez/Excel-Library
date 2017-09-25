@@ -101,14 +101,14 @@ Public Sub TestSpeedDumping1DOf1DMatrixVs2DMatrix()
     Dim AnArray() As Variant
     Dim r As Long
     Dim c As Integer
-    Const N As Long = 100000
+    Const n As Long = 100000
     Const M As Integer = 20
     
     Debug.Print "1D Array of Arrays"
     Debug.Print "   - Array Creation: " & Now()
     Let AnArray = ConstantArray(1, M)
-    ReDim DumpArray(1 To N)
-    For r = 1 To N
+    ReDim DumpArray(1 To n)
+    For r = 1 To n
         Let DumpArray(r) = AnArray
     Next
     Debug.Print "   - End Array Creation: " & Now()
@@ -120,8 +120,8 @@ Public Sub TestSpeedDumping1DOf1DMatrixVs2DMatrix()
     
     Debug.Print "2D Array "
     Debug.Print "   - Array Creation: " & Now()
-    ReDim DumpArray(1 To N, 1 To M)
-    For r = 1 To N
+    ReDim DumpArray(1 To n, 1 To M)
+    For r = 1 To n
         For c = 1 To M
             Let DumpArray(r, c) = 1
         Next
@@ -2083,6 +2083,32 @@ Public Sub TestPredicatesTakeIndexArrayQ()
     Call aListObject.Delete
 End Sub
 
+Public Sub TestPredicatesFormControlButtonQ()
+    Dim AShape1 As Shape
+    Dim AShape2 As Shape
+    
+    Set AShape1 = TempComputation.Shapes.AddFormControl(xlButtonControl, _
+                                                        Range("B2").Left, _
+                                                        Range("B2").Top, _
+                                                        40, _
+                                                        40)
+                                                        
+    Set AShape2 = TempComputation.Shapes.AddFormControl(xlDropDown, _
+                                                        Range("B2").Left, _
+                                                        Range("B2").Top, _
+                                                        40, _
+                                                        40)
+                                                        
+    Debug.Assert FormControlButtonQ(AShape1)
+    Debug.Assert Not FormControlButtonQ(AShape2)
+    Debug.Assert Not FormControlButtonQ(1)
+    Debug.Assert Not FormControlButtonQ(TempComputation)
+    Debug.Assert Not FormControlButtonQ(ThisWorkbook)
+    Debug.Assert Not FormControlButtonQ("not")
+    
+    Call DeleteShapes(Array(AShape1, AShape2))
+End Sub
+
 '********************************************************************************************
 ' FunctionalProgramming
 '********************************************************************************************
@@ -2774,6 +2800,10 @@ Public Sub TestArraysNumericalSequence()
     PrintArray NumericalSequence(0.5, -10, TheStep:=-3.1, ToEndNumberQ:=True)
 End Sub
 
+Public Sub TestArraysRange()
+    Debug.Assert EqualQ(Range(3), Array(1, 2, 3))
+End Sub
+
 Public Sub TestArraysCreateIndexSequenceFromSpan()
     Dim ASpan As Span
     Dim AnArray() As Integer
@@ -3378,13 +3408,132 @@ End Sub
 ' TypeConversions
 '********************************************************************************************
 Public Sub TestTypeConversionsCastShapesToArray()
-    Call LayoutButtonsOnGrid(TempComputation, Range("B2"), _
-                             3, 10, 10, 40, 40, _
-                             Array("B1", "B2", "B3", "B4", "B5"), _
-                             Array("Backup", "Backup", "Backup", "Backup", "Backup"))
+    Call CreateButtonsGrid(TempComputation, Range("B2"), _
+                           3, 10, 10, 40, 40, _
+                           Array("B1", "B2", "B3", "B4", "B5"), _
+                           Array("Backup", "Backup", "Backup", "Backup", "Backup"))
+                           
+    Call MsgBox("We will now check that 5 buttons were created.")
 
     Debug.Assert TempComputation.Shapes.Count = 5
 
     Call UI.DeleteShapes(CastShapesToArray(TempComputation.Shapes))
+    
+    Call MsgBox("We will now check that 5 buttons were deleted.")
+    
     Debug.Assert TempComputation.Shapes.Count = 0
 End Sub
+
+'********************************************************************************************
+' UI
+'********************************************************************************************
+Public Sub TestsUiEqualizeFormControlButtonSizes()
+    Dim AShape As Shape
+
+    Call CreateButtonsGrid(TempComputation, Range("B2"), _
+                           3, 10, 10, 40, 40, _
+                           Array("B1", "B2", "B3", "B4", "B5"), _
+                           Array("Backup", "Backup", "Backup", "Backup", "Backup"))
+  
+    Call EqualizeFormControlButtonSizes(CastShapesToArray(TempComputation.Shapes), 50, 60)
+    
+    For Each AShape In TempComputation.Shapes
+        Debug.Assert AShape.Width = 50
+        Debug.Assert AShape.Height = 60
+    Next
+    
+    Call UI.DeleteShapes(CastShapesToArray(TempComputation.Shapes))
+End Sub
+
+Public Sub TestUiDistributeButtonsHorizontally()
+    Call DeleteShapes(CastShapesToArray(TempComputation.Shapes))
+
+    Call CreateButtonsGrid(TempComputation, Range("B2"), _
+                           1, 10, 10, 40, 40, _
+                           Array("B1", "B2", "B3"), _
+                           Array("Backup", "Backup", "Backup"))
+
+    Call DistributeButtonsHorizontally(CastShapesToArray(TempComputation.Shapes), TempComputation.Range("B5:E10"))
+End Sub
+
+
+Public Sub TestUiDistributeButtonsHorizontally2()
+    Call DeleteShapes(CastShapesToArray(TempComputation.Shapes))
+    
+    Call CreateButtonsGrid(TempComputation, Range("B2"), _
+                           1, 10, 10, 40, 40, _
+                           Array("B1", "B2", "B3"), _
+                           Array("Backup", "Backup", "Backup"))
+
+    Let TempComputation.Shapes(1).Width = 70
+    Call DistributeButtonsHorizontally(CastShapesToArray(TempComputation.Shapes), TempComputation.Range("B5:E10"))
+End Sub
+
+Public Sub TestUiDistributeButtonsHorizontally3()
+    Call DeleteShapes(CastShapesToArray(TempComputation.Shapes))
+
+    Call CreateButtonsGrid(TempComputation, Range("B2"), _
+                           1, 10, 10, 40, 40, _
+                           Array("B1", "B2", "B3"), _
+                           Array("Backup", "Backup", "Backup"))
+
+    Let TempComputation.Shapes(1).Width = 200
+    Call DistributeButtonsHorizontally(CastShapesToArray(TempComputation.Shapes), TempComputation.Range("B5:E10"))
+End Sub
+
+'********************************************************************************************
+' Statistics
+'********************************************************************************************
+Public Sub TestStatisticsMaximum()
+    Debug.Assert 4 = Maximum([{1,2,3,4}])
+    Debug.Assert IsNull(Maximum([{1,2,3,"4"}]))
+End Sub
+
+Public Sub TestStatisticsMinimum()
+    Debug.Assert 1 = Minimum([{1,2,3,4}])
+    Debug.Assert IsNull(Minimum([{1,2,3,"4"}]))
+End Sub
+
+Public Sub TestStatisticsMedian()
+    Debug.Assert Application.Median([{1,2,3,4}]) = Median([{1,2,3,4}])
+    Debug.Assert IsNull(Median([{1,2,3,"4"}]))
+End Sub
+
+Public Sub TestStatisticsAverage()
+    Debug.Assert Application.Average([{1,2,3,4}]) = Average([{1,2,3,4}])
+    Debug.Assert IsNull(Average([{1,2,3,"4"}]))
+End Sub
+
+Public Sub TestStatisticsRound()
+    Dim i As Integer
+
+    Dim Dividends As Variant
+    Dim Divisors As Variant
+    Dim MathematicaResults As Variant
+    Dim Rounds As Variant
+    
+    Let Dividends = Array(1, 2, 3, 4, 5, 6, 7, 8, 9, 10)
+    Let Divisors = Array(1, 5, 0.1, 0.2, 3, 1.5, 0.7, 0.8, 1.2, 2.1)
+    ' Following are the results from running this function on Mathematica 11.0
+    Let MathematicaResults = Array(1, 0, 3#, 4#, 6, 6#, 7#, 8#, 9.6, 10.5)
+    
+    Let Rounds = MapThread("Round", Dividends, Divisors)
+
+    For i = 1 To Length(MathematicaResults)
+        Debug.Assert Part(MathematicaResults, i) = Part(Rounds, i)
+    Next
+End Sub
+
+Public Sub TestStatisticsStemAndLeafDiagram()
+    Dim DataSet As Variant
+    Dim DiagDict As Dictionary
+    Dim var As Variant
+    
+    Let DataSet = [{11,12,13,14,21,51,32,43,72,73,74}]
+    Set DiagDict = StemAndLeafDiagram(DataSet, 1)
+    For Each var In DiagDict.Keys
+        Debug.Print var & " -> " & DiagDict.Item(Key:=var)
+    Next
+End Sub
+
+

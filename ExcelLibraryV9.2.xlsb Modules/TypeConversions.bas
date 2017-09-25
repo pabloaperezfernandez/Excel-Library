@@ -432,31 +432,6 @@ Public Function Cast(arg As Variant, TheDataType As XlParameterDataType) As Vari
 End Function
 
 ' DESCRIPTION
-' Converts a collection to an array. Returns Null if the collection
-' is empty
-'
-' PARAMETERS
-' 1. ACollection - An instance of collection
-'
-' RETURNED VALUE
-' An array holding the elements of the collection
-Public Function CastCollectionToArray(ACollection As Collection) As Variant
-    Dim ResultArray() As Variant
-    Dim c As Long
-    
-    Let CastCollectionToArray = Null
-
-    If ACollection.Count = 0 Then Exit Function
-    
-    ReDim ResultArray(1 To ACollection.Count)
-    For c = 1 To ACollection.Count
-        Set ResultArray(c) = ACollection(c)
-    Next
-    
-    Let CastCollectionToArray = ResultArray
-End Function
-
-' DESCRIPTION
 ' Converts a shapes collection to an array. Returns Null if the collection
 ' is empty
 '

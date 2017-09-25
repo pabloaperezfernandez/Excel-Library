@@ -62,7 +62,7 @@ Public Function ConsolidateWorksheets(WorksheetsArray() As Worksheet, _
     Dim ConsolidationWorksheet As Worksheet
     Dim SourceRange As Range
     Dim TargetRange As Range
-    Dim N As Long
+    Dim n As Long
     Dim RowCursor As Long
     
     ' Default return value. Only changed below iff TargetWorksheet missing
@@ -100,15 +100,15 @@ Public Function ConsolidateWorksheets(WorksheetsArray() As Worksheet, _
     
     ' Set the current row where data should be dropped in the consolidation worksheet
     Let RowCursor = FirstDataRow
-    For N = LBound(WorksheetsArray) To UBound(WorksheetsArray)
+    For n = LBound(WorksheetsArray) To UBound(WorksheetsArray)
         ' Compute the last row to consolidate in this worksheet
-        Let LastDataRow = WorksheetsArray(N).Cells(WorksheetsArray(1).Rows.Count, 1).End(xlUp).Row
+        Let LastDataRow = WorksheetsArray(n).Cells(WorksheetsArray(1).Rows.Count, 1).End(xlUp).Row
         
         ' Compute the number of rows to consolidate
         Let NumRows = LastDataRow - FirstDataRow + 1
                         
         ' Set the source range
-        Set SourceRange = WorksheetsArray(N).Cells(FirstDataRow, 1).Resize(NumRows, NumColumns)
+        Set SourceRange = WorksheetsArray(n).Cells(FirstDataRow, 1).Resize(NumRows, NumColumns)
         
         ' Set the target range
         Set TargetRange = ConsolidationWorksheet.Cells(RowCursor, 1).Resize(NumRows, NumColumns)
@@ -119,7 +119,7 @@ Public Function ConsolidateWorksheets(WorksheetsArray() As Worksheet, _
         
         ' Update RowCursor
         Let RowCursor = RowCursor + NumRows
-    Next N
+    Next n
     
     ' Exit since data in TargetWorksheet by this point in code if TargetWorksheet give
     If Not IsMissing(TargetWorksheet) Then Exit Function

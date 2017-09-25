@@ -405,7 +405,7 @@ Public Function MapThread(ALambda As Variant, _
                           ParamArray ArrayOfEqualLengthArrays() As Variant) As Variant
     Dim ProcName As String
     Dim var As Variant
-    Dim N As Long
+    Dim n As Long
     Dim r As Long
     Dim c As Long
     Dim ArrayNumber As Long
@@ -431,11 +431,11 @@ Public Function MapThread(ALambda As Variant, _
     End If
 
     ' Get the length of the first parameter array
-    Let N = Length(First(ParamsArray))
+    Let n = Length(First(ParamsArray))
     
     ' Exit with Null if the arrays don't all have the same length or are atomic
     For Each var In ParamsArray
-        If Length(var) <> N Then Exit Function
+        If Length(var) <> n Then Exit Function
     Next
 
     On Error GoTo ErrorHandler
@@ -448,14 +448,14 @@ Public Function MapThread(ALambda As Variant, _
     End If
 
     ' Pre-allocate array to hold results and each function call's array
-    ReDim ReturnArray(1 To N)
+    ReDim ReturnArray(1 To n)
     ReDim CallArray(1 To Length(ParamsArray))
 
     ' Create splicing delegate name
     Let SplicingDelegateName = ParameterSplicingDelegate(ProcName, Length(ParamsArray))
 
     ' Loop over the array elements to compute results to return
-    For r = 1 To N
+    For r = 1 To n
         ' Assemble array of value for this function call
         For c = 1 To Length(ParamsArray)
             Let CallArray(c) = Part(Part(ParamsArray, c), r)
@@ -683,13 +683,13 @@ End Function
 ' Returns the Nth iteration of a function to an argument
 Public Function Nest(aFunctionName As String, _
                      arg As Variant, _
-                     N As Long) As Variant
-    If N < 0 Then
+                     n As Long) As Variant
+    If n < 0 Then
         Let Nest = Null
-    ElseIf N = 0 Then
+    ElseIf n = 0 Then
         Let Nest = arg
     Else
-        Let Nest = Nest(aFunctionName, Run(aFunctionName, arg), N - 1)
+        Let Nest = Nest(aFunctionName, Run(aFunctionName, arg), n - 1)
     End If
 End Function
 
@@ -711,21 +711,21 @@ End Function
 ' argument
 Public Function NestList(aFunctionName As String, _
                          arg As Variant, _
-                         N As Long) As Variant
+                         n As Long) As Variant
     Dim ResultArray As Variant
     Dim i As Long
     Dim CurrentValue As Variant
     
-    If N < 0 Then
+    If n < 0 Then
         Let ResultArray = Null
-    ElseIf N = 0 Then
+    ElseIf n = 0 Then
         Let ResultArray = Array(arg)
     Else
-        ReDim ResultArray(1 To N + 1)
+        ReDim ResultArray(1 To n + 1)
         
         Let ResultArray(1) = arg
         Let CurrentValue = arg
-        For i = 2 To N + 1
+        For i = 2 To n + 1
             Let ResultArray(i) = Run(aFunctionName, CurrentValue)
             Let CurrentValue = ResultArray(i)
         Next

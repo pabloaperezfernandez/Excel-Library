@@ -426,7 +426,7 @@ End Sub
 ' RETURNED VALUE
 ' Returns the name of the delegate function for splicing an array into the parameter
 ' slots of the given function
-Public Function ParameterSplicingDelegate(FunctionName As String, N As Integer) As Variant
+Public Function ParameterSplicingDelegate(FunctionName As String, n As Integer) As Variant
     Dim ParamNames As Variant
     Dim ParenString As String
     Dim FunctionBody() As String
@@ -437,23 +437,23 @@ Public Function ParameterSplicingDelegate(FunctionName As String, N As Integer) 
     Let ParameterSplicingDelegate = Null
     
     ' ErrorCheck: Exit with Null if N not a positive integer
-    If Not PositiveWholeNumberQ(N) Then Exit Function
+    If Not PositiveWholeNumberQ(n) Then Exit Function
     
     ' Create parameter list for anonymous function
-    Let ParamNames = GenerateStringSequence("Param", 1, N)
+    Let ParamNames = GenerateStringSequence("Param", 1, n)
 
     ' Create the function body
     
     ' Construct a let statement for bind each var to its intended value
-    ReDim FunctionBody(1 To 2 * N)
-    For i = 1 To N
+    ReDim FunctionBody(1 To 2 * n)
+    For i = 1 To n
         Let FunctionBody(i) = _
             "Dim " & Part(ParamNames, i) & " as Variant"
     Next
     
-    For i = N + 1 To 2 * N
+    For i = n + 1 To 2 * n
         Let FunctionBody(i) = _
-            "Let " & Part(ParamNames, i - N) & " = Part(ArrayToSplice," & i - N & ")"
+            "Let " & Part(ParamNames, i - n) & " = Part(ArrayToSplice," & i - n & ")"
     Next
         
     ' Create the anonymous function
@@ -464,6 +464,5 @@ Public Function ParameterSplicingDelegate(FunctionName As String, N As Integer) 
                                            "run(" & Chr(34) & FunctionName & Chr(34) & _
                                            "," & ParenString _
                                           ).FunctionName
-Debug.Print "returning " & ParameterSplicingDelegate
 End Function
 

@@ -597,7 +597,7 @@ End Function
 ' RETURNED VALUE
 ' The requested numerical sequence
 Public Function NumericalSequence(StartNumber As Variant, _
-                                  N As Variant, _
+                                  n As Variant, _
                                   Optional TheStep As Variant, _
                                   Optional ToEndNumberQ As Boolean = False) As Variant
     Dim TheStepCopy As Variant
@@ -617,7 +617,7 @@ Public Function NumericalSequence(StartNumber As Variant, _
     ' Process calling modality 2
     If ToEndNumberQ Then
         ' Exit with NULL if any of the three parameters is non-numeric
-        If Not NumberArrayQ(Array(StartNumber, N, TheStepCopy)) Then Exit Function
+        If Not NumberArrayQ(Array(StartNumber, n, TheStepCopy)) Then Exit Function
         
         ' Set first return value
         ReDim ReturnArray(1 To 1): Let ReturnArray(1) = StartNumber
@@ -625,7 +625,7 @@ Public Function NumericalSequence(StartNumber As Variant, _
         ' Complete the sequence of numbers
         Let i = 1
         Let CurrentNumber = StartNumber + i * TheStepCopy
-        Do While CurrentNumber <= N
+        Do While CurrentNumber <= n
             ReDim Preserve ReturnArray(1 To i + 1)
             
             Let ReturnArray(i + 1) = CurrentNumber
@@ -634,15 +634,79 @@ Public Function NumericalSequence(StartNumber As Variant, _
         Loop
     ' Process calling modality 1
     Else
-        If N < 0 Then Exit Function
+        If n < 0 Then Exit Function
         
-        ReDim ReturnArray(1 To N)
-        For i = 1 To N
+        ReDim ReturnArray(1 To n)
+        For i = 1 To n
             Let ReturnArray(i) = StartNumber + (i - 1) * TheStepCopy
         Next i
     End If
     
     Let NumericalSequence = ReturnArray
+End Function
+
+' DESCRIPTION
+' Generates a sequence of numbers. It replicates Mathematica's Range[].
+' It has three calling modalities
+
+' 1. Range(ANumber)
+'    + When ANumber is positive, returns Array(1, 2, ..., Floor(ANumber))
+'    + When ANumber is negative, returns Array()]
+' 2. Range(ANumber, EndNumber) - Returns Null if EndNumber<ANumber. Otherwise,
+'    it returns Array(ANumber, ANumber+1, ..., Floor(EndNumber))
+' 3. Range(ANumber, EndNumber, TheStep)
+'    + ANumber<=EndNumber and TheStep>0 returns
+'      Array(ANumber, ANumber+TheStep, ANumber+2*TheStep, ..., Floor(EndNumber))
+'    + ANumber>EndNumber and TheStep<0 returns
+'      Array(ANumber, ANumber-TheStep, ANumber-2*TheStep, ..., Ceiling(EndNumber))
+'
+' PARAMETERS
+' 1. ANumber - A Number
+' 2. Optional EndNumber - The end number in the requested sequence when provided
+' 3. TheStep (optional) - To create a sequence using a sequential step different
+'    from 1. This is required when ANumber > EndNumber.
+'
+' RETURNED VALUE
+' The requested numerical sequence
+Public Function Range(ANumber As Variant, _
+                      Optional EndNumber As Variant, _
+                      Optional TheStep As Variant) As Variant
+    ' Set default return value in case of error
+    Let Range = Null
+                      
+    ' Error Check: EndNumber is neither missing nor a number
+    If Not (IsMissing(EndNumber) Or NumberQ(ANumber)) Then Exit Function
+    
+    ' Error Check: TheStep not missing while EndNumber is missing
+    If Not IsMissing(TheStep) And IsMissing(EndNumber) Then Exit Function
+    
+    ' TheStep is missing and EndNumber < ANumber
+    If Not IsMissing(EndNumber) And IsMissing(TheStep) Then
+        If EndNumber < ANumber Then
+            Let Range = EmptyArray()
+        End If
+    End If
+    
+    ' EndNumber is missing and ANumber is negative
+    If IsMissing(EndNumber) And NegativeQ(ANumber) Then
+        Let Range = EmptyArray()
+        Exit Function
+    End If
+    
+    ' ANumber is given.  Nothing else given
+    If IsMissing(EndNumber) Then
+        Let Range = NumericalSequence(1, ANumber, 1, True)
+        Exit Function
+    End If
+    
+    ' ANumber<=EndNumber
+    If EndNumber >= ANumber Then
+        Let Range = NumericalSequence(ANumber, EndNumber, IIf(IsMissing(TheStep), 1, TheStep), True)
+        Exit Function
+    End If
+    
+    ' EndNumber<=ANumber and TheStep is given
+    Let Range = NumericalSequence(ANumber, EndNumber, TheStep, True)
 End Function
 
 ' DESCRIPTION
@@ -1854,7 +1918,7 @@ End Function
 '
 ' RETURNED VALUE
 ' A constant 1D or 2D array with the given number of rows and columns.
-Public Function ConstantArray(TheValue As Variant, M As Long, Optional N As Long = 0) As Variant
+Public Function ConstantArray(TheValue As Variant, M As Long, Optional n As Long = 0) As Variant
     Dim ReturnMatrix() As Variant
     Dim i As Long
     Dim j As Long
@@ -1862,19 +1926,19 @@ Public Function ConstantArray(TheValue As Variant, M As Long, Optional N As Long
     Let ConstantArray = Null
 
     If NegativeWholeNumberQ(M) Or M = 0 Then Exit Function
-    If NegativeWholeNumberQ(N) Then Exit Function
+    If NegativeWholeNumberQ(n) Then Exit Function
     
-    If N = 0 Then
+    If n = 0 Then
         ReDim ReturnMatrix(1 To M)
         
         For i = 1 To M
             ReturnMatrix(i) = TheValue
         Next
     Else
-        ReDim ReturnMatrix(1 To M, 1 To N)
+        ReDim ReturnMatrix(1 To M, 1 To n)
         
         For i = 1 To M
-            For j = 1 To N
+            For j = 1 To n
                 Let ReturnMatrix(i, j) = TheValue
             Next
         Next
@@ -1896,25 +1960,25 @@ End Function
 '
 ' RETURNED VALUE
 ' The identity matrix with the requested dimensions
-Public Function IdentityMatrix(M As Long, Optional N As Long = 0) As Variant
+Public Function IdentityMatrix(M As Long, Optional n As Long = 0) As Variant
     Dim ReturnMatrix() As Long
     Dim i As Long
     
     Let IdentityMatrix = Null
 
     If NegativeWholeNumberQ(M) Or M = 0 Then Exit Function
-    If NegativeWholeNumberQ(N) Then Exit Function
+    If NegativeWholeNumberQ(n) Then Exit Function
     
-    If N = 0 Then
+    If n = 0 Then
         ReDim ReturnMatrix(1 To M, 1 To M)
         
         For i = 1 To M
             Let ReturnMatrix(i, i) = 1
         Next
     Else
-        ReDim ReturnMatrix(1 To M, 1 To N)
+        ReDim ReturnMatrix(1 To M, 1 To n)
         
-        For i = 1 To Application.WorksheetFunction.Min(M, N)
+        For i = 1 To Application.WorksheetFunction.Min(M, n)
             Let ReturnMatrix(i, i) = 1
         Next
     End If

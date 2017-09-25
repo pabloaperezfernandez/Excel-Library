@@ -585,19 +585,43 @@ End Function
 ' 1. arg - any Excel value or reference
 '
 ' RETURNED VALUE
-' Returns True or False depending on whether or not its argument is an instance of class Span
+' Returns True or False depending on whether or not its argument is an instance
+' of class Span
 Public Function LambdaQ(arg As Variant) As Boolean
     Let LambdaQ = TypeName(arg) = TypeName(Predicates.SampleLambda)
 End Function
 
 ' DESCRIPTION
-' Boolean function returning True if its argument is a string or a number. Returns False otherwise.
+' Boolean function returning True if its argument is a control form button.
+' Returns False otherwise.
 '
 ' PARAMETERS
 ' 1. arg - any value or object reference
 '
 ' RETURNED VALUE
-' True or False depending on whether or not its argument string or a number.
+' True or False depending on whether or not its argument is a button.
+Public Function FormControlButtonQ(arg As Variant) As Boolean
+    Let FormControlButtonQ = False
+    
+    If TypeName(arg) = "Shape" Then
+        If arg.Type = msoFormControl Then
+            If arg.FormControlType = xlButtonControl Then
+                Let FormControlButtonQ = True
+            End If
+        End If
+    End If
+End Function
+
+' DESCRIPTION
+' Boolean function returning True if its argument is a string or a number.
+' Returns False otherwise.
+'
+' PARAMETERS
+' 1. arg - any value or object reference
+'
+' RETURNED VALUE
+' True or False depending on whether or not its argument is a string or
+' a number.
 Public Function NumberOrStringQ(arg As Variant) As Boolean
     Let NumberOrStringQ = NumberQ(arg) Or StringQ(arg)
 End Function
@@ -749,6 +773,54 @@ Public Function FreeQ(TheArray As Variant, TheValue As Variant) As Boolean
 End Function
 
 ' DESCRIPTION
+' Boolean function returning True if its parameter has type integer
+'
+' PARAMETERS
+' 1. var - any expression
+'
+' RETURNED VALUE
+' True if the arguments has type integer
+Public Function IntegerTypeQ(var As Variant) As Boolean
+    Let IntegerTypeQ = TypeName(var) = TypeName(CInt(5))
+End Function
+
+' DESCRIPTION
+' Boolean function returning True if its parameter has type long
+'
+' PARAMETERS
+' 1. var - any expression
+'
+' RETURNED VALUE
+' True if the arguments has type long
+Public Function LongTypeQ(var As Variant) As Boolean
+    Let LongTypeQ = TypeName(var) = TypeName(CLng(5))
+End Function
+
+' DESCRIPTION
+' Boolean function returning True if its parameter has type single
+'
+' PARAMETERS
+' 1. var - any expression
+'
+' RETURNED VALUE
+' True if the arguments has type single
+Public Function SingleTypeQ(var As Variant) As Boolean
+    Let SingleTypeQ = TypeName(var) = TypeName(CSng(5))
+End Function
+
+' DESCRIPTION
+' Boolean function returning True if its parameter has type double
+'
+' PARAMETERS
+' 1. var - any expression
+'
+' RETURNED VALUE
+' True if the arguments has type double
+Public Function DoubleTypeQ(var As Variant) As Boolean
+    Let DoubleTypeQ = TypeName(var) = TypeName(CDbl(5))
+End Function
+
+' DESCRIPTION
 ' Boolean function returning True if its two parameters are equal according
 ' to the following rules:
 '
@@ -818,8 +890,16 @@ Public Function EqualQ(x As Variant, y As Variant) As Boolean
         End If
         
         Let EqualQ = True
-    ElseIf NumberQ(x) And NumberQ(y) Then
-        Let EqualQ = (x = y) And (TypeName(x) = TypeName(y))
+    ElseIf NumberQ(x) And NumberQ(y) Then '***
+        Let EqualQ = (x = y) And _
+                     ((IntegerTypeQ(x) And IntegerTypeQ(y)) Or _
+                      (IntegerTypeQ(x) And LongTypeQ(y)) Or _
+                      (LongTypeQ(x) And IntegerTypeQ(y)) Or _
+                      (LongTypeQ(x) And LongTypeQ(y)) Or _
+                      (SingleTypeQ(x) And SingleTypeQ(y)) Or _
+                      (SingleTypeQ(x) And DoubleTypeQ(y)) Or _
+                      (DoubleTypeQ(x) And SingleTypeQ(y)) Or _
+                      (DoubleTypeQ(x) And DoubleTypeQ(y)))
     ElseIf IsNull(x) And IsNull(y) Then
         Let EqualQ = True
     ElseIf IsObject(x) And IsObject(y) Then

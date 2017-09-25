@@ -18,11 +18,11 @@ End Sub
 
 Public Sub FormManipulationExample()
 Attribute FormManipulationExample.VB_ProcData.VB_Invoke_Func = " \n14"
-    Dim theHeight As Double
-    Dim theWidth As Double
+    Dim TheHeight As Double
+    Dim TheWidth As Double
     Dim i As Integer
     Dim obj() As OLEObject
-    Dim N As Integer
+    Dim n As Integer
     
     Dim var As Variant
     
@@ -30,15 +30,15 @@ Attribute FormManipulationExample.VB_ProcData.VB_Invoke_Func = " \n14"
         Call var.Delete
     Next
     
-    Let N = 10
+    Let n = 10
     
-    Let theWidth = TempComputation.Range("A1").Width
-    Let theHeight = TempComputation.Range("A1").Height
+    Let TheWidth = TempComputation.Range("A1").Width
+    Let TheHeight = TempComputation.Range("A1").Height
 
-    ReDim obj(1 To N)
-    For i = 1 To N
+    ReDim obj(1 To n)
+    For i = 1 To n
         Set obj(i) = TempComputation.OLEObjects.Add(ClassType:="Forms.TextBox.1", Link:=False, DisplayAsIcon:=False, _
-                                                    Left:=50, Top:=i * 50, Width:=theWidth, Height:=theHeight)
+                                                    Left:=50, Top:=i * 50, Width:=TheWidth, Height:=TheHeight)
         
         Let obj(i).Name = "Pablo" & i
     Next i

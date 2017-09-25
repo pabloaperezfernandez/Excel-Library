@@ -398,7 +398,7 @@ End Function
 ' The requested string sequence
 Public Function GenerateStringSequence(TheStringRoot As String, _
                                        StartNumber As Variant, _
-                                       N As Variant, _
+                                       n As Variant, _
                                        Optional TheStep As Variant, _
                                        Optional ToEndNumberQ As Boolean = False) As Variant
     Dim TheNumericSequence As Variant
@@ -406,7 +406,7 @@ Public Function GenerateStringSequence(TheStringRoot As String, _
     ' Set default return value in case of error
     Let GenerateStringSequence = Null
     
-    Let TheNumericSequence = NumericalSequence(StartNumber, N, TheStep, ToEndNumberQ)
+    Let TheNumericSequence = NumericalSequence(StartNumber, n, TheStep, ToEndNumberQ)
     
     ' ErrorCheck: Exit if the parameters caused an error
     If IsNull(TheNumericSequence) Then Exit Function
