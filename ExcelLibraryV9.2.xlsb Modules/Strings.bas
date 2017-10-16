@@ -210,11 +210,11 @@ Public Function GetSedolCheckDigit(str As Variant) As String
     Let Total = 0
     For i = 1 To 6
         Let s = Mid(UpperCaseSedol, i, 1)
-
+        
         If Asc(s) >= 48 And Asc(s) <= 57 Then
-                Let Total = Total + CInt(s) * Weights(i)
+            Let Total = Total + CInt(s) * Weights(i)
         Else
-                Total = Total + (Asc(s) - 55) * Weights(i)
+            Let Total = Total + (Asc(s) - 55) * Weights(i)
         End If
  
     Next i
