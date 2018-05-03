@@ -83,7 +83,7 @@ End Sub
 ' RETURNED VALUE
 ' None
 Private Sub Workbook_BeforeClose(Cancel As Boolean)
-    Call RemoveXlamAddinReference(ExcelLibraryFilename)
+    Call RemoveXlamAddinReference(ExcelLibraryName)
     Call ThisWorkbook.Save
 End Sub
 
