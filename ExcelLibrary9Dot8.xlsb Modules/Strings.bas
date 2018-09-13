@@ -145,8 +145,7 @@ End Function
 ' This function creates a functional parameter string from the array of parameters.
 ' This is useful when building functional calls dynamically.  The parameter array is 1D.
 Public Function CreateFunctionalParameterArray(ParameterArray As Variant) As String
-    
-    Let CreateFunctionalParameterArray = "(" & Join(Filter(ParameterArray, Lambda("x", "", "StrComp(x,vbnullstring)<>0")), ",") & ")"
+    Let CreateFunctionalParameterArray = "(" & Join(FilterValueFromArray(ParameterArray, vbNullString), ",") & ")"
 End Function
 
 ' This function takes a 1D range and trims its contents after converting it to upper case
@@ -268,20 +267,8 @@ End Function
 '
 ' RETURNED VALUE
 ' the string with sequences of spaces replaced by a single space
-Public Function RemoveDuplicatedSpaces(Text As String) As String
-    ' Old code. Too slow
-    ' Let RemoveDuplicatedSpaces = RemoveDuplicatedString(AString, " ")
-    '
-    Dim Pos As String
-    
-    Let Pos = InStr(1, Text, Space(2), vbBinaryCompare)
-    
-    Do Until Pos = 0
-        Let Text = Replace(Text, Space(2), Space(1))
-        Let Pos = InStr(1, Text, Space(2), vbBinaryCompare)
-    Loop
-    
-    Let RemoveDuplicatedSpaces = Text
+Public Function RemoveDuplicatedSpaces(AString As String) As String
+    Let RemoveDuplicatedSpaces = RemoveDuplicatedString(AString, " ")
 End Function
 
 ' DESCRIPTION
@@ -294,9 +281,7 @@ End Function
 ' the string with sequences of spaces replaced by a single space
 Public Function RemoveDuplicatedString(AString As String, TargetChars As String) As String
     Let RemoveDuplicatedString = IIf(StrComp(Left(AString, Len(TargetChars)), TargetChars, vbTextCompare) = 0, TargetChars, vbNullString) & _
-                                 Join(Filter(Split(AString, TargetChars), _
-                                             Lambda("x", "", "StrComp(x, vbNullString,vbTextCompare)<>0")), _
-                                      TargetChars) & _
+                                 Join(FilterValueFromArray(Split(AString, TargetChars), vbNullString), TargetChars) & _
                                  IIf(StrComp(Right(AString, Len(TargetChars)), TargetChars, vbTextCompare) = 0, TargetChars, vbNullString)
 End Function
 

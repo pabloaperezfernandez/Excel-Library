@@ -55,9 +55,8 @@ Public Function GetExchangeCode(AnIdentifier As String) As String
     Let GetExchangeCode = vbNullString
     
     ' This eliminates repeated spaces and then splits into words
-    Let AnArray = FunctionalProgramming.Filter(Split(Trim(AnIdentifier), " "), _
-                                               Lambda("x", "", "Not StrComp(x,"" "",vbTextCompare)"))
-    Let AnId = Join(AnArray, " ")
+    Let AnArray = Split(RemoveDuplicatedSpaces(Trim(AnIdentifier)))
+    Let AnId = Join(AnArray)
     
     ' If there is only one word, this identifier has no exchange code.
     If Length(AnArray) < 2 Then Exit Function
@@ -88,8 +87,7 @@ Public Function GetMarketSectorDes(AnIdentifier As String) As String
     Dim TheLastPart As String
     
     ' This eliminates repeated spaces and then splits into words
-    Let TheLastPart = Last(FunctionalProgramming.Filter(Split(Trim(AnIdentifier), " "), _
-                                                        Lambda("x", "", "Not StrComp(x,"" "",vbTextCompare)")))
+    Let TheLastPart = Last(Split(RemoveDuplicatedSpaces(Trim(AnIdentifier))))
 
     If MemberQ(Array("Comdty", "Corp", "Curncy", "Equity", "Govt", "Index", "M -Mkt", "Mtge", "Muni", "Pfd"), _
                TheLastPart) Then
