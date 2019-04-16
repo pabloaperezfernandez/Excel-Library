@@ -863,7 +863,7 @@ Public Function GetVisibleSpecialValues(lo As ListObject) As Variant
     Let TheAddresses = Split(lo.Range.SpecialCells(xlCellTypeVisible).Address, ",")
     
     Let ResultArray = lo.HeaderRowRange.Value2
-    For Each VarString In Rest(TheAddresses)
+    For Each VarString In TheAddresses
         Let ResultArray = StackArrays(ResultArray, lo.Range.Worksheet.Range(VarString).Value2)
     Next
     
