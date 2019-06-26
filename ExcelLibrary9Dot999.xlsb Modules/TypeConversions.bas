@@ -14,7 +14,8 @@ End Function
 ' (e.g. an array returning False from Predicates.DimensionedQ())
 '
 ' This function does not check if the elements of AnArray can be casted to the desired type.
-Public Function ToListObjects(AnArray As Variant) As ListObject()
+Public Function ToListObjects(AnArray As Variant, _
+                              Optional ParameterCheckQ As Boolean = True) As ListObject()
     Dim ResultArray() As ListObject
     Dim RowOffset As Long
     Dim columnOffset As Long
@@ -33,18 +34,22 @@ Public Function ToListObjects(AnArray As Variant) As ListObject()
         Exit Function
     End If
     
+    If ParameterCheckQ Then
+        If Not (AtomicArrayQ(AnArray) Or AtomicTableQ(AnArray)) Then
+            Exit Function
+        End If
+    End If
+    
     ' Handle the case of a true 1D array
-    If AtomicArrayQ(AnArray) Then
+    If Dimensions(AnArray) = 1 Then
         ReDim ResultArray(1 To Length(AnArray))
         
         Let columnOffset = LBound(AnArray)
         For r = 1 To Length(AnArray)
             Set ResultArray(r) = AnArray(r - 1 + columnOffset)
         Next r
-    End If
-
     ' Handle the case of a true 2D array
-    If AtomicTableQ(AnArray) Then
+    ElseIf Dimensions(AnArray) = 2 Then
         ReDim ResultArray(1 To NumberOfRows(AnArray), 1 To NumberOfColumns(AnArray))
 
         Let RowOffset = LBound(AnArray, 1)
@@ -64,7 +69,8 @@ End Function
 ' returns an uninitialized array (e.g. an array returning False from Predicates.DimensionedQ())
 '
 ' This function does not check if the elements of AnArray can be casted to the desired type.
-Public Function ToStrings(AnArray As Variant) As String()
+Public Function ToStrings(AnArray As Variant, _
+                          Optional ParameterCheckQ As Boolean = True) As String()
     Dim ResultArray() As String
     Dim RowOffset As Long
     Dim columnOffset As Long
@@ -83,18 +89,22 @@ Public Function ToStrings(AnArray As Variant) As String()
         Exit Function
     End If
     
+    If ParameterCheckQ Then
+        If Not (AtomicArrayQ(AnArray) Or AtomicTableQ(AnArray)) Then
+            Exit Function
+        End If
+    End If
+    
     ' Handle the case of a true 1D array
-    If AtomicArrayQ(AnArray) Then
+    If Dimensions(AnArray) = 1 Then
         ReDim ResultArray(1 To Length(AnArray))
         
         Let columnOffset = LBound(AnArray)
         For r = 1 To Length(AnArray)
             Let ResultArray(r) = CStr(AnArray(r - 1 + columnOffset))
         Next r
-    End If
-
     ' Handle the case of a true 2D array
-    If AtomicTableQ(AnArray) Then
+    ElseIf Dimensions(AnArray) = 2 Then
         ReDim ResultArray(1 To NumberOfRows(AnArray), 1 To NumberOfColumns(AnArray))
 
         Let RowOffset = LBound(AnArray, 1)
@@ -114,36 +124,42 @@ End Function
 ' returns an uninitialized array (e.g. an array returning False from Predicates.DimensionedQ())
 '
 ' This function does not check if the elements of AnArray can be casted to the desired type.
-Public Function ToIntegers(AnArray As Variant) As Integer()
+Public Function ToIntegers(AnArray As Variant, _
+                           Optional ParameterCheckQ As Boolean = True) As Integer()
     Dim ResultArray() As Integer
     Dim RowOffset As Long
     Dim columnOffset As Long
     Dim r As Long
     Dim c As Long
     
-    If EmptyArrayQ(AnArray) Then
-        Let ToIntegers = ResultArray
-        Exit Function
-    End If
-
     ' DimensionQ returns false if AnArray is not an array or it is not initialized
     If Not DimensionedQ(AnArray) Then
         Let ToIntegers = ResultArray
         Exit Function
     End If
+
+    ' Exit with an empty array with the argument is an empty array
+    If EmptyArrayQ(AnArray) Then
+        Let ToIntegers = ResultArray
+        Exit Function
+    End If
+    
+    If ParameterCheckQ Then
+        If Not (AtomicArrayQ(AnArray) Or AtomicTableQ(AnArray)) Then
+            Exit Function
+        End If
+    End If
     
     ' Handle the case of a true 1D array
-    If AtomicArrayQ(AnArray) Then
+    If Dimensions(AnArray) = 1 Then
         ReDim ResultArray(1 To Length(AnArray))
         
         Let columnOffset = LBound(AnArray)
         For r = 1 To Length(AnArray)
             Let ResultArray(r) = CInt(AnArray(r - 1 + columnOffset))
         Next r
-    End If
-
     ' Handle the case of a true 2D array
-    If AtomicTableQ(AnArray) Then
+    ElseIf Dimensions(AnArray) = 2 Then
         ReDim ResultArray(1 To NumberOfRows(AnArray), 1 To NumberOfColumns(AnArray))
 
         Let RowOffset = LBound(AnArray, 1)
@@ -163,36 +179,42 @@ End Function
 ' returns an uninitialized array (e.g. an array returning False from Predicates.DimensionedQ())
 '
 ' This function does not check if the elements of AnArray can be casted to the desired type.
-Public Function ToLongs(AnArray As Variant) As Long()
+Public Function ToLongs(AnArray As Variant, _
+                        Optional ParameterCheckQ As Boolean = True) As Long()
     Dim ResultArray() As Long
     Dim RowOffset As Long
     Dim columnOffset As Long
     Dim r As Long
     Dim c As Long
-    
-    If EmptyArrayQ(AnArray) Then
-        Let ToLongs = ResultArray
-        Exit Function
-    End If
 
     ' DimensionQ returns false if AnArray is not an array or it is not initialized
     If Not DimensionedQ(AnArray) Then
         Let ToLongs = ResultArray
         Exit Function
     End If
+
+    ' Exit with an empty array with the argument is an empty array
+    If EmptyArrayQ(AnArray) Then
+        Let ToLongs = ResultArray
+        Exit Function
+    End If
+    
+    If ParameterCheckQ Then
+        If Not (AtomicArrayQ(AnArray) Or AtomicTableQ(AnArray)) Then
+            Exit Function
+        End If
+    End If
     
     ' Handle the case of a true 1D array
-    If AtomicArrayQ(AnArray) Then
+    If Dimensions(AnArray) = 1 Then
         ReDim ResultArray(1 To Length(AnArray))
         
         Let columnOffset = LBound(AnArray)
         For r = 1 To Length(AnArray)
             Let ResultArray(r) = CLng(AnArray(r - 1 + columnOffset))
         Next r
-    End If
-
     ' Handle the case of a true 2D array
-    If AtomicTableQ(AnArray) Then
+    ElseIf Dimensions(AnArray) = 2 Then
         ReDim ResultArray(1 To NumberOfRows(AnArray), 1 To NumberOfColumns(AnArray))
 
         Let RowOffset = LBound(AnArray, 1)
@@ -212,36 +234,42 @@ End Function
 ' returns an uninitialized array (e.g. an array returning False from Predicates.DimensionedQ())
 '
 ' This function does not check if the elements of AnArray can be casted to the desired type.
-Public Function ToDoubles(AnArray As Variant) As Double()
+Public Function ToDoubles(AnArray As Variant, _
+                          Optional ParameterCheckQ As Boolean = True) As Double()
     Dim ResultArray() As Double
     Dim RowOffset As Long
     Dim columnOffset As Long
     Dim r As Long
     Dim c As Long
-    
-    If EmptyArrayQ(AnArray) Then
-        Let ToDoubles = ResultArray
-        Exit Function
-    End If
 
     ' DimensionQ returns false if AnArray is not an array or it is not initialized
     If Not DimensionedQ(AnArray) Then
         Let ToDoubles = ResultArray
         Exit Function
     End If
+
+    ' Exit with an empty array with the argument is an empty array
+    If EmptyArrayQ(AnArray) Then
+        Let ToDoubles = ResultArray
+        Exit Function
+    End If
+    
+    If ParameterCheckQ Then
+        If Not (AtomicArrayQ(AnArray) Or AtomicTableQ(AnArray)) Then
+            Exit Function
+        End If
+    End If
     
     ' Handle the case of a true 1D array
-    If AtomicArrayQ(AnArray) Then
+    If Dimensions(AnArray) = 1 Then
         ReDim ResultArray(1 To Length(AnArray))
         
         Let columnOffset = LBound(AnArray)
         For r = 1 To Length(AnArray)
             Let ResultArray(r) = CDbl(AnArray(r - 1 + columnOffset))
         Next r
-    End If
-
     ' Handle the case of a true 2D array
-    If AtomicTableQ(AnArray) Then
+    ElseIf Dimensions(AnArray) = 2 Then
         ReDim ResultArray(1 To NumberOfRows(AnArray), 1 To NumberOfColumns(AnArray))
 
         Let RowOffset = LBound(AnArray, 1)
@@ -261,17 +289,13 @@ End Function
 ' returns an uninitialized array (e.g. an array returning False from Predicates.DimensionedQ())
 '
 ' This function does not check if the elements of AnArray can be casted to the desired type.
-Public Function ToBooleans(AnArray As Variant) As Boolean()
+Public Function ToBooleans(AnArray As Variant, _
+                           Optional ParameterCheckQ As Boolean = True) As Boolean()
     Dim ResultArray() As Boolean
     Dim RowOffset As Long
     Dim columnOffset As Long
     Dim r As Long
     Dim c As Long
-    
-    If EmptyArrayQ(AnArray) Then
-        Let ToBooleans = ResultArray
-        Exit Function
-    End If
 
     ' DimensionQ returns false if AnArray is not an array or it is not initialized
     If Not DimensionedQ(AnArray) Then
@@ -279,18 +303,28 @@ Public Function ToBooleans(AnArray As Variant) As Boolean()
         Exit Function
     End If
     
+    ' Exit with an empty array with the argument is an empty array
+    If EmptyArrayQ(AnArray) Then
+        Let ToBooleans = ResultArray
+        Exit Function
+    End If
+    
+    If ParameterCheckQ Then
+        If Not (AtomicArrayQ(AnArray) Or AtomicTableQ(AnArray)) Then
+            Exit Function
+        End If
+    End If
+    
     ' Handle the case of a true 1D array
-    If AtomicArrayQ(AnArray) Then
+    If Dimensions(AnArray) = 1 Then
         ReDim ResultArray(1 To Length(AnArray))
         
         Let columnOffset = LBound(AnArray)
         For r = 1 To Length(AnArray)
             Let ResultArray(r) = CBool(AnArray(r - 1 + columnOffset))
         Next r
-    End If
-
     ' Handle the case of a true 2D array
-    If AtomicTableQ(AnArray) Then
+    ElseIf Dimensions(AnArray) = 2 Then
         ReDim ResultArray(1 To NumberOfRows(AnArray), 1 To NumberOfColumns(AnArray))
 
         Let RowOffset = LBound(AnArray, 1)
@@ -305,12 +339,21 @@ Public Function ToBooleans(AnArray As Variant) As Boolean()
     Let ToBooleans = ResultArray
 End Function
 
+Public Function ToWorksheet(AnObject As Variant) As Worksheet
+    Set ToWorksheet = AnObject
+End Function
+
+Public Function ToWorkbook(AnObject As Variant) As Workbook
+    Set ToWorkbook = AnObject
+End Function
+
 ' Casts to worksheets a 1D array satisfying Predicates.AtomicArrayQ() or 2D array satisfying
 ' Predicates.AtomicTableQ() a integers. If there is a problem with the parameter, the function
 ' returns an uninitialized array (e.g. an array returning False from Predicates.DimensionedQ())
 '
 ' This function does not check if the elements of AnArray can be casted to the desired type.
-Public Function ToWorksheets(AnArray As Variant) As Worksheet()
+Public Function ToWorksheets(AnArray As Variant, _
+                             Optional ParameterCheckQ As Boolean = True) As Worksheet()
     Dim ResultArray() As Worksheet
     Dim RowOffset As Long
     Dim columnOffset As Long
@@ -323,23 +366,28 @@ Public Function ToWorksheets(AnArray As Variant) As Worksheet()
         Exit Function
     End If
 
+    ' Exit with an empty array with the argument is an empty array
     If EmptyArrayQ(AnArray) Then
         Let ToWorksheets = ResultArray
         Exit Function
     End If
     
+    If ParameterCheckQ Then
+        If Not (AtomicArrayQ(AnArray) Or AtomicTableQ(AnArray)) Then
+            Exit Function
+        End If
+    End If
+    
     ' Handle the case of a true 1D array
-    If AtomicArrayQ(AnArray) Then
+    If Dimensions(AnArray) = 1 Then
         ReDim ResultArray(1 To Length(AnArray))
         
         Let columnOffset = LBound(AnArray)
         For r = 1 To Length(AnArray)
             Set ResultArray(r) = AnArray(r - 1 + columnOffset)
         Next r
-    End If
-
     ' Handle the case of a true 2D array
-    If AtomicTableQ(AnArray) Then
+    ElseIf Dimensions(AnArray) = 2 Then
         ReDim ResultArray(1 To NumberOfRows(AnArray), 1 To NumberOfColumns(AnArray))
 
         Let RowOffset = LBound(AnArray, 1)
@@ -359,36 +407,42 @@ End Function
 ' returns an uninitialized array (e.g. an array returning False from Predicates.DimensionedQ())
 '
 ' This function does not check if the elements of AnArray can be casted to the desired type.
-Public Function ToWorkbooks(AnArray As Variant) As Workbook()
+Public Function ToWorkbooks(AnArray As Variant, _
+                            Optional ParameterCheckQ As Boolean = True) As Workbook()
     Dim ResultArray() As Workbook
     Dim RowOffset As Long
     Dim columnOffset As Long
     Dim r As Long
     Dim c As Long
-    
-    If EmptyArrayQ(AnArray) Then
-        Let ToWorkbooks = ResultArray
-        Exit Function
-    End If
 
     ' DimensionQ returns false if AnArray is not an array or it is not initialized
     If Not DimensionedQ(AnArray) Then
         Let ToWorkbooks = ResultArray
         Exit Function
     End If
+
+    ' Exit with an empty array with the argument is an empty array
+    If EmptyArrayQ(AnArray) Then
+        Let ToWorkbooks = ResultArray
+        Exit Function
+    End If
+    
+    If ParameterCheckQ Then
+        If Not (AtomicArrayQ(AnArray) Or AtomicTableQ(AnArray)) Then
+            Exit Function
+        End If
+    End If
     
     ' Handle the case of a true 1D array
-    If AtomicArrayQ(AnArray) Then
+    If Dimensions(AnArray) = 1 Then
         ReDim ResultArray(1 To Length(AnArray))
         
         Let columnOffset = LBound(AnArray)
         For r = 1 To Length(AnArray)
             Let ResultArray(r) = AnArray(r - 1 + columnOffset)
         Next r
-    End If
-
     ' Handle the case of a true 2D array
-    If AtomicTableQ(AnArray) Then
+    ElseIf Dimensions(AnArray) = 2 Then
         ReDim ResultArray(1 To NumberOfRows(AnArray), 1 To NumberOfColumns(AnArray))
 
         Let RowOffset = LBound(AnArray, 1)
@@ -401,6 +455,61 @@ Public Function ToWorkbooks(AnArray As Variant) As Workbook()
     End If
     
     Let ToWorkbooks = ResultArray
+End Function
+
+' Casts to dates a 1D array satisfying Predicates.AtomicArrayQ() or 2D array satisfying
+' Predicates.AtomicTableQ() to strings.  If there is a problem with the parameter, the function
+' returns an uninitialized array (e.g. an array returning False from Predicates.DimensionedQ())
+'
+' This function does not check if the elements of AnArray can be casted to the desired type.
+Public Function ToDates(AnArray As Variant, _
+                        Optional ParameterCheckQ As Boolean = True) As Date()
+    Dim ResultArray() As Date
+    Dim RowOffset As Long
+    Dim columnOffset As Long
+    Dim r As Long
+    Dim c As Long
+    
+    ' DimensionQ returns false if AnArray is not an array or it is not initialized
+    If Not DimensionedQ(AnArray) Then
+        Let ToDates = ResultArray
+        Exit Function
+    End If
+
+    ' Exit with an undimensioned array with the argument is an empty array
+    If EmptyArrayQ(AnArray) Then
+        Let ToDates = ResultArray
+        Exit Function
+    End If
+
+    If ParameterCheckQ Then
+        If Not (AtomicArrayQ(AnArray) Or AtomicTableQ(AnArray)) Then
+            Exit Function
+        End If
+    End If
+    
+    ' Handle the case of a true 1D array
+    If Dimensions(AnArray) = 1 Then
+        ReDim ResultArray(1 To Length(AnArray))
+        
+        Let columnOffset = LBound(AnArray)
+        For r = 1 To Length(AnArray)
+            Let ResultArray(r) = CDate(AnArray(r - 1 + columnOffset))
+        Next r
+    ' Handle the case of a true 2D array
+    ElseIf Dimensions(AnArray) = 2 Then
+        ReDim ResultArray(1 To NumberOfRows(AnArray), 1 To NumberOfColumns(AnArray))
+
+        Let RowOffset = LBound(AnArray, 1)
+        Let columnOffset = LBound(AnArray, 2)
+        For r = 1 To NumberOfRows(AnArray)
+            For c = 1 To NumberOfColumns(AnArray)
+                Let ResultArray(r, c) = CDate(AnArray(r - 1 + RowOffset, c - 1 + columnOffset))
+            Next c
+        Next r
+    End If
+    
+    Let ToDates = ResultArray
 End Function
 
 ' This function casts atomic arguments and 1D arrays into the desired type.

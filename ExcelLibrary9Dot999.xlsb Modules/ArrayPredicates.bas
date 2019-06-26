@@ -15,7 +15,9 @@ Option Base 1
 Public Function DimensionedQ(arg As Variant) As Boolean
     Dim i As Long
     
-    On Error Resume Next
+    On Error GoTo ErrorFound
+    
+    Let DimensionedQ = True
     
     ' Exit with False
     If Not IsArray(arg) Then
@@ -28,7 +30,10 @@ Public Function DimensionedQ(arg As Variant) As Boolean
     ' will then check if an error has been raised.
     Let i = UBound(arg, 1)
     
-    Let DimensionedQ = Err.Number = 0
+    Exit Function
+
+ErrorFound:
+    Let DimensionedQ = False
 End Function
 
 ' DESCRIPTION

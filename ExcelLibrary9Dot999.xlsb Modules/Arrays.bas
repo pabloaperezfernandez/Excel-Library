@@ -1677,7 +1677,6 @@ End Function
 '
 ' RETURNED VALUE
 ' The requested slice or element of the array.
-'***HERE
 Public Function Drop(AnArray As Variant, ThePositions As Variant) As Variant
     Dim var As Variant
     Dim i As Long
@@ -1851,7 +1850,7 @@ Public Function Pack2DArray(TheRowsAs1DArrays As Variant, _
     Let Pack2DArray = Null
 
     ' Check parameter consitency only if ParameterCheckQ True
-    If Not ParameterCheckQ Then
+    If ParameterCheckQ Then
         ' Exit with Null if A2DArray is undimensioned
         If Not DimensionedQ(TheRowsAs1DArrays) Then Exit Function
         
@@ -1905,6 +1904,13 @@ Public Function Pack2DArray(TheRowsAs1DArrays As Variant, _
     End If
     
     Let Pack2DArray = ReturnArray
+End Function
+
+' Alias for Pack2DArray
+Public Function Pack(TheRowsAs1DArrays As Variant, _
+                     Optional PackAsColumnsQ As Boolean = False, _
+                     Optional ParameterCheckQ As Boolean = True) As Variant
+    Let Pack = Pack2DArray(TheRowsAs1DArrays, PackAsColumnsQ, ParameterCheckQ)
 End Function
 
 ' DESCRIPTION

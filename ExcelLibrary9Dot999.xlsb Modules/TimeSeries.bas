@@ -143,24 +143,24 @@ Public Function TimeSeriesMovingAverage(TimeSeriesArray As Variant, NumberPtsToA
     
     If NullQ(MaArray) Then Exit Function
     
-    Let DateChunk = Part(TimeSeriesArray, Span(CLng(NumberPtsToAvg), -1), 1)
+    Let DateChunk = Part(TimeSeriesArray, Span(1, -1), 1)
     
     Let TimeSeriesMovingAverage = Transpose(Pack2DArray(Array(DateChunk, MaArray)))
 End Function
 
-Public Function TimeSeriesSimpleAveragePerformance(TimeSeriesArray As Variant, NumberPtsToAvg As Integer) As Variant
+Public Function TimeSeriesSimplePerformance(TimeSeriesArray As Variant, NumberPtsToAvg As Integer) As Variant
     Dim PerfArray As Variant
     Dim DateChunk As Variant
     
-    Let TimeSeriesSimpleAveragePerformance = Null
+    Let TimeSeriesSimplePerformance = Null
     
     If Not DateArrayQ(Part(TimeSeriesArray, Span(1, -1), 1)) Then Exit Function
     
-    Let PerfArray = SimpleAveragePerformance(Part(TimeSeriesArray, Span(1, -1), 2), NumberPtsToAvg)
+    Let PerfArray = SimplePerformance(Part(TimeSeriesArray, Span(1, -1), 2), NumberPtsToAvg)
     
     If NullQ(PerfArray) Then Exit Function
     
-    Let DateChunk = Part(TimeSeriesArray, Span(CLng(NumberPtsToAvg), -1), 1)
+    Let DateChunk = Part(TimeSeriesArray, Span(1, -1), 1)
     
-    Let TimeSeriesSimpleAveragePerformance = Transpose(Pack2DArray(Array(DateChunk, PerfArray)))
+    Let TimeSeriesSimplePerformance = Transpose(Pack2DArray(Array(DateChunk, PerfArray)))
 End Function

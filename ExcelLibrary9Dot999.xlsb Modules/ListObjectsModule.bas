@@ -13,9 +13,9 @@ Public Function AddListObject(ARangeInCurrentRegion As Range, _
                               Optional ListObjectName As String = Empty, _
                               Optional UseCurrentRegionQ As Boolean = True) As ListObject
     Dim lo As ListObject
-    Dim wsht As Worksheet
+    Dim Wsht As Worksheet
     
-    Set wsht = ARangeInCurrentRegion.Parent
+    Set Wsht = ARangeInCurrentRegion.Parent
     
     ' Exit if ARange has not been initialized
     If ARangeInCurrentRegion Is Nothing Then
@@ -23,7 +23,7 @@ Public Function AddListObject(ARangeInCurrentRegion As Range, _
         Exit Function
     End If
     
-    Set lo = wsht.ListObjects.Add(SourceType:=xlSrcRange, _
+    Set lo = Wsht.ListObjects.Add(SourceType:=xlSrcRange, _
                                   Source:=IIf(UseCurrentRegionQ, ARangeInCurrentRegion.CurrentRegion, ARangeInCurrentRegion), _
                                   XlListObjectHasHeaders:=xlYes)
     
@@ -884,14 +884,18 @@ End Function
 Public Sub DumpDataInListObject(lo As ListObject, _
                                  DataGetterFunctionName As String, _
                                  Optional WorksheetPassword As String = vbNullString)
-    If WorksheetPassword <> vbNullString Then Call UnprotectWorksheet(lo.Parent)
+    If WorksheetPassword <> vbNullString Then
+        Call UnprotectWorksheet(lo.Parent, WorksheetPassword)
+    End If
     
     Let lo.ShowAutoFilter = False
     Call ClearListObjectDataBodyRange(lo)
     Call DumpInSheet(Rest(Application.Run(DataGetterFunctionName)), lo.Range(1, 1).Offset(1, 0))
     Let lo.ShowAutoFilter = True
     Call lo.AutoFilter.ShowAllData
-    
-    If WorksheetPassword <> vbNullString Then Call ProtectWorksheet(lo.Parent)
+
+    If WorksheetPassword <> vbNullString Then
+        Call ProtectWorksheet(lo.Parent, WorksheetPassword)
+    End If
 End Sub
 

@@ -862,7 +862,7 @@ Public Function StemAndLeafDiagram(ByVal DataSet As Variant, _
 End Function
 
 Public Function MovingAverage(TimeSeries1DArray As Variant, NumberPtsToAvg As Integer) As Variant
-    Dim MovingAverageArray() As Double
+    Dim MovingAverageArray() As Variant
     Dim Chunk As Variant
     Dim c As Long
     
@@ -881,11 +881,10 @@ Public Function MovingAverage(TimeSeries1DArray As Variant, NumberPtsToAvg As In
     ' Exit exit with error if averaging more pts than there are time series
     If NumberPtsToAvg > Length(TimeSeries1DArray) Then Exit Function
     
-    ReDim MovingAverageArray(1 To Length(TimeSeries1DArray) - (NumberPtsToAvg - 1))
-    
+    ReDim MovingAverageArray(1 To Length(TimeSeries1DArray))
     For c = NumberPtsToAvg To Length(TimeSeries1DArray)
         Let Chunk = Part(TimeSeries1DArray, Span(c - NumberPtsToAvg + 1, c))
-        Let MovingAverageArray(c - NumberPtsToAvg + 1) = Average(Chunk)
+        Let MovingAverageArray(c) = Average(Chunk)
     Next
     
     Let MovingAverage = MovingAverageArray
@@ -894,7 +893,10 @@ End Function
 ' DESCRIPTION
 ' Returns the vector of average performance between successive data
 ' points every n points in time. For example, if n = 2, you get the
-' vector of sequential returns.
+' vector of sequential returns. If n=4, you get the vector of
+' 3-period performances.  The vector return has the same length
+' as the data vector, but the performance numbers are placed in
+' the correctly offset position.
 '
 ' PARAMETERS
 ' 1. Vector - A non-empty, 1D of numbers
@@ -903,12 +905,12 @@ End Function
 '
 ' RETURNED VALUE
 ' A 1D vector of simple average performance of Null in case of error
-Public Function SimpleAveragePerformance(Vector As Variant, Optional NumberDatePts As Integer = 2) As Variant
-    Dim Results() As Double
+Public Function SimplePerformance(Vector As Variant, Optional NumberDatePts As Integer = 2) As Variant
+    Dim Results() As Variant
     Dim c As Long
     
      ' Set default return value to Null in case of error
-    Let SimpleAveragePerformance = Null
+    Let SimplePerformance = Null
 
     ' Error Check: Exit with Null if DataSet is not a number array
     If Not DimensionedNonEmptyArrayQ(Vector) Then Exit Function
@@ -922,11 +924,13 @@ Public Function SimpleAveragePerformance(Vector As Variant, Optional NumberDateP
     ' Exit exit with error if averaging more pts than there are time series
     If NumberDatePts > Length(Vector) Then Exit Function
 
-    ReDim Results(1 To Length(Vector) - NumberDatePts + 1)
+    ReDim Results(1 To Length(Vector))
     For c = NumberDatePts To Length(Vector)
-        Let Results(c - NumberDatePts + 1) = Vector(c) / Vector(c - NumberDatePts + 1) - 1
+        If Vector(c - NumberDatePts + 1) <> 0 Then
+            Let Results(c) = Vector(c) / Vector(c - NumberDatePts + 1) - 1
+        End If
     Next
     
-    Let SimpleAveragePerformance = Results
+    Let SimplePerformance = Results
 End Function
 
