@@ -150,6 +150,7 @@ Public Sub ExportAllComponents(TheWorkbook As Workbook)
     
     Let destDir = TheWorkbook.Path & "\" & TheWorkbook.Name & " Modules"
     
+    ' Delet the directory (if it exists already) where the exported components are stored
     If DirectoryExistsQ(destDir) Then
         If Not EmptyArrayQ(GetFileNames(destDir & "\*.*")) Then
             Call Kill(destDir & "\*.*")
@@ -198,11 +199,24 @@ End Sub
 Public Sub WriteUiCode(Wsht As Worksheet)
     Dim AShape As Shape
     Dim aShapeName As Variant
+    Dim anListObjectName As Variant
+    Dim AnAddress As String
+    Dim ANumberFormat As String
+    Dim AnAlignment As XlHAlign
+    Dim AWidth As Double
     Dim ShapesDict As Dictionary
     Dim PropertiesDict As Dictionary
+    Dim lo As ListObject
+    Dim r As Long
+    Dim LosDict As Dictionary            ' To store characteristics of listobjects in Wsht
+    Dim NumberFormatsArray() As String
+    Dim Alignments() As XlHAlign
+    Dim TheFormulas() As String
+    Dim TheColumnWidths() As Double
     
     Debug.Print Wsht.Name & " has " & Wsht.Shapes.Count & " shapes."
     
+    ' Store the properties of every shape in the worksheet
     Set ShapesDict = New Dictionary
     For Each AShape In Wsht.Shapes
         Set PropertiesDict = New Dictionary
@@ -221,10 +235,42 @@ Public Sub WriteUiCode(Wsht As Worksheet)
         
         Call ShapesDict.Add(Key:=AShape.Name, Item:=PropertiesDict)
     Next
+    
+    ' Store the properties of every listobject in the worksheet
+    Set LosDict = New Dictionary
+    For Each lo In Wsht.ListObjects
+        ReDim NumberFormatsArray(1 To lo.ListColumns.Count)
+        ReDim Alignments(1 To lo.ListColumns.Count)
+        ReDim TheFormulas(1 To lo.ListColumns.Count)
+        ReDim TheColumnWidths(1 To lo.ListColumns.Count)
+        
+        ' Store listcolumns' formats.  The format of the first cell in each listcolumn is
+        ' taken as the format of the entire listcolumn
+        For r = 1 To lo.ListColumns.Count
+            Let NumberFormatsArray(r) = lo.ListColumns(r).DataBodyRange(1, 1).NumberFormat
+            Let Alignments(r) = lo.ListColumns(r).DataBodyRange(1, 1).HorizontalAlignment
+            Let TheFormulas(r) = lo.ListColumns(r).DataBodyRange(1, 1).Formula
+            Let TheColumnWidths(r) = lo.ListColumns(r).Range.EntireColumn.Width
+        Next
 
+        Set PropertiesDict = New Dictionary
+        ' Store reference to listobject's upper-left cell
+        Call PropertiesDict.Add("UpperLeftCell", lo.Range(1, 1))
+        ' Store listobject's headers
+        Call PropertiesDict.Add("Headers", lo.HeaderRowRange.Value2)
+        Call PropertiesDict.Add("Formats", NumberFormatsArray)
+        Call PropertiesDict.Add("HorizontalAlignments", Alignments)
+        Call PropertiesDict.Add("Formulas", TheFormulas)
+        Call PropertiesDict.Add("ColumnWidths", TheColumnWidths)
+        
+        Call LosDict.Add(Key:=lo.Name, Item:=PropertiesDict)
+    Next
+    
+    ' Write the code to recreate the UI in the given worksheet
     Debug.Print "Public Sub ReCreateUi()"
     Debug.Print "   Dim aShape As Shape"
     Debug.Print "   Dim wsht As Worksheet"
+    Debug.Print "   Dim lo as ListObject"
     Debug.Print
     Debug.Print "   Set wsht = ThisWorkbook.Worksheets(""" & Wsht.Name & """)"
     Debug.Print "   For Each aShape In wsht.Shapes: Call aShape.Delete: Next"
@@ -240,10 +286,31 @@ Public Sub WriteUiCode(Wsht As Worksheet)
             Debug.Print vbTab & "Let aShape.Name = """ & aShapeName & """"
             Debug.Print vbTab & "Let aShape.TextFrame.Characters.Text = """ & _
                         ShapesDict.Item(aShapeName).Item("AlternativeText") & """"
-            Debug.Print vbTab & "Let aShape.OnAction = """ & ShapesDict.Item(aShapeName).Item("OnAction") & """"
+            Debug.Print vbTab & "Let aShape.OnAction = """ & _
+                        ShapesDict.Item(aShapeName).Item("OnAction") & """"
             Debug.Print
         End If
     Next
+    
+    For Each anListObjectName In LosDict.Keys
+        Let AnAddress = LosDict.Item(anListObjectName).Item("UpperLeftCell").Address
+        Debug.Print vbTab & "Call DumpInSheet(" & _
+                    Convert1DArrayOfStringToCode(LosDict.Item(anListObjectName).Item("Headers")) & _
+                    ", wsht.Range(""" & AnAddress & """))"
+        Debug.Print vbTab & "Set lo = AddListObject(wsht.Range(""" & AnAddress & """).CurrentRegion, """ & anListObjectName & """)"
+        
+        For r = 1 To LosDict.Item(anListObjectName).Item("Formats")
+            Let ANumberFormat = Part(LosDict.Item(anListObjectName).Item("Formats"), r)
+            Let AnAlignment = Part(LosDict.Item(anListObjectName).Item("HorizontalAlignments"), r)
+            Let AWidth = Part(LosDict.Item(anListObjectName).Item("ColumnWidths"), r)
+            Debug.Print vbTab & "Let lo.ListColumns(" & r & ").DataBodyRange.NumberFormat = """ & ANumberFormat & """"
+            Debug.Print vbTab & "Let lo.ListColumns(" & r & ").Range.EntireColumn.HorizontalAlignment = " & AnAlignment
+            Debug.Print vbTab & "Let lo.ListColumns(" & r & ").Range.EntireColumn.Width = " & AWidth
+            '***HERE add formulas
+        Next
+    Next
+    
+    Debug.Print
     Debug.Print "End Sub"
 End Sub
 
@@ -474,28 +541,36 @@ Public Function ParameterSplicingDelegate(FunctionName As String, n As Integer) 
 End Function
 
 ' Returns a VBA code representation of the 2D array of values in a range of cells.
-' The range should have at least two rows and two columns.  This function is meant to be used
-' create data test cases in a worksheet and then have the application automatically
-' write the VBA code representing the string.
-Public Function GetRangeAndWriteAsString(ARange As Range) As String
+' This function is meant to be used to create data test cases in a worksheet and then
+' have the application automatically write the VBA code representing the string.
+Public Function ConvertRangeToVbaArray(ARange As Range, Optional As2DArrayQ As Boolean = True) As String
     Dim r As Long
     Dim c As Long
-    Dim ReturnString As String
+    Dim RowStringArray() As String
+    Dim RowsArray() As String
     
-    Let ReturnString = ReturnString & "Array( _" & vbCrLf
+    ReDim RowsArray(1 To ARange.Rows.Count)
+    ReDim RowStringArray(1 To ARange.Columns.Count)
+    
     For r = 1 To ARange.Rows.Count
-        Let ReturnString = ReturnString & "Array("
-        For c = 1 To ARange.Columns.Count - 1
-            If ARange(r, c).NumberFormat = "@" Or StringQ(ARange(r, c).Value2) Then
-                Let ReturnString = ReturnString & """" & ARange(r, c).Value2 & """, "
+        For c = 1 To ARange.Columns.Count
+            If EmptyQ(ARange(r, c)) Then
+                Let RowStringArray(c) = "Empty"
+            ElseIf ARange(r, c).NumberFormat = "@" Or StringQ(ARange(r, c).Value2) Then
+                Let RowStringArray(c) = """" & ARange(r, c).Value2 & """"
             Else
-                Let ReturnString = ReturnString & ARange(r, c).Value2 & ", "
+                Let RowStringArray(c) = ARange(r, c).Value2
             End If
         Next c
-        Let ReturnString = ReturnString & "Array), _" & vbCrLf
+        
+        Let RowsArray(r) = "Array(" & Join(RowStringArray, ",") & ")"
+        
+        If Not As2DArrayQ Then
+            Let ConvertRangeToVbaArray = RowsArray(r)
+            Exit Function
+        End If
     Next r
-    Let ReturnString = ReturnString & "Array)"
     
-    Let GetRangeAndWriteAsString = ReturnString
+    Let ConvertRangeToVbaArray = "Array(" & Join(RowsArray, "," & vbCrLf) & ")"
 End Function
 

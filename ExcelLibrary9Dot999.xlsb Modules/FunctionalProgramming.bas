@@ -793,8 +793,8 @@ End Function
 ' RETURNED VALUE
 ' Returns all steps in the N iterations of the function on the given list
 Public Function FoldList(aFunctionName As String, _
-                     FirstArg As Variant, _
-                     AnArrayForSecondArgs As Variant) As Variant
+                         FirstArg As Variant, _
+                         AnArrayForSecondArgs As Variant) As Variant
     Dim i As Long
     Dim ResultArray() As Variant
                      
