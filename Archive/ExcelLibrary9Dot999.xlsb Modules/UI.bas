@@ -36,10 +36,10 @@ End Sub
 '
 ' RETURNED VALUE
 ' N/A
-Public Sub DeleteAllShapesInWorkSheet(Wsht As Worksheet)
-    Dim AShape As Shape
+Public Sub DeleteAllShapesInWorkSheet(wsht As Worksheet)
+    Dim aShape As Shape
 
-    For Each AShape In Wsht.Shapes: Call AShape.Delete: Next
+    For Each aShape In wsht.Shapes: Call aShape.Delete: Next
 End Sub
 
 ' DESCRIPTION
@@ -58,7 +58,7 @@ End Sub
 ' Form controls has value msoFormControl
 ' It also uses Shape.FormControlType which takes its value from enumeration
 ' xlFormControl
-Public Function CreateButtonsGrid(Wsht As Worksheet, _
+Public Function CreateButtonsGrid(wsht As Worksheet, _
                                   UpperLeftCell As Range, _
                                   NumPerRow As Integer, _
                                   HorizontalSpacing As Long, _
@@ -67,7 +67,7 @@ Public Function CreateButtonsGrid(Wsht As Worksheet, _
                                   ButtonHeight As Long, _
                                   ButtonCaptionsArray As Variant, _
                                   RoutineNamesOrLambdasArray As Variant) As Variant
-    Dim AShape As Shape
+    Dim aShape As Shape
     Dim r As Integer
     Dim c As Integer
     Dim TheLeft As Long
@@ -89,7 +89,7 @@ Public Function CreateButtonsGrid(Wsht As Worksheet, _
             Let TheTop = UpperLeftCell.Top + (r - 1) * (ButtonHeight + VerticalSpacing)
         
             ' Create the button
-            Set AShape = Wsht.Shapes.AddFormControl(xlButtonControl, _
+            Set aShape = wsht.Shapes.AddFormControl(xlButtonControl, _
                                                     TheLeft, _
                                                     TheTop, _
                                                     ButtonWidth, _
@@ -97,15 +97,15 @@ Public Function CreateButtonsGrid(Wsht As Worksheet, _
                                                                 
             ' Assign the macro
             If StringQ(Part(RoutineNamesOrLambdasArray, (r - 1) * NumPerRow + c)) Then
-                Let AShape.OnAction = Part(RoutineNamesOrLambdasArray, _
+                Let aShape.OnAction = Part(RoutineNamesOrLambdasArray, _
                                            (r - 1) * NumPerRow + c)
             Else
-                Let AShape.OnAction = Part(RoutineNamesOrLambdasArray, _
+                Let aShape.OnAction = Part(RoutineNamesOrLambdasArray, _
                                            (r - 1) * NumPerRow + c).FunctionName
             End If
             
             ' Set the button's text
-            Let Wsht.Buttons(AShape.Name).Caption = Part(ButtonCaptionsArray, _
+            Let wsht.Buttons(aShape.Name).Caption = Part(ButtonCaptionsArray, _
                                                          (r - 1) * NumPerRow + c)
         Next
     Next
@@ -122,7 +122,7 @@ Public Function CreateButtonsGrid(Wsht As Worksheet, _
             Let TheLeft = UpperLeftCell.Left + (c - 1) * (ButtonWidth + HorizontalSpacing)
 
             ' Create the button
-            Set AShape = Wsht.Shapes.AddFormControl(xlButtonControl, _
+            Set aShape = wsht.Shapes.AddFormControl(xlButtonControl, _
                                                     TheLeft, _
                                                     TheTop, _
                                                     ButtonWidth, _
@@ -131,15 +131,15 @@ Public Function CreateButtonsGrid(Wsht As Worksheet, _
             ' Assign the macro
             If StringQ(Part(RoutineNamesOrLambdasArray, _
                             Application.Quotient(n, NumPerRow) * NumPerRow + c)) Then
-                Let AShape.OnAction = Part(RoutineNamesOrLambdasArray, _
+                Let aShape.OnAction = Part(RoutineNamesOrLambdasArray, _
                                            Application.Quotient(n, NumPerRow) * NumPerRow + c)
             Else
-                Let AShape.OnAction = Part(RoutineNamesOrLambdasArray, _
+                Let aShape.OnAction = Part(RoutineNamesOrLambdasArray, _
                                            Application.Quotient(n, NumPerRow) * NumPerRow + c).FunctionName
             End If
 
             ' Set the button's text
-            Let Wsht.Buttons(AShape.Name).Caption = _
+            Let wsht.Buttons(aShape.Name).Caption = _
                 Part(ButtonCaptionsArray, Application.Quotient(n, NumPerRow) * NumPerRow + c)
         Next
     End If
@@ -173,7 +173,7 @@ Public Function DistributeButtonsHorizontally(ButtonArray As Variant, _
                                               TargetRange As Range) As Variant
     Dim HorizontalSpacing As Double
     Dim RangeVerticalCenter As Long
-    Dim AShape As Shape
+    Dim aShape As Shape
     Dim NewLefts() As Long
     Dim NewTops() As Long
     Dim c As Integer
@@ -214,10 +214,10 @@ Public Function DistributeButtonsHorizontally(ButtonArray As Variant, _
 
     Let RangeVerticalCenter = TargetRange.Top + CLng(TargetRange.Height / 2)
     For c = 1 To Length(ButtonArray)
-        Set AShape = Part(ButtonArray, c)
+        Set aShape = Part(ButtonArray, c)
     
         If SpaceCentersEquallyQ Then
-            Let NewLefts(c) = TargetRange.Left + HorizontalSpacing * c - CLng(AShape.Width / 2)
+            Let NewLefts(c) = TargetRange.Left + HorizontalSpacing * c - CLng(aShape.Width / 2)
         Else
 
             If c = 1 Then
@@ -226,7 +226,7 @@ Public Function DistributeButtonsHorizontally(ButtonArray As Variant, _
                 Let NewLefts(c) = NewLefts(c - 1) + Part(ButtonArray, c - 1).Width + HorizontalSpacing
             End If
         End If
-        Let NewTops(c) = RangeVerticalCenter - AShape.Height / 2
+        Let NewTops(c) = RangeVerticalCenter - aShape.Height / 2
         
         If NewLefts(c) < 1 Or NewTops(c) < 1 Then Exit Function
     Next
@@ -234,10 +234,10 @@ Public Function DistributeButtonsHorizontally(ButtonArray As Variant, _
     ' Store the coordinates, sizes of the buttons, and coordinates of centers
     ' Compute new left and top coordinates and reposition buttons
     For c = 1 To Length(ButtonArray)
-        Set AShape = Part(ButtonArray, c)
+        Set aShape = Part(ButtonArray, c)
         
-        Let AShape.Left = NewLefts(c)
-        Let AShape.Top = NewTops(c)
+        Let aShape.Left = NewLefts(c)
+        Let aShape.Top = NewTops(c)
     Next
 
     ' Return True to indicate success
@@ -323,7 +323,7 @@ Public Function SurroundControlsWithGroupBox(TheShapes() As Shape, _
     Dim LeftMostPos As Long
     Dim BottomMostPos As Long
     Dim RightMostPos As Long
-    Dim AShape As Variant
+    Dim aShape As Variant
     Dim GroupShape As Variant
     Dim ShapeWsht As Worksheet
     
@@ -331,8 +331,8 @@ Public Function SurroundControlsWithGroupBox(TheShapes() As Shape, _
     
     ' Exit with null if all the shapes are not in the same worksheet
     Set ShapeWsht = First(TheShapes).TopLeftCell.Worksheet
-    For Each AShape In TheShapes
-        If Not AShape.TopLeftCell.Worksheet Is ShapeWsht Then Exit Function
+    For Each aShape In TheShapes
+        If Not aShape.TopLeftCell.Worksheet Is ShapeWsht Then Exit Function
     Next
     
     ' Initialize the top, left, bottom, and right positions
@@ -342,14 +342,14 @@ Public Function SurroundControlsWithGroupBox(TheShapes() As Shape, _
     Let RightMostPos = First(TheShapes).Left + First(TheShapes).Width
     
     ' Loop through all the shapes to determine dimensions of group box
-    For Each AShape In TheShapes
-        If AShape.Top < TopMostPos Then Let TopMostPos = AShape.Top
-        If AShape.Left < LeftMostPos Then Let LeftMostPos = AShape.Left
-        If RightMostPos < AShape.Width + AShape.Left Then
-            Let RightMostPos = AShape.Left + AShape.Width
+    For Each aShape In TheShapes
+        If aShape.Top < TopMostPos Then Let TopMostPos = aShape.Top
+        If aShape.Left < LeftMostPos Then Let LeftMostPos = aShape.Left
+        If RightMostPos < aShape.Width + aShape.Left Then
+            Let RightMostPos = aShape.Left + aShape.Width
         End If
-        If BottomMostPos < AShape.Top + AShape.Height Then
-            Let BottomMostPos = AShape.Top + AShape.Height
+        If BottomMostPos < aShape.Top + aShape.Height Then
+            Let BottomMostPos = aShape.Top + aShape.Height
         End If
     Next
     

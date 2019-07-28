@@ -1040,14 +1040,138 @@ Public Function DirectoryTreeQ(arg As Variant) As Boolean
 End Function
 
 ' DESCRIPTION
-' Boolean function returns True if Returns True is its argument is 2D matrix with numeric entries.
+' Boolean function returns True if its argument is a reference to a shape
 '
 ' PARAMETERS
 ' 1. arg - Any Excel value or reference
 '
 ' RETURNED VALUE
-' Returns True or False depending on whether or not its argument can be considered a numerical matrix.
+' Returns True or False depending on whether or not its argument is a reference to a shape
 Public Function ShapeQ(arg As Variant) As Boolean
     Let ShapeQ = (VarType(arg) = vbObject) And (TypeName(arg) = "Shape")
 End Function
 
+' DESCRIPTION
+' Boolean function returns True if the given name has been defined in the given workshet
+'
+' PARAMETERS
+' 1. TheName - Name of the range
+' 2. Wsht - Reference to a worksheet
+'
+' RETURNED VALUE
+' Returns True or False depending on whether or not the given name exists in the given worksheet
+Public Function WorkSheetNameExistsQ(TheName As String, wsht As Worksheet) As Boolean
+    Dim AString As String
+
+    On Error GoTo ErrorHandler
+    
+    Let WorkSheetNameExistsQ = True
+
+    Let AString = wsht.Names(TheName).Name
+    
+    Exit Function
+    
+ErrorHandler:
+    Let WorkSheetNameExistsQ = False
+End Function
+
+' DESCRIPTION
+' Boolean function returns True if the given name has been defined in the given workbook
+'
+' PARAMETERS
+' 1. TheName - Name of the range
+' 2. Wbk - Reference to a worksheet
+'
+' RETURNED VALUE
+' Returns True or False depending on whether or not the given name exists in the given workbook
+Public Function WorkbookNameExistsQ(TheName As String, Wbk As Workbook) As Boolean
+    Dim AString As String
+
+    On Error GoTo ErrorHandler
+    
+    Let WorkbookNameExistsQ = True
+
+    Let AString = Wbk.Names(TheName).Name
+    
+    Exit Function
+    
+ErrorHandler:
+    Let WorkbookNameExistsQ = False
+End Function
+
+' DESCRIPTION
+' Boolean function returns True if the given worksheet name refers to a range
+'
+' PARAMETERS
+' 1. TheName - Name of the range
+' 2. Wsht - Reference to a worksheet
+'
+' RETURNED VALUE
+' True if the given name is for a worksheet name that refers to a range
+Public Function WorkSheetNameRefersToRangeQ(TheName As String, wsht As Worksheet) As Boolean
+    Dim ARange As Range
+
+    On Error GoTo ErrorHandler
+    
+    Let WorkSheetNameRefersToRangeQ = True
+
+    Set ARange = wsht.Names(TheName).RefersToRange
+    
+    Exit Function
+    
+ErrorHandler:
+    Let WorkSheetNameRefersToRangeQ = False
+End Function
+
+' DESCRIPTION
+' Boolean function returns True if the given workbook name refers to a range
+'
+' PARAMETERS
+' 1. TheName - Name of the range
+' 2. Wbk - Reference to a workbook
+'
+' RETURNED VALUE
+' True if the given name is for a workbook name that refers to a range
+Public Function WorkbookNameRefersToRangeQ(TheName As String, Wbk As Workbook) As Boolean
+    Dim ARange As Range
+
+    On Error GoTo ErrorHandler
+    
+    Let WorkbookNameRefersToRangeQ = True
+
+    Set ARange = Wbk.Names(TheName).RefersToRange
+    
+    Exit Function
+    
+ErrorHandler:
+    Let WorkbookNameRefersToRangeQ = False
+End Function
+
+' DESCRIPTION
+' Boolean function returns True if the first cell in the range has validation set.
+' Returns False if the argument is not initiazed
+'
+' PARAMETERS
+' 1. ARange (Range) - A reference to a range
+'
+' RETURNED VALUE
+' True if the first cell in the given range has been validated
+Public Function CellValidatedQ(ARange As Range) As Boolean
+    Dim v As Variant
+
+    Let CellValidatedQ = True
+    
+    If ARange Is Nothing Then
+        Let CellValidatedQ = False
+        Exit Function
+    End If
+    
+    On Error GoTo ErrorChecker
+    
+    Let v = ARange(1, 1).Validation.Type
+    
+    Exit Function
+    
+ErrorChecker:
+    Let CellValidatedQ = False
+End Function

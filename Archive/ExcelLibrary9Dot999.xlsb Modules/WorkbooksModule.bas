@@ -36,9 +36,9 @@ End Function
 
 ' This sub closes all workbooks other than the one whose reference has been passed
 Public Sub CloseAllOtherWorkbooks(CallingWorkbook As Workbook)
-    Dim wbk As Workbook
+    Dim Wbk As Workbook
     
-    For Each wbk In Application.Workbooks
-        If Not wbk Is CallingWorkbook Then Call wbk.Close(SaveChanges:=False)
+    For Each Wbk In Application.Workbooks
+        If Not Wbk Is CallingWorkbook Then Call Wbk.Close(SaveChanges:=False)
     Next
 End Sub

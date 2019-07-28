@@ -35,7 +35,7 @@ Dim MyPassword As String
 Const WM_SETTEXT = &HC
 Const BM_CLICK = &HF5
 
-Public Sub UnlockVbaAndAddReference(xlapp As Application, wbk As Workbook, MyPassword As String)
+Public Sub UnlockVbaAndAddReference(xlapp As Application, Wbk As Workbook, MyPassword As String)
     Call DetectExcel
     
     '~~> Launch the VBA Project Password window
@@ -98,16 +98,16 @@ Public Sub UnlockVbaAndAddReference(xlapp As Application, wbk As Workbook, MyPas
                     Call SendKeys("{ESC}")
                     DoEvents
                 Else
-                    Call MsgBox("The Handle of OK Button was not found for file " & wbk.Name)
+                    Call MsgBox("The Handle of OK Button was not found for file " & Wbk.Name)
                 End If
             Else
-                 Call MsgBox("Button's Window Not Found for file " & wbk.Name)
+                 Call MsgBox("Button's Window Not Found for file " & Wbk.Name)
             End If
         Else
-            Call MsgBox("The Edit Box was not found for file " & wbk.Name)
+            Call MsgBox("The Edit Box was not found for file " & Wbk.Name)
         End If
     Else
-        Call MsgBox("VBAProject Password Window was not Found" & "for file " & wbk.Name)
+        Call MsgBox("VBAProject Password Window was not Found" & "for file " & Wbk.Name)
     End If
 End Sub
 
@@ -196,10 +196,10 @@ End Sub
 ' This function handles all form controls.  It does not handle the
 ' data for dropdowns, etc.  It handles the size, location, and macros
 ' associated with the controls.
-Public Sub WriteUiCode(Wsht As Worksheet)
-    Dim AShape As Shape
+Public Sub WriteWorkSheetUiCode(wsht As Worksheet)
+    Dim aShape As Shape
     Dim aShapeName As Variant
-    Dim anListObjectName As Variant
+    Dim aListObjectName As Variant
     Dim AnAddress As String
     Dim ANumberFormat As String
     Dim AnAlignment As XlHAlign
@@ -212,33 +212,43 @@ Public Sub WriteUiCode(Wsht As Worksheet)
     Dim NumberFormatsArray() As String
     Dim Alignments() As XlHAlign
     Dim TheFormulas() As String
+    Dim AFormula As String
     Dim TheColumnWidths() As Double
+    Dim NamesDict As Dictionary
+    Dim AName As Name
+    Dim VarName As Variant
+    Dim ADict As Dictionary
     
-    Debug.Print Wsht.Name & " has " & Wsht.Shapes.Count & " shapes."
+    Debug.Print wsht.Name & " has " & wsht.Shapes.Count & " shapes."
     
     ' Store the properties of every shape in the worksheet
     Set ShapesDict = New Dictionary
-    For Each AShape In Wsht.Shapes
-        Set PropertiesDict = New Dictionary
-        
-        Call PropertiesDict.Add("Top", AShape.Top)
-        Call PropertiesDict.Add("Left", AShape.Left)
-        Call PropertiesDict.Add("Width", AShape.Width)
-        Call PropertiesDict.Add("Height", AShape.Height)
-        Call PropertiesDict.Add("AlternativeText", AShape.AlternativeText)
-        Call PropertiesDict.Add("OnAction", AShape.OnAction)
-        If AShape.Type = 4 Then
-            Call PropertiesDict.Add("XlFormControl", Null)
-        Else
-            Call PropertiesDict.Add("XlFormControl", AShape.FormControlType)
+    For Each aShape In wsht.Shapes
+        If aShape.Type = msoFormControl Then
+            If aShape.FormControlType <> xlDropDown Then
+                Set PropertiesDict = New Dictionary
+                
+                Call PropertiesDict.Add("Top", aShape.Top)
+                Call PropertiesDict.Add("Left", aShape.Left)
+                Call PropertiesDict.Add("Width", aShape.Width)
+                Call PropertiesDict.Add("Height", aShape.Height)
+                Call PropertiesDict.Add("AlternativeText", aShape.AlternativeText)
+                Call PropertiesDict.Add("OnAction", aShape.OnAction)
+                If aShape.Type = 4 Then
+                    Call PropertiesDict.Add("XlFormControl", Null)
+                Else
+                    Call PropertiesDict.Add("XlFormControl", aShape.FormControlType)
+                End If
+                
+                Call ShapesDict.Add(Key:=aShape.Name, Item:=PropertiesDict)
+            End If
         End If
-        
-        Call ShapesDict.Add(Key:=AShape.Name, Item:=PropertiesDict)
     Next
     
     ' Store the properties of every listobject in the worksheet
     Set LosDict = New Dictionary
-    For Each lo In Wsht.ListObjects
+    For Each lo In wsht.ListObjects
+        ' Pre-allocate arrays to hold listobject properties
         ReDim NumberFormatsArray(1 To lo.ListColumns.Count)
         ReDim Alignments(1 To lo.ListColumns.Count)
         ReDim TheFormulas(1 To lo.ListColumns.Count)
@@ -247,17 +257,22 @@ Public Sub WriteUiCode(Wsht As Worksheet)
         ' Store listcolumns' formats.  The format of the first cell in each listcolumn is
         ' taken as the format of the entire listcolumn
         For r = 1 To lo.ListColumns.Count
-            Let NumberFormatsArray(r) = lo.ListColumns(r).DataBodyRange(1, 1).NumberFormat
-            Let Alignments(r) = lo.ListColumns(r).DataBodyRange(1, 1).HorizontalAlignment
-            Let TheFormulas(r) = lo.ListColumns(r).DataBodyRange(1, 1).Formula
-            Let TheColumnWidths(r) = lo.ListColumns(r).Range.EntireColumn.Width
+            Let NumberFormatsArray(r) = lo.ListColumns(r).Range(1, 1).Offset(1, 0).NumberFormat
+            Let Alignments(r) = lo.ListColumns(r).Range(1, 1).Offset(1, 0).HorizontalAlignment
+            Let TheFormulas(r) = lo.ListColumns(r).Range(1, 1).Offset(1, 0).Formula
+            Let TheColumnWidths(r) = lo.ListColumns(r).Range.EntireColumn.ColumnWidth
         Next
 
         Set PropertiesDict = New Dictionary
         ' Store reference to listobject's upper-left cell
         Call PropertiesDict.Add("UpperLeftCell", lo.Range(1, 1))
         ' Store listobject's headers
-        Call PropertiesDict.Add("Headers", lo.HeaderRowRange.Value2)
+        Call PropertiesDict.Add("Headers", _
+                                IIf(Length(lo.HeaderRowRange.Value2) = 0, _
+                                   Array(lo.HeaderRowRange.Value2), _
+                                   lo.HeaderRowRange.Value2 _
+                                  ) _
+                               )
         Call PropertiesDict.Add("Formats", NumberFormatsArray)
         Call PropertiesDict.Add("HorizontalAlignments", Alignments)
         Call PropertiesDict.Add("Formulas", TheFormulas)
@@ -266,15 +281,66 @@ Public Sub WriteUiCode(Wsht As Worksheet)
         Call LosDict.Add(Key:=lo.Name, Item:=PropertiesDict)
     Next
     
+    ' Store the properties of every input cells represented as a named range in the worksheet
+    Set NamesDict = New Dictionary
+    For Each AName In wsht.Names
+        Set PropertiesDict = New Dictionary
+        
+        If Predicates.WorkSheetNameRefersToRangeQ(AName.Name, wsht) Then
+            Call PropertiesDict.Add("RefersToRangeQ", True)
+            Call PropertiesDict.Add("RefersTo", AName.RefersTo)
+            Call PropertiesDict.Add("RefersToRange", AName.RefersToRange)
+            Call PropertiesDict.Add("Style", """" & AName.RefersToRange.Style & """")
+            Call PropertiesDict.Add("NumberFormat", """" & AName.RefersToRange.NumberFormat & """")
+            Call PropertiesDict.Add("HorizontalAlignment", AName.RefersToRange.HorizontalAlignment)
+
+            ' Store xlValidateList type validation data
+            If CellValidatedQ(AName.RefersToRange) Then
+                If AName.RefersToRange.Validation.Type = xlValidateList Then
+                    Call PropertiesDict.Add("Type", "xlValidateList")
+                    Call PropertiesDict.Add("AlertStyle", "xlValidAlertStop")
+                    Call PropertiesDict.Add("Operator", "xlBetween")
+                    Call PropertiesDict.Add("Formula1", """" & Replace(AName.RefersToRange.Validation.Formula1, """", """""") & """")
+                    Call PropertiesDict.Add("IgnoreBlank", "True")
+                    Call PropertiesDict.Add("InCellDropdown", "True")
+                    Call PropertiesDict.Add("InputTitle", """""")
+                    Call PropertiesDict.Add("ErrorTitle", """""")
+                    Call PropertiesDict.Add("InputMessage", """""")
+                    Call PropertiesDict.Add("ErrorMessage", """""")
+                    Call PropertiesDict.Add("ShowInput", "True")
+                    Call PropertiesDict.Add("ShowError", "True")
+                End If
+            End If
+        Else
+            Call PropertiesDict.Add("RefersToRangeQ", False)
+            Call PropertiesDict.Add("TheRange", AName.RefersTo)
+        End If
+        
+        Call NamesDict.Add(Key:=AName.Name, Item:=PropertiesDict)
+    Next
+    
     ' Write the code to recreate the UI in the given worksheet
     Debug.Print "Public Sub ReCreateUi()"
-    Debug.Print "   Dim aShape As Shape"
-    Debug.Print "   Dim wsht As Worksheet"
-    Debug.Print "   Dim lo as ListObject"
+    Debug.Print vbTab & "Dim aShape As Shape"
+    Debug.Print vbTab & "Dim wsht As Worksheet"
+    Debug.Print vbTab & "Dim lo as ListObject"
+    Debug.Print vbTab & "Dim ARange as Range"
     Debug.Print
-    Debug.Print "   Set wsht = ThisWorkbook.Worksheets(""" & Wsht.Name & """)"
-    Debug.Print "   For Each aShape In wsht.Shapes: Call aShape.Delete: Next"
+    Debug.Print vbTab & "Set wsht = ThisWorkbook.Worksheets(""" & wsht.Name & """)"
+    Debug.Print vbTab & "For Each aShape In wsht.Shapes"
+    Debug.Print vbTab & vbTab & "If aShape.Type = msoFormControl Then"
+    Debug.Print vbTab & vbTab & vbTab & "If aShape.FormControlType <> xlDropDown Then"
+    Debug.Print vbTab & vbTab & vbTab & vbTab & "Call aShape.Delete"
+    Debug.Print vbTab & vbTab & vbTab & "End If"
+    Debug.Print vbTab & vbTab & "Else"
+    Debug.Print vbTab & vbTab & vbTab & "Call aShape.Delete"
+    Debug.Print vbTab & vbTab & "End If"
+    Debug.Print vbTab & "Next"
     Debug.Print
+    Debug.Print vbTab & "For each lo in wsht.ListObjects: Call lo.delete: Next"
+    Debug.Print
+    
+    ' Write the code to insert the shapes
     For Each aShapeName In ShapesDict.Keys
         If Not IsNull(ShapesDict.Item(aShapeName).Item("XlFormControl")) Then
             Debug.Print vbTab & "Set aShape = wsht.Shapes.AddFormControl(" & _
@@ -292,25 +358,73 @@ Public Sub WriteUiCode(Wsht As Worksheet)
         End If
     Next
     
-    For Each anListObjectName In LosDict.Keys
-        Let AnAddress = LosDict.Item(anListObjectName).Item("UpperLeftCell").Address
+    ' Write the code to insert the listobjects
+    For Each aListObjectName In LosDict.Keys
+        Let AnAddress = LosDict.Item(aListObjectName).Item("UpperLeftCell").Address
         Debug.Print vbTab & "Call DumpInSheet(" & _
-                    Convert1DArrayOfStringToCode(LosDict.Item(anListObjectName).Item("Headers")) & _
+                    Convert1DArrayOfStringToCode(LosDict.Item(aListObjectName).Item("Headers")) & _
                     ", wsht.Range(""" & AnAddress & """))"
-        Debug.Print vbTab & "Set lo = AddListObject(wsht.Range(""" & AnAddress & """).CurrentRegion, """ & anListObjectName & """)"
+        Debug.Print vbTab & "Set lo = AddListObject(wsht.Range(""" & AnAddress & _
+                    """), """ & aListObjectName & """)"
         
-        For r = 1 To LosDict.Item(anListObjectName).Item("Formats")
-            Let ANumberFormat = Part(LosDict.Item(anListObjectName).Item("Formats"), r)
-            Let AnAlignment = Part(LosDict.Item(anListObjectName).Item("HorizontalAlignments"), r)
-            Let AWidth = Part(LosDict.Item(anListObjectName).Item("ColumnWidths"), r)
-            Debug.Print vbTab & "Let lo.ListColumns(" & r & ").DataBodyRange.NumberFormat = """ & ANumberFormat & """"
+        For r = 1 To Length(LosDict.Item(aListObjectName).Item("Formats"))
+            Let ANumberFormat = Part(LosDict.Item(aListObjectName).Item("Formats"), r)
+            Let AnAlignment = Part(LosDict.Item(aListObjectName).Item("HorizontalAlignments"), r)
+            Let AWidth = Part(LosDict.Item(aListObjectName).Item("ColumnWidths"), r)
+            Let AFormula = Part(LosDict.Item(aListObjectName).Item("Formulas"), r)
+            
+            Debug.Print vbTab & "Let lo.ListColumns(" & r & ").range(1,1).offset(1,0).NumberFormat = """ & ANumberFormat & """"
             Debug.Print vbTab & "Let lo.ListColumns(" & r & ").Range.EntireColumn.HorizontalAlignment = " & AnAlignment
-            Debug.Print vbTab & "Let lo.ListColumns(" & r & ").Range.EntireColumn.Width = " & AWidth
-            '***HERE add formulas
+            Debug.Print vbTab & "Let lo.ListColumns(" & r & ").Range.EntireColumn.ColumnWidth = " & AWidth
+            If Left(Trim(AFormula), 1) = "=" Then
+                Debug.Print vbTab & "Let lo.ListColumns(" & r & ").range(1,1).offset(1,0).Formula = """ & AFormula & """"
+            End If
         Next
+        
+        Debug.Print
     Next
     
-    Debug.Print
+    ' Write the code to insert the names
+    For Each VarName In NamesDict.Keys
+        If WorkSheetNameExistsQ(CStr(VarName), wsht) Then Call wsht.Names(VarName).Delete
+        
+        Set ADict = NamesDict.Item(VarName)
+    
+        Call wsht.Names.Add(Name:=VarName, RefersTo:=ADict.Item("RefersTo"))
+    
+        If ADict.Item("RefersToRangeQ") Then
+            Let AnAddress = ADict.Item("RefersToRange").Address
+            Debug.Print vbTab & "Set ARange = wsht.Range(""" & AnAddress & """)"
+            
+            ' Add formatting to ranged referred to by the name
+            Debug.Print vbTab & "With ARange"
+            Debug.Print vbTab & vbTab & "let .Style = " & ADict.Item("Style")
+            Debug.Print vbTab & vbTab & "let .NumberFormat = " & ADict.Item("NumberFormat")
+            Debug.Print vbTab & vbTab & "let .HorizontalAlignment = " & ADict.Item("HorizontalAlignment")
+            Debug.Print vbTab & "End With"
+            Debug.Print
+
+            ' Add validation
+            If ADict.Exists("Type") Then
+                Debug.Print vbTab & "With ARange.Validation"
+                Debug.Print vbTab & vbTab & "Call .Delete"
+                Debug.Print vbTab & vbTab & "Call .Add(Type:=" & ADict.Item("Type") & ", _"
+                Debug.Print vbTab & vbTab & "          AlertStyle:=" & ADict.Item("AlertStyle") & " , _"
+                Debug.Print vbTab & vbTab & "          Operator:=" & ADict.Item("Operator") & " , _"
+                Debug.Print vbTab & vbTab & "          Formula1:=" & ADict.Item("Formula1") & ")"
+                Debug.Print vbTab & vbTab & "Let .IgnoreBlank=" & ADict.Item("IgnoreBlank")
+                Debug.Print vbTab & vbTab & "Let .InCellDropdown=" & ADict.Item("InCellDropdown")
+                Debug.Print vbTab & vbTab & "Let .InputTitle=" & ADict.Item("InputTitle")
+                Debug.Print vbTab & vbTab & "Let .ErrorTitle=" & ADict.Item("ErrorTitle")
+                Debug.Print vbTab & vbTab & "Let .InputMessage=" & ADict.Item("InputMessage")
+                Debug.Print vbTab & vbTab & "Let .ErrorMessage=" & ADict.Item("ErrorMessage")
+                Debug.Print vbTab & vbTab & "Let .ShowInput=" & ADict.Item("ShowInput")
+                Debug.Print vbTab & vbTab & "Let .ShowError=" & ADict.Item("ShowError")
+                Debug.Print vbTab & "End With"
+            End If
+        End If
+    Next
+    
     Debug.Print "End Sub"
 End Sub
 
@@ -540,9 +654,28 @@ Public Function ParameterSplicingDelegate(FunctionName As String, n As Integer) 
                                           ).FunctionName
 End Function
 
-' Returns a VBA code representation of the 2D array of values in a range of cells.
-' This function is meant to be used to create data test cases in a worksheet and then
-' have the application automatically write the VBA code representing the string.
+' DESCRIPTION
+' Returns a string representing standard VBA code to create an array representing
+' the range of values.  This is useful when creating test cases in a worksheet
+' and the converting it to a VBA array.  Strings are quoted properly.
+'
+' Suppose that worksheet TempComputation has a 2 by 2 range in starting in cell [A1]
+' with the following values [{1,2; 10, 20}]. This function returns the string
+' Array(Array(1, 2), Array(10, 20)).  If cell [B2].Value = "Pablo", the function
+' would have returned Array(Array(1,2), Array(10, "Pablo")).  Quote are added if
+' a cell is formatted as text or the predicate IsText() returns true.
+'
+' No error checking is done to ensure the dimensions of the range make sense.
+'
+' PARAMETERS
+' 1. ARange (Range) - Reference to the range
+' 2. As2DArrayQ (Optional Boolean = True) - Assumes the string representation if
+'    for an array of 1D arrays of the the same length.  Otherwise, the function
+'    returns a 1D array. This case only makes sense when the range passed
+'    has a single row.
+'
+' RETURNED VALUE
+' A string with the VBA code to create the array represented by the given range
 Public Function ConvertRangeToVbaArray(ARange As Range, Optional As2DArrayQ As Boolean = True) As String
     Dim r As Long
     Dim c As Long
@@ -552,7 +685,9 @@ Public Function ConvertRangeToVbaArray(ARange As Range, Optional As2DArrayQ As B
     ReDim RowsArray(1 To ARange.Rows.Count)
     ReDim RowStringArray(1 To ARange.Columns.Count)
     
+    ' Loop over the range's rows
     For r = 1 To ARange.Rows.Count
+        ' Loop over the range's columns. Make sure to double quote each cell if it is a string
         For c = 1 To ARange.Columns.Count
             If EmptyQ(ARange(r, c)) Then
                 Let RowStringArray(c) = "Empty"
@@ -563,8 +698,10 @@ Public Function ConvertRangeToVbaArray(ARange As Range, Optional As2DArrayQ As B
             End If
         Next c
         
+        ' Convert the 1D array we just created for this row into a string
         Let RowsArray(r) = "Array(" & Join(RowStringArray, ",") & ")"
         
+        ' Exit return this row if the user requested the result be returned as a 1D VBA array
         If Not As2DArrayQ Then
             Let ConvertRangeToVbaArray = RowsArray(r)
             Exit Function

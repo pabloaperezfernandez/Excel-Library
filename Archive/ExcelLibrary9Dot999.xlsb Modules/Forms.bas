@@ -3,7 +3,7 @@ Option Explicit
 Option Base 1
 
 ' This sub centers a shape in both dimensions relative to a given range (provided the dimensions work out)
-Public Sub CenterShapeInRange(AShape As Shape, ARange As Range)
+Public Sub CenterShapeInRange(aShape As Shape, ARange As Range)
     Dim TheShapeLeftPos As Integer
     Dim TheShapeLeftPosOffset As Integer
     Dim TheShapeTopPos As Integer
@@ -12,8 +12,8 @@ Public Sub CenterShapeInRange(AShape As Shape, ARange As Range)
     Dim TheShape As Shape
     Dim var As Variant
     
-    Let AShape.Left = ARange.Left + Application.Max((ARange.Width - AShape.Width) / 2, 0)
-    Let AShape.Top = ARange.Top + Application.Max((ARange.Height - AShape.Height) / 2, 0)
+    Let aShape.Left = ARange.Left + Application.Max((ARange.Width - aShape.Width) / 2, 0)
+    Let aShape.Top = ARange.Top + Application.Max((ARange.Height - aShape.Height) / 2, 0)
 End Sub
 
 Public Sub FormManipulationExample()

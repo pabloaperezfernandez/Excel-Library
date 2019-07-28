@@ -13,9 +13,9 @@ Public Function AddListObject(ARangeInCurrentRegion As Range, _
                               Optional ListObjectName As String = Empty, _
                               Optional UseCurrentRegionQ As Boolean = True) As ListObject
     Dim lo As ListObject
-    Dim Wsht As Worksheet
+    Dim wsht As Worksheet
     
-    Set Wsht = ARangeInCurrentRegion.Parent
+    Set wsht = ARangeInCurrentRegion.Parent
     
     ' Exit if ARange has not been initialized
     If ARangeInCurrentRegion Is Nothing Then
@@ -23,7 +23,7 @@ Public Function AddListObject(ARangeInCurrentRegion As Range, _
         Exit Function
     End If
     
-    Set lo = Wsht.ListObjects.Add(SourceType:=xlSrcRange, _
+    Set lo = wsht.ListObjects.Add(SourceType:=xlSrcRange, _
                                   Source:=IIf(UseCurrentRegionQ, ARangeInCurrentRegion.CurrentRegion, ARangeInCurrentRegion), _
                                   XlListObjectHasHeaders:=xlYes)
     

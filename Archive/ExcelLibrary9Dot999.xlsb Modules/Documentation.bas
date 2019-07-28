@@ -20,7 +20,7 @@ Option Base 1
 '
 ' RETURNED VALUE
 ' Produces the requested documentation file
-Public Sub GenerateOrgDocumentation(wbk As Workbook, _
+Public Sub GenerateOrgDocumentation(Wbk As Workbook, _
                                     FullPathFileName As String, _
                                     AuthorName As String, _
                                     AuthorEmail As String)
@@ -38,7 +38,7 @@ Public Sub GenerateOrgDocumentation(wbk As Workbook, _
     
     Open FullPathFileName For Output As #1
     
-    Print #1, "#+TITLE: Functional Documentation for " & wbk.Name
+    Print #1, "#+TITLE: Functional Documentation for " & Wbk.Name
     Print #1, "#+AUTHOR: " & AuthorName
     Print #1, "#+DATE: " & Format(Now, "YYYYMMDD")
     Print #1, "#+EMAIL: " & AuthorEmail
@@ -56,22 +56,22 @@ Public Sub GenerateOrgDocumentation(wbk As Workbook, _
     
     Let Application.StatusBar = "References Done"
     
-    For Each AModuleName In GetModuleNames(wbk)
+    For Each AModuleName In GetModuleNames(Wbk)
         Let Application.StatusBar = "Working on module " & AModuleName
         
         Print #1, "* " & AModuleName
         Print #1, "#+BEGIN_EXAMPLE"
-        Print #1, GetModuleDocumentation(wbk, CStr(AModuleName))
+        Print #1, GetModuleDocumentation(Wbk, CStr(AModuleName))
         Print #1, "#+END_EXAMPLE"
         
-        For Each ARoutineName In GetRoutineNames(wbk, CStr(AModuleName))
+        For Each ARoutineName In GetRoutineNames(Wbk, CStr(AModuleName))
             Let Application.StatusBar = "Working on routine " & ARoutineName
         
             Print #1, "** " & ARoutineName
-            Print #1, GetRoutineDeclaration(wbk, CStr(AModuleName), _
+            Print #1, GetRoutineDeclaration(Wbk, CStr(AModuleName), _
                                             CStr(ARoutineName))
             Print #1, "#+BEGIN_EXAMPLE"
-            Print #1, GetRoutineDocumentation(wbk, CStr(AModuleName), _
+            Print #1, GetRoutineDocumentation(Wbk, CStr(AModuleName), _
                                               CStr(ARoutineName))
             Print #1, "#+END_EXAMPLE"
         Next
@@ -378,7 +378,7 @@ End Function
 ' reference names. Its items are dictionaries containing full paths
 ' and descriptions. Each inner dictionary has two keys: "FullPath"
 ' and "Description"
-Public Function GetReferences(wbk As Workbook) As Dictionary
+Public Function GetReferences(Wbk As Workbook) As Dictionary
     Dim AReference As Reference
     Dim ADict As Dictionary
     Dim RowDict As Dictionary
@@ -389,13 +389,13 @@ Public Function GetReferences(wbk As Workbook) As Dictionary
     ' Error Check: Exit with Null if project has no references
     ' This is virtually impossible since all workbooks contain
     ' some default references by default
-    If wbk.VBProject.References.Count = 0 Then Exit Function
+    If Wbk.VBProject.References.Count = 0 Then Exit Function
 
     ' Pre-allocate array to hold references
-    ReDim ReferenceNames(1 To wbk.VBProject.References.Count, 1 To 3)
+    ReDim ReferenceNames(1 To Wbk.VBProject.References.Count, 1 To 3)
     
     ' For each reference get its name, full path, and description
-    For Each AReference In wbk.VBProject.References
+    For Each AReference In Wbk.VBProject.References
         If Not (AReference.BuiltIn Or ADict.Exists(Key:=AReference.Name)) Then
             ' Instantiate dictionary to store this reference's data
             Set RowDict = New Dictionary

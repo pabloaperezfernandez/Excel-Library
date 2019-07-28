@@ -165,8 +165,8 @@ End Sub
 '
 ' RETURNED VALUE
 ' None
-Public Sub UnprotectWorksheet(Wsht As Worksheet, ThePassword As String)
-    Call Wsht.Unprotect(ThePassword)
+Public Sub UnprotectWorksheet(wsht As Worksheet, ThePassword As String)
+    Call wsht.Unprotect(ThePassword)
 End Sub
 
 ' DESCRIPTION
@@ -178,8 +178,8 @@ End Sub
 '
 ' RETURNED VALUE
 ' None
-Public Sub ProtectWorksheet(Wsht As Worksheet, ThePassword As String)
-    Call Wsht.Protect(Password:=ThePassword, _
+Public Sub ProtectWorksheet(wsht As Worksheet, ThePassword As String)
+    Call wsht.Protect(Password:=ThePassword, _
                       DrawingObjects:=True, _
                       Contents:=True, _
                       Scenarios:=True, _

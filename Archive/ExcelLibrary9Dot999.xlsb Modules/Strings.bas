@@ -241,6 +241,7 @@ End Function
 
 ' DESCRIPTION
 ' Returns a fully qualified sub/function name in the given module and workbook
+' A fully qualified routine name has the form: "'MyBook.xlsb'!MyModule.MyFunctionName"
 '
 ' EXAMPLE
 ' RoutineName(wbk, "MyModule", "MyFunc") -> "'" & wbk.name & "'!MyModule.MyFunc"
@@ -256,9 +257,10 @@ Public Function MakeRoutineName(AWorkbook As Workbook, _
                                 ModuleName As String, _
                                 RoutineName As String) As String
     Let MakeRoutineName = "'" & AWorkbook.Name & "'!" & _
-                          IIf(RoutineName = "", _
-                          RoutineName, _
-                          ModuleName & "." & RoutineName)
+                          IIf(ModuleName = "", _
+                              RoutineName, _
+                              ModuleName & "." & RoutineName _
+                             )
 End Function
 
 ' DESCRIPTION

@@ -577,26 +577,26 @@ Public Sub TestPredicatesDimensionedQ()
     Dim a() As Variant
     Dim b(1 To 2) As Variant
     Dim c As Integer
-    Dim wbk As Workbook
+    Dim Wbk As Workbook
     
     Debug.Assert DimensionedQ(EmptyArray())
     Debug.Assert Not DimensionedQ(a)
     Debug.Assert DimensionedQ(b)
     Debug.Assert Not DimensionedQ(c)
-    Debug.Assert Not DimensionedQ(wbk)
+    Debug.Assert Not DimensionedQ(Wbk)
 End Sub
 
 Public Sub TestPredicatesEmptyArrayQ()
     Dim a() As Variant
     Dim b(1 To 2) As Variant
     Dim c As Integer
-    Dim wbk As Workbook
+    Dim Wbk As Workbook
     
     Debug.Assert EmptyArrayQ(EmptyArray())
     Debug.Assert Not EmptyArrayQ(a)
     Debug.Assert Not EmptyArrayQ(b)
     Debug.Assert Not EmptyArrayQ(c)
-    Debug.Assert Not EmptyArrayQ(wbk)
+    Debug.Assert Not EmptyArrayQ(Wbk)
 End Sub
 
 Public Sub TestPredicatesAtomicArrayQ()
@@ -3553,7 +3553,7 @@ End Sub
 ' UI
 '********************************************************************************************
 Public Sub TestsUiEqualizeFormControlButtonSizes()
-    Dim AShape As Shape
+    Dim aShape As Shape
 
     Call CreateButtonsGrid(TempComputation, Range("B2"), _
                            3, 10, 10, 40, 40, _
@@ -3562,9 +3562,9 @@ Public Sub TestsUiEqualizeFormControlButtonSizes()
   
     Call EqualizeFormControlButtonSizes(CastShapesToArray(TempComputation.Shapes), 50, 60)
     
-    For Each AShape In TempComputation.Shapes
-        Debug.Assert AShape.Width = 50
-        Debug.Assert AShape.Height = 60
+    For Each aShape In TempComputation.Shapes
+        Debug.Assert aShape.Width = 50
+        Debug.Assert aShape.Height = 60
     Next
     
     Call UI.DeleteShapes(CastShapesToArray(TempComputation.Shapes))
@@ -3634,7 +3634,7 @@ End Sub
 
 Public Sub TestUiSurroundControlsWithGroupBox()
     Dim i As Integer
-    Dim AShape As Shape
+    Dim aShape As Shape
     Dim ShapeArray(1 To 3) As Shape
     
     ' Delete all shapes already in worksheet TempComputation

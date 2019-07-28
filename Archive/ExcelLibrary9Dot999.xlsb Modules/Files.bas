@@ -319,8 +319,8 @@ End Sub
 '
 ' RETURNED VALUE
 ' Full path of the given workbook
-Public Function WorkbookFullPath(wbk As Workbook) As String
-    Let WorkbookFullPath = FileNameJoin(Array(wbk.Path, ThisWorkbook.Name))
+Public Function WorkbookFullPath(Wbk As Workbook) As String
+    Let WorkbookFullPath = FileNameJoin(Array(Wbk.Path, ThisWorkbook.Name))
 End Function
 
 ' DESCRIPTION
