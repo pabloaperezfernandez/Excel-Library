@@ -13,16 +13,16 @@ Option Compare Text
 ' and wait for that process to end before returning to the caller.
 '''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''
 '''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''
-Private Declare Function WaitForSingleObject Lib "kernel32" ( _
+Private Declare PtrSafe Function WaitForSingleObject Lib "kernel32" ( _
     ByVal hHandle As Long, _
     ByVal dwMilliseconds As Long) As Long
 
-Private Declare Function OpenProcess Lib "kernel32.dll" ( _
+Private Declare PtrSafe Function OpenProcess Lib "kernel32.dll" ( _
     ByVal dwDesiredAccess As Long, _
     ByVal bInheritHandle As Long, _
     ByVal dwProcessId As Long) As Long
 
-Private Declare Function CloseHandle Lib "kernel32" ( _
+Private Declare PtrSafe Function CloseHandle Lib "kernel32" ( _
     ByVal hObject As Long) As Long
 
 Private Const SYNCHRONIZE = &H100000
